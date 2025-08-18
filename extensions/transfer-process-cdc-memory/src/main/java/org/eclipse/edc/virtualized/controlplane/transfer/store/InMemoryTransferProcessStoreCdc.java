@@ -17,6 +17,7 @@ package org.eclipse.edc.virtualized.controlplane.transfer.store;
 import org.eclipse.edc.connector.controlplane.defaults.storage.transferprocess.InMemoryTransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.virtualized.controlplane.transfer.spi.TransferProcessChangeListener;
 
 import java.time.Clock;
@@ -36,15 +37,19 @@ public class InMemoryTransferProcessStoreCdc extends InMemoryTransferProcessStor
     }
 
     @Override
-    public void save(TransferProcess entity) {
+    public StoreResult<Void> save(TransferProcess entity) {
         var prev = findById(entity.getId());
-        super.save(entity);
+        var result = super.save(entity);
+        if (result.failed()) {
+            return result;
+        }
         if (prev == null || prev.getState() != entity.getState()) {
             for (var changeListener : changeListeners) {
                 changeListener.onChange(prev, entity);
 
             }
         }
+        return StoreResult.success();
     }
 
     @Override

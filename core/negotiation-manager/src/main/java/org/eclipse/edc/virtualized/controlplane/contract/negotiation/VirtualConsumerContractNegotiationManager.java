@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.C
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
@@ -49,7 +50,7 @@ public class VirtualConsumerContractNegotiationManager implements ConsumerContra
 
     @Override
     @WithSpan
-    public StatusResult<ContractNegotiation> initiate(ContractRequest request) {
+    public StatusResult<ContractNegotiation> initiate(ParticipantContext participantContext, ContractRequest request) {
         var id = UUID.randomUUID().toString();
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(id)
@@ -59,6 +60,7 @@ public class VirtualConsumerContractNegotiationManager implements ConsumerContra
                 .callbackAddresses(request.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(CONSUMER)
+                .participantContextId(participantContext.getParticipantContextId())
                 .build();
 
         negotiation.addContractOffer(request.getContractOffer());

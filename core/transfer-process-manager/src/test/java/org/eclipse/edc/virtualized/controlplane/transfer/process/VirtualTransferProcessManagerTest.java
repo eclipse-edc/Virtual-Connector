@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProce
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -61,7 +62,7 @@ public class VirtualTransferProcessManagerTest {
 
         var captor = ArgumentCaptor.forClass(TransferProcess.class);
 
-        var result = transferProcessManager.initiateConsumerRequest(transferRequest);
+        var result = transferProcessManager.initiateConsumerRequest(new ParticipantContext("participantContextId"), transferRequest);
 
         assertThat(result).isSucceeded().isNotNull();
         verify(store).save(captor.capture());
@@ -70,6 +71,7 @@ public class VirtualTransferProcessManagerTest {
         assertThat(transferProcess.getCorrelationId()).isNull();
         assertThat(transferProcess.getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
         assertThat(transferProcess.getAssetId()).isEqualTo("assetId");
+        assertThat(transferProcess.getParticipantContextId()).isEqualTo("participantContextId");
         verify(listener).initiated(any());
     }
 
@@ -84,7 +86,7 @@ public class VirtualTransferProcessManagerTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("test").build())
                 .build();
 
-        var result = transferProcessManager.initiateConsumerRequest(transferRequest);
+        var result = transferProcessManager.initiateConsumerRequest(new ParticipantContext("participantContextId"), transferRequest);
 
         assertThat(result).isFailed();
     }

@@ -2,16 +2,16 @@
 format.version = "1.1"
 
 [versions]
-edc = "0.14.0-SNAPSHOT"
+edc = "0.15.0-SNAPSHOT"
 awaitility = "4.3.0"
 restAssured = "5.5.5"
 testcontainers = "1.21.3"
 rsApi = "4.0.0"
-nimbus = "10.4"
+nimbus = "10.5"
 opentelemetry = "2.18.0"
 postgres = "42.7.7"
 parsson = "1.1.7"
-nats = "2.21.4"
+nats = "2.22.0"
 
 [libraries]
 # EDC modules
@@ -54,6 +54,6 @@ parsson = { module = "org.eclipse.parsson:parsson", version.ref = "parsson" }
 nats-client = { module = "io.nats:jnats", version.ref = "nats" }
 
 [plugins]
-edc-build = { id = "org.eclipse.edc.edc-build", version = "0.0.4" }
+edc-build = { id = "org.eclipse.edc.edc-build", version = "0.1.1" }
 shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 docker = { id = "com.bmuschko.docker-remote-api", version = "9.4.0" }

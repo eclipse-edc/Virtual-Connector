@@ -17,6 +17,7 @@ package org.eclipse.edc.virtualized.controlplane.contract.negotiation.store;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.virtualized.controlplane.contract.spi.negotiation.ContractNegotiationChangeListener;
 
 import java.time.Clock;
@@ -34,17 +35,21 @@ public class InMemoryContractNegotiationStoreCdc extends InMemoryContractNegotia
     public InMemoryContractNegotiationStoreCdc(Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
         super(clock, criterionOperatorRegistry);
     }
-    
+
     @Override
-    public void save(ContractNegotiation entity) {
+    public StoreResult<Void> save(ContractNegotiation entity) {
         var prev = findById(entity.getId());
-        super.save(entity);
+        var result = super.save(entity);
+        if (result.failed()) {
+            return result;
+        }
         if (prev == null || prev.getState() != entity.getState()) {
             for (var changeListener : changeListeners) {
                 changeListener.onChange(prev, entity);
 
             }
         }
+        return StoreResult.success();
     }
 
     @Override

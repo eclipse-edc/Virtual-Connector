@@ -39,7 +39,7 @@ jobs:
   verify-license-headers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: "Check for files without a license header"
         run: |-
           # checks all java, yaml, kts and sql files for an Apache 2.0 license header
@@ -54,7 +54,7 @@ jobs:
   verify-checkstyle:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-java
       - name: Run Checkstyle
         run: |
@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ verify-license-headers ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-java
       - name: Run Unit tests
         run: ./gradlew test
@@ -72,7 +72,7 @@ jobs:
   Postgresql-Integration-Tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-java
       - name: Postgresql Tests
         run: ./gradlew test -DincludeTags="PostgresqlIntegrationTest"
@@ -80,7 +80,7 @@ jobs:
   End-To-End-Tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-java
       - name: End to End Integration Tests
         run: ./gradlew test -DincludeTags="EndToEndTest"

@@ -251,6 +251,7 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
                             .consumerId(negotiation.getCounterPartyId())
                             .policy(contractPolicy)
                             .assetId(lastOffer.getAssetId())
+                            .participantContextId(negotiation.getParticipantContextId())
                             .build();
                 });
 

@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProce
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -57,7 +58,7 @@ public class VirtualTransferProcessManager implements TransferProcessManager {
 
 
     @Override
-    public StatusResult<TransferProcess> initiateConsumerRequest(TransferRequest transferRequest) {
+    public StatusResult<TransferProcess> initiateConsumerRequest(ParticipantContext participantContext, TransferRequest transferRequest) {
         var id = Optional.ofNullable(transferRequest.getId()).orElseGet(() -> UUID.randomUUID().toString());
         var existingTransferProcess = store.findForCorrelationId(id);
         if (existingTransferProcess != null) {
@@ -82,6 +83,7 @@ public class VirtualTransferProcessManager implements TransferProcessManager {
                 .privateProperties(transferRequest.getPrivateProperties())
                 .callbackAddresses(transferRequest.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
+                .participantContextId(participantContext.getParticipantContextId())
                 .build();
 
         observable.invokeForEach(l -> l.preCreated(process));
