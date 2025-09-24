@@ -63,8 +63,8 @@ public class NatsEndToEndExtension implements BeforeAllCallback, AfterAllCallbac
         js = conn.jetStream();
     }
 
-
-    public void createStream(String streamName, String subject) {
+    
+    public void createStream(String streamName, String... subject) {
         var streamConfig = StreamConfiguration.builder()
                 .name(streamName)
                 .subjects(subject)

@@ -18,15 +18,13 @@ plugins {
 
 dependencies {
     api(libs.edc.spi.core)
-    api(libs.edc.spi.contract)
     api(libs.edc.spi.transfer)
-    api(libs.edc.spi.transaction.datasource)
     api(project(":spi:v-core-spi"))
-    implementation(libs.postgres)
+    implementation(libs.nats.client)
+    testImplementation(libs.awaitility)
     testImplementation(libs.edc.junit)
+    testImplementation(testFixtures(libs.edc.spi.contract))
     testImplementation(libs.testcontainers.junit)
-    testImplementation(libs.testcontainers.postgres)
-    testImplementation(testFixtures(libs.edc.sql.test.fixtures))
-
+    testImplementation(testFixtures(project(":extensions:lib:nats-lib")))
 }
 

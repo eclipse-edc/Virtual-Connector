@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.virtualized.controlplane.contract.spi.negotiation.ContractNegotiationChangeListener;
 import org.eclipse.edc.virtualized.controlplane.store.cdc.listener.PostgresReplicationListener;
 import org.eclipse.edc.virtualized.controlplane.store.cdc.listener.ReplicationConsumer;
+import org.eclipse.edc.virtualized.controlplane.transfer.spi.TransferProcessChangeListener;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
@@ -40,6 +41,9 @@ public class PostgresChangeDataCaptureExtension implements ServiceExtension {
     private ContractNegotiationChangeListener contractNegotiationChangeListener;
 
     @Inject
+    private TransferProcessChangeListener transferProcessChangeListener;
+
+    @Inject
     private Monitor monitor;
 
     @Inject
@@ -47,7 +51,7 @@ public class PostgresChangeDataCaptureExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var consumer = new ReplicationConsumer(contractNegotiationChangeListener, () -> typeManager.getMapper(JSON_LD));
+        var consumer = new ReplicationConsumer(contractNegotiationChangeListener, transferProcessChangeListener, () -> typeManager.getMapper(JSON_LD));
         replicationListener = new PostgresReplicationListener(config, consumer, () -> typeManager.getMapper(JSON_LD), monitor);
     }
 
@@ -68,13 +72,13 @@ public class PostgresChangeDataCaptureExtension implements ServiceExtension {
     public record PostgresCdcConfig(
             @Setting(key = "edc.postgres.cdc.url", description = "The JDBC URL for the PostgreSQL database")
             String jdbcUrl,
-            @Setting(key = "edc.postgres.cdc.user", description = "The User for the PostgreSQL database")
+            @Setting(key = "edc.postgres.cdc.user", description = "The user for the PostgreSQL database")
             String username,
-            @Setting(key = "edc.postgres.cdc.password", description = "The User for the PostgreSQL database")
+            @Setting(key = "edc.postgres.cdc.password", description = "The password for the PostgreSQL database")
             String password,
-            @Setting(key = "edc.postgres.cdc.slot", description = "The User for the PostgreSQL database")
+            @Setting(key = "edc.postgres.cdc.slot", description = "The name of the replication slot to use for change data capture", defaultValue = "edc_cdc_slot")
             String replicationSlotName,
-            @Setting(key = "edc.postgres.cdc.tables", description = "The User for the PostgreSQL database", defaultValue = "public.edc_contract_negotiation")
+            @Setting(key = "edc.postgres.cdc.tables", description = "The tables to listen for changes", defaultValue = "public.edc_contract_negotiation, public.edc_transfer_process")
             String tables
     ) {
 

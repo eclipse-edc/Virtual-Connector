@@ -79,8 +79,9 @@ public class PostgresVirtualCompatibilityDockerTest {
     @RegisterExtension
     static final BeforeAllCallback SETUP = context -> {
         POSTGRESQL_EXTENSION.createDatabase(CONNECTOR.toLowerCase());
-        NATS_EXTENSION.createStream("negotiations", "negotiations.>");
-        NATS_EXTENSION.createConsumer("negotiations", "cn-subscriber", "negotiations.>");
+        NATS_EXTENSION.createStream("state_machine", "negotiations.>", "transfers.>");
+        NATS_EXTENSION.createConsumer("state_machine", "cn-subscriber", "negotiations.>");
+        NATS_EXTENSION.createConsumer("state_machine", "tp-subscriber", "transfers.>");
     };
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC4");
 
@@ -111,6 +112,8 @@ public class PostgresVirtualCompatibilityDockerTest {
                 put("edc.postgres.cdc.slot", "edc_cdc_slot_" + CONNECTOR.toLowerCase());
                 put("edc.nats.cn.subscriber.url", NATS_EXTENSION.getNatsUrl());
                 put("edc.nats.cn.publisher.url", NATS_EXTENSION.getNatsUrl());
+                put("edc.nats.tp.subscriber.url", NATS_EXTENSION.getNatsUrl());
+                put("edc.nats.tp.publisher.url", NATS_EXTENSION.getNatsUrl());
             }
         });
     }
@@ -123,6 +126,7 @@ public class PostgresVirtualCompatibilityDockerTest {
     @Test
     void assertDspCompatibility() {
         POSTGRESQL_EXTENSION.execute(CONNECTOR.toLowerCase(), "ALTER TABLE edc_contract_negotiation REPLICA IDENTITY FULL;");
+        POSTGRESQL_EXTENSION.execute(CONNECTOR.toLowerCase(), "ALTER TABLE edc_transfer_process REPLICA IDENTITY FULL;");
 
         // pipe the docker container's log to this console at the INFO level
         var monitor = new ConsoleMonitor(">>> TCK Runtime (Docker)", ConsoleMonitor.Level.INFO, true);

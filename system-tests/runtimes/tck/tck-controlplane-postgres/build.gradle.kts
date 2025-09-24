@@ -28,6 +28,8 @@ dependencies {
     runtimeOnly(project(":extensions:postgres-cdc"))
     runtimeOnly(project(":extensions:negotiation-cdc-publisher-nats"))
     runtimeOnly(project(":extensions:negotiation-subscriber-nats"))
+    runtimeOnly(project(":extensions:transfer-process-cdc-publisher-nats"))
+    runtimeOnly(project(":extensions:transfer-process-subscriber-nats"))
     runtimeOnly(libs.edc.tck.extension)
     runtimeOnly(libs.edc.bom.dataplane) {
         exclude(module = "data-plane-selector-client")

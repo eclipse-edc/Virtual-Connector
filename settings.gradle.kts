@@ -39,6 +39,8 @@ include(":extensions:transfer-process-cdc-memory")
 include(":extensions:postgres-cdc")
 include(":extensions:negotiation-cdc-publisher-nats")
 include(":extensions:negotiation-subscriber-nats")
+include(":extensions:transfer-process-cdc-publisher-nats")
+include(":extensions:transfer-process-subscriber-nats")
 include(":extensions:lib:nats-lib")
 
 include(":system-tests:runtimes:controlplane-base")

@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.virtualized.controlplane.contract.spi.negotiation.ContractNegotiationChangeListener;
 import org.eclipse.edc.virtualized.controlplane.store.cdc.DatabaseChange;
+import org.eclipse.edc.virtualized.controlplane.transfer.spi.TransferProcessChangeListener;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -36,8 +37,9 @@ import static org.mockito.Mockito.when;
 public class ReplicationConsumerTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
-    private final ContractNegotiationChangeListener listener = mock();
-    private final ReplicationConsumer replicationConsumer = new ReplicationConsumer(listener, () -> mapper);
+    private final ContractNegotiationChangeListener negotiationChangeListener = mock();
+    private final TransferProcessChangeListener transferProcessChangeListener = mock();
+    private final ReplicationConsumer replicationConsumer = new ReplicationConsumer(negotiationChangeListener, transferProcessChangeListener, () -> mapper);
 
     @Test
     void apply() {
@@ -65,12 +67,12 @@ public class ReplicationConsumerTest {
                 .identity(toChange(before))
                 .build();
 
-        when(listener.onChange(isNotNull(), isNotNull())).thenReturn(StatusResult.success());
+        when(negotiationChangeListener.onChange(isNotNull(), isNotNull())).thenReturn(StatusResult.success());
 
         var result = replicationConsumer.apply(change);
         assertThat(result).isSucceeded();
 
-        verify(listener).onChange(eq(before), eq(after));
+        verify(negotiationChangeListener).onChange(eq(before), eq(after));
     }
 
     @Test
@@ -101,7 +103,7 @@ public class ReplicationConsumerTest {
 
         var result = replicationConsumer.apply(change);
         assertThat(result).isSucceeded();
-        verifyNoInteractions(listener);
+        verifyNoInteractions(negotiationChangeListener);
     }
 
     @Test
@@ -132,7 +134,7 @@ public class ReplicationConsumerTest {
 
         var result = replicationConsumer.apply(change);
         assertThat(result).isSucceeded();
-        verifyNoInteractions(listener);
+        verifyNoInteractions(negotiationChangeListener);
     }
 
 
