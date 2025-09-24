@@ -30,10 +30,12 @@ include(":spi:v-core-spi")
 
 // core
 include(":core:negotiation-manager")
+include(":core:transfer-process-manager")
 
 // extensions
 include(":extensions:banner-extension")
 include(":extensions:negotiation-cdc-memory")
+include(":extensions:transfer-process-cdc-memory")
 include(":extensions:postgres-cdc")
 include(":extensions:negotiation-cdc-publisher-nats")
 include(":extensions:negotiation-subscriber-nats")

@@ -24,6 +24,7 @@ plugins {
 dependencies {
     runtimeOnly(project(":system-tests:runtimes:controlplane-base"))
     runtimeOnly(project(":extensions:negotiation-cdc-memory"))
+    runtimeOnly(project(":extensions:transfer-process-cdc-memory"))
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

@@ -34,14 +34,14 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
  * by {@link org.eclipse.edc.virtualized.controlplane.contract.spi.negotiation.ContractNegotiationStateMachineService},
  * which can be invoked using different mechanisms, such as a loopback mechanism, a message bus.
  */
-public class ConsumerContractNegotiationVirtual implements ConsumerContractNegotiationManager {
+public class VirtualConsumerContractNegotiationManager implements ConsumerContractNegotiationManager {
 
     private final ContractNegotiationStore store;
     private final ContractNegotiationObservable observable;
     private final Monitor monitor;
     protected Telemetry telemetry = new Telemetry();
 
-    public ConsumerContractNegotiationVirtual(ContractNegotiationStore store, ContractNegotiationObservable observable, Monitor monitor) {
+    public VirtualConsumerContractNegotiationManager(ContractNegotiationStore store, ContractNegotiationObservable observable, Monitor monitor) {
         this.store = store;
         this.observable = observable;
         this.monitor = monitor;

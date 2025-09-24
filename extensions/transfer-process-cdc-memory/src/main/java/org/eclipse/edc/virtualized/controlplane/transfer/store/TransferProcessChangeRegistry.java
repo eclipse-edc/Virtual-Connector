@@ -12,13 +12,13 @@
  *
  */
 
-plugins {
-    `java-library`
-}
+package org.eclipse.edc.virtualized.controlplane.transfer.store;
 
-dependencies {
-    implementation(libs.edc.spi.core)
-    implementation(libs.edc.spi.contract)
-    implementation(libs.edc.spi.transfer)
-}
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.virtualized.controlplane.transfer.spi.TransferProcessChangeListener;
 
+@ExtensionPoint
+public interface TransferProcessChangeRegistry {
+
+    void registerChangeListener(TransferProcessChangeListener listener);
+}

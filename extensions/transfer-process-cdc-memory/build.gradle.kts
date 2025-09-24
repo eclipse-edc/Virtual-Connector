@@ -17,14 +17,20 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly(project(":core:negotiation-manager"))
-    runtimeOnly(project(":core:transfer-process-manager"))
-    runtimeOnly(project(":extensions:banner-extension"))
-    runtimeOnly(libs.edc.bom.controlplane) {
+    api(libs.edc.spi.core)
+    api(libs.edc.spi.transfer)
+    api(project(":spi:v-core-spi"))
+    implementation(libs.edc.core.controlplane) {
+        // Temporary workaround to avoid loading the contract manager and transfer manager,
+        // but we need in memory negotiation store for extension
         exclude("org.eclipse.edc", "control-plane-contract-manager")
         exclude("org.eclipse.edc", "control-plane-transfer-manager")
     }
+    implementation(libs.edc.lib.store)
+    testImplementation(libs.awaitility)
+    testImplementation(libs.edc.junit)
+    testImplementation(libs.edc.lib.query)
+    testImplementation(testFixtures(libs.edc.spi.transfer))
+
 }
-
-
 

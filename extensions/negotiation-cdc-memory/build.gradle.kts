@@ -21,7 +21,10 @@ dependencies {
     api(libs.edc.spi.contract)
     api(project(":spi:v-core-spi"))
     implementation(libs.edc.core.controlplane) {
+        // Temporary workaround to avoid loading the contract manager and transfer manager,
+        // but we need in memory negotiation store for extension
         exclude("org.eclipse.edc", "control-plane-contract-manager")
+        exclude("org.eclipse.edc", "control-plane-transfer-manager")
     }
     implementation(libs.edc.lib.store)
     testImplementation(libs.awaitility)

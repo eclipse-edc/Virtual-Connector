@@ -63,7 +63,7 @@ public class ContractManagerExtension implements ServiceExtension {
 
     @Provider
     public ConsumerContractNegotiationManager consumerContractNegotiationManager() {
-        return new ConsumerContractNegotiationVirtual(contractNegotiationStore, observable, monitor);
+        return new VirtualConsumerContractNegotiationManager(contractNegotiationStore, observable, monitor);
     }
 
     @Provider
