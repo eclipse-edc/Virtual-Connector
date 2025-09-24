@@ -17,19 +17,14 @@ plugins {
 }
 
 dependencies {
+    api(libs.edc.spi.core)
+    api(libs.edc.spi.contract)
+    api(project(":spi:v-core-spi"))
+    implementation(libs.nats.client)
     testImplementation(libs.awaitility)
     testImplementation(libs.edc.junit)
-    testImplementation(libs.restAssured)
-    testImplementation(libs.edc.junit)
-    testImplementation(testFixtures(libs.edc.sql.test.fixtures))
-    testImplementation(testFixtures(project(":extensions:lib:nats-lib")))
+    testImplementation(testFixtures(libs.edc.spi.contract))
     testImplementation(libs.testcontainers.junit)
-    testImplementation(libs.testcontainers.vault)
-    testImplementation(libs.testcontainers.postgres)
-    runtimeOnly(libs.parsson)
-
-
-    testCompileOnly(project(":system-tests:runtimes:tck:tck-controlplane-memory"))
-    testCompileOnly(project(":system-tests:runtimes:tck:tck-controlplane-postgres"))
+    testImplementation(testFixtures(project(":extensions:lib:nats-lib")))
 }
 

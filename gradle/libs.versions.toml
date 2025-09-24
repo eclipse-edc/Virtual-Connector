@@ -3,14 +3,15 @@ format.version = "1.1"
 
 [versions]
 edc = "0.14.0-SNAPSHOT"
-awaitility = "4.2.2"
+awaitility = "4.3.0"
 restAssured = "5.5.5"
 testcontainers = "1.21.3"
 rsApi = "4.0.0"
-nimbus = "10.3"
-opentelemetry = "1.32.0"
+nimbus = "10.4"
+opentelemetry = "2.18.0"
 postgres = "42.7.7"
 parsson = "1.1.7"
+nats = "2.21.4"
 
 [libraries]
 # EDC modules
@@ -48,6 +49,7 @@ nimbus-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version.ref = "opentelemetry" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 parsson = { module = "org.eclipse.parsson:parsson", version.ref = "parsson" }
+nats-client = { module = "io.nats:jnats", version.ref = "nats" }
 
 [plugins]
 shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }

@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
+import org.eclipse.edc.virtualized.nats.testfixtures.NatsEndToEndExtension;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -59,23 +60,27 @@ public class PostgresVirtualCompatibilityDockerTest {
 
     static final DockerImageName PG_IMAGE = DockerImageName.parse(BASE_IMAGE.get())
             .asCompatibleSubstituteFor(PostgreSQLContainer.IMAGE);
+
+    @SuppressWarnings("resource")
     static final PostgreSQLContainer<?> POSTGRESQL_CONTAINER = new PostgreSQLContainer<>(PG_IMAGE)
             .withCommand("-c", "wal_level=logical");
 
     @Order(0)
     @RegisterExtension
     static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension(POSTGRESQL_CONTAINER);
-
+    @Order(0)
     @RegisterExtension
-    protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime(CONNECTOR,
-            ":system-tests:runtimes:tck:tck-controlplane-postgres"
-    ).configurationProvider(PostgresVirtualCompatibilityDockerTest::runtimeConfiguration)
+    static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
+    @RegisterExtension
+    static final RuntimeExtension RUNTIME = new RuntimePerClassExtension(new EmbeddedRuntime(CONNECTOR, ":system-tests:runtimes:tck:tck-controlplane-postgres")
+            .configurationProvider(PostgresVirtualCompatibilityDockerTest::runtimeConfiguration)
             .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONNECTOR.toLowerCase())));
-
     @Order(1)
     @RegisterExtension
-    static final BeforeAllCallback CREATE_DATABASES = context -> {
+    static final BeforeAllCallback SETUP = context -> {
         POSTGRESQL_EXTENSION.createDatabase(CONNECTOR.toLowerCase());
+        NATS_EXTENSION.createStream("negotiations", "negotiations.>");
+        NATS_EXTENSION.createConsumer("negotiations", "cn-subscriber", "negotiations.>");
     };
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC4");
 
@@ -104,7 +109,8 @@ public class PostgresVirtualCompatibilityDockerTest {
                 put("edc.postgres.cdc.user", POSTGRESQL_EXTENSION.getUsername());
                 put("edc.postgres.cdc.password", POSTGRESQL_EXTENSION.getPassword());
                 put("edc.postgres.cdc.slot", "edc_cdc_slot_" + CONNECTOR.toLowerCase());
-
+                put("edc.nats.cn.subscriber.url", NATS_EXTENSION.getNatsUrl());
+                put("edc.nats.cn.publisher.url", NATS_EXTENSION.getNatsUrl());
             }
         });
     }

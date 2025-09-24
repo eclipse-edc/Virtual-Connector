@@ -26,6 +26,8 @@ dependencies {
         exclude("org.eclipse.edc", "vault-hashicorp")
     }
     runtimeOnly(project(":extensions:postgres-cdc"))
+    runtimeOnly(project(":extensions:negotiation-cdc-publisher-nats"))
+    runtimeOnly(project(":extensions:negotiation-subscriber-nats"))
     runtimeOnly(libs.edc.tck.extension)
     runtimeOnly(libs.edc.bom.dataplane) {
         exclude(module = "data-plane-selector-client")

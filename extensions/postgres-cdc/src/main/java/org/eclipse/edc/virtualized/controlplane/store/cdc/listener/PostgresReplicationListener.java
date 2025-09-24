@@ -95,7 +95,8 @@ public class PostgresReplicationListener {
                 try (var stream = getStream(connection)) {
                     consumeStream(stream);
                 }
-            } catch (SQLException e) {
+            } catch (Exception e) {
+                // TODO handle errors more gracefully, e.g., by retrying
                 monitor.severe("Error in replication stream: " + e.getMessage());
             }
         });
