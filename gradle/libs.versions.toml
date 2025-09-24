@@ -54,5 +54,6 @@ parsson = { module = "org.eclipse.parsson:parsson", version.ref = "parsson" }
 nats-client = { module = "io.nats:jnats", version.ref = "nats" }
 
 [plugins]
+edc-build = { id = "org.eclipse.edc.edc-build", version = "0.0.4" }
 shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 docker = { id = "com.bmuschko.docker-remote-api", version = "9.4.0" }

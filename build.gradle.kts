@@ -15,20 +15,24 @@
 
 plugins {
     `java-library`
+    alias(libs.plugins.edc.build)
 }
 
 val edcVersion = libs.versions.edc
 
 buildscript {
     dependencies {
-        classpath(libs.edc.build.plugin)
+        val edcVersion = libs.versions.edc.get()
+        classpath("org.eclipse.edc.autodoc:org.eclipse.edc.autodoc.gradle.plugin:$edcVersion")
     }
 }
 
+val edcBuildId = libs.plugins.edc.build.get().pluginId
 
 allprojects {
-    apply(plugin = "org.eclipse.edc.edc-build")
-    
+    apply(plugin = edcBuildId)
+    apply(plugin = "org.eclipse.edc.autodoc")
+
     repositories {
         mavenLocal()
         mavenCentral()
