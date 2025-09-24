@@ -1,0 +1,31 @@
+[metadata]
+format.version = "1.1"
+
+[versions]
+edc = "0.14.0-SNAPSHOT"
+awaitility = "4.2.2"
+restAssured = "5.5.5"
+testcontainers = "1.21.3"
+
+[libraries]
+# EDC modules
+edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
+edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
+edc-spi-core = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
+edc-build-plugin = { module = "org.eclipse.edc.edc-build:org.eclipse.edc.edc-build.gradle.plugin", version.ref = "edc" }
+edc-sql-test-fixtures = { module = "org.eclipse.edc:sql-test-fixtures", version.ref = "edc" }
+
+# EDC BOM modules
+edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", version.ref = "edc" }
+edc-bom-controlplane-sql = { module = "org.eclipse.edc:controlplane-feature-sql-bom", version.ref = "edc" }
+
+# Other libraries
+awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
+restAssured = { module = "io.rest-assured:rest-assured", version.ref = "restAssured" }
+testcontainers-postgres = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
+testcontainers-vault = { module = "org.testcontainers:vault", version.ref = "testcontainers" }
+testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+
+[plugins]
+shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
+docker = { id = "com.bmuschko.docker-remote-api", version = "9.4.0" }
