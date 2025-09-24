@@ -25,9 +25,21 @@ pluginManagement {
     }
 }
 
-// add dependencies
+// spi
+include(":spi:v-core-spi")
+
+// core
+include(":core:negotiation-manager")
+
+// extensions
 include(":extensions:banner-extension")
-include(":runtimes:controlplane-base")
-include(":runtimes:controlplane-memory")
-include(":runtimes:controlplane-postgres")
+include(":extensions:negotiation-cdc-memory")
+include(":extensions:postgres-cdc")
+
+include(":system-tests:runtimes:controlplane-base")
+include(":system-tests:runtimes:controlplane-memory")
+include(":system-tests:runtimes:controlplane-postgres")
 include(":system-tests:runtime-tests")
+include(":system-tests:dsp-tck-tests")
+include(":system-tests:runtimes:tck:tck-controlplane-memory")
+include(":system-tests:runtimes:tck:tck-controlplane-postgres")

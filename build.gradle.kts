@@ -25,8 +25,14 @@ buildscript {
     }
 }
 
+
 allprojects {
     apply(plugin = "org.eclipse.edc.edc-build")
+    
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
 
     // configure which version of the annotation processor to use. defaults to the same version as the plugin
     configure<org.eclipse.edc.plugins.autodoc.AutodocExtension> {

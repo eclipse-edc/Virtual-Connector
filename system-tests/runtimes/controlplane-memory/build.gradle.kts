@@ -22,9 +22,8 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly(project(":runtimes:controlplane-base"))
-     runtimeOnly(libs.edc.vault.hashicorp)
-     runtimeOnly(libs.edc.bom.controlplane.sql)
+    runtimeOnly(project(":system-tests:runtimes:controlplane-base"))
+    runtimeOnly(project(":extensions:negotiation-cdc-memory"))
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

@@ -12,17 +12,14 @@
  *
  */
 
-plugins {
-    `java-library`
+package org.eclipse.edc.virtualized.tck.dsp;
+
+import org.testcontainers.containers.GenericContainer;
+
+public class TckContainer<SELF extends TckContainer<SELF>> extends GenericContainer<SELF> {
+    public TckContainer(String imageName) {
+        super(imageName);
+        addFixedExposedPort(8083, 8083); // TCK will use this as callback address - must be fixed!
+    }
+
 }
-
-dependencies {
-    runtimeOnly(project(":extensions:banner-extension"))
-    runtimeOnly(libs.edc.bom.controlplane)
-    // uncomment the following lines to compile with Hashicorp Vault and Postgres persistence
-    // runtimeOnly(libs.edc.vault.hashicorp)
-    // runtimeOnly(libs.edc.bom.controlplane.sql)
-}
-
-
-

@@ -6,18 +6,36 @@ edc = "0.14.0-SNAPSHOT"
 awaitility = "4.2.2"
 restAssured = "5.5.5"
 testcontainers = "1.21.3"
+rsApi = "4.0.0"
+nimbus = "10.3"
+opentelemetry = "1.32.0"
+postgres = "42.7.7"
+parsson = "1.1.7"
 
 [libraries]
 # EDC modules
 edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 edc-spi-core = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
+edc-spi-transaction = { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
+edc-spi-transaction-datasource = { module = "org.eclipse.edc:transaction-datasource-spi", version.ref = "edc" }
+edc-spi-protocol = { module = "org.eclipse.edc:protocol-spi", version.ref = "edc" }
+edc-spi-contract = { module = "org.eclipse.edc:contract-spi", version.ref = "edc" }
+edc-spi-control-plane = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
+edc-core-controlplane-client = { module = "org.eclipse.edc:control-plane-api-client", version.ref = "edc" }
+edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
+edc-spi-web = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }
+edc-lib-store = { module = "org.eclipse.edc:store-lib", version.ref = "edc" }
+edc-lib-query = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
 edc-build-plugin = { module = "org.eclipse.edc.edc-build:org.eclipse.edc.edc-build.gradle.plugin", version.ref = "edc" }
 edc-sql-test-fixtures = { module = "org.eclipse.edc:sql-test-fixtures", version.ref = "edc" }
+edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
+edc-tck-extension = { module = "org.eclipse.edc:tck-extension", version.ref = "edc" }
 
 # EDC BOM modules
 edc-bom-controlplane = { module = "org.eclipse.edc:controlplane-dcp-bom", version.ref = "edc" }
 edc-bom-controlplane-sql = { module = "org.eclipse.edc:controlplane-feature-sql-bom", version.ref = "edc" }
+edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
 
 # Other libraries
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
@@ -25,6 +43,11 @@ restAssured = { module = "io.rest-assured:rest-assured", version.ref = "restAssu
 testcontainers-postgres = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testcontainers-vault = { module = "org.testcontainers:vault", version.ref = "testcontainers" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+jakarta-rsApi = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "rsApi" }
+nimbus-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus" }
+opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version.ref = "opentelemetry" }
+postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
+parsson = { module = "org.eclipse.parsson:parsson", version.ref = "parsson" }
 
 [plugins]
 shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }

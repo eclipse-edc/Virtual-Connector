@@ -66,7 +66,7 @@ public class RuntimeSmokeTests {
         @RegisterExtension
         protected RuntimeExtension runtime =
                 new RuntimePerMethodExtension(new EmbeddedRuntime("control-plane-memory",
-                        ":runtimes:controlplane-memory"
+                        ":system-tests:runtimes:controlplane-memory"
                 ).configurationProvider(ControlPlaneMemoryDcp::runtimeConfiguration)
                 );
 
@@ -120,7 +120,7 @@ public class RuntimeSmokeTests {
         @RegisterExtension
         @Order(2)
         protected RuntimeExtension runtime = new RuntimePerMethodExtension(new EmbeddedRuntime("control-plane-pg",
-                ":runtimes:controlplane-postgres"
+                ":system-tests:runtimes:controlplane-postgres"
         ).configurationProvider(ControlPlanePgDcp::runtimeConfiguration)
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(DB_NAME))
         );

@@ -22,10 +22,9 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly(project(":runtimes:controlplane-base"))
-    // uncomment the following lines to compile with Hashicorp Vault and Postgres persistence
-    // runtimeOnly(libs.edc.vault.hashicorp)
-    // runtimeOnly(libs.edc.bom.controlplane.sql)
+    runtimeOnly(project(":system-tests:runtimes:controlplane-base"))
+    runtimeOnly(libs.edc.vault.hashicorp)
+    runtimeOnly(libs.edc.bom.controlplane.sql)
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
