@@ -9,7 +9,7 @@ testcontainers = "1.21.3"
 rsApi = "4.0.0"
 nimbus = "10.5"
 opentelemetry = "2.18.0"
-postgres = "42.7.7"
+postgres = "42.7.8"
 parsson = "1.1.7"
 nats = "2.22.0"
 
