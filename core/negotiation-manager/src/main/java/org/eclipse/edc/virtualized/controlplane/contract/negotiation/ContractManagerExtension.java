@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerC
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -28,6 +27,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtualized.controlplane.contract.spi.negotiation.ContractNegotiationStateMachineService;
+import org.eclipse.edc.virtualized.controlplane.participantcontext.spi.ParticipantWebhookResolver;
 
 import java.time.Clock;
 
@@ -50,7 +50,7 @@ public class ContractManagerExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Inject
-    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    private ParticipantWebhookResolver dataspaceProfileContextRegistry;
 
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;

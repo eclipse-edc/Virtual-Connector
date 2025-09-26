@@ -17,6 +17,7 @@ plugins {
 }
 
 dependencies {
+    runtimeOnly(project(":system-tests:extensions:v-tck-extension"));
     runtimeOnly(project(":system-tests:runtimes:controlplane-memory")) {
         exclude("org.eclipse.edc", "identity-trust-service")
         exclude("org.eclipse.edc", "identity-trust-core")
@@ -24,6 +25,7 @@ dependencies {
         exclude("org.eclipse.edc", "identity-trust-issuers-configuration")
     }
     runtimeOnly(libs.edc.tck.extension)
+    runtimeOnly(libs.edc.core.participantcontext.single)
     runtimeOnly(libs.edc.bom.dataplane) {
         exclude(module = "data-plane-selector-client")
     }

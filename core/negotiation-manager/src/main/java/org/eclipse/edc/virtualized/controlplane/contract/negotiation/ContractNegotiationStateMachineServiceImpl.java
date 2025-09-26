@@ -28,13 +28,13 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.policy.model.PolicyType;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtualized.controlplane.contract.spi.negotiation.ContractNegotiationStateMachineService;
+import org.eclipse.edc.virtualized.controlplane.participantcontext.spi.ParticipantWebhookResolver;
 
 import java.time.Clock;
 import java.util.HashMap;
@@ -60,7 +60,7 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
 
     private final String participantId;
     private final Clock clock;
-    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    private final ParticipantWebhookResolver dataspaceProfileContextRegistry;
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
     private final ContractNegotiationStore store;
     private final TransactionContext transactionContext;
@@ -72,7 +72,7 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
     private final Map<ContractNegotiationStates, Handler> stateHandlers = new HashMap<>();
 
     public ContractNegotiationStateMachineServiceImpl(String participantId, Clock clock,
-                                                      DataspaceProfileContextRegistry dataspaceProfileContextRegistry,
+                                                      ParticipantWebhookResolver dataspaceProfileContextRegistry,
                                                       RemoteMessageDispatcherRegistry dispatcherRegistry,
                                                       ContractNegotiationStore store,
                                                       TransactionContext transactionContext,
@@ -155,7 +155,7 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
     }
 
     private StatusResult<Void> handleRequesting(ContractNegotiation negotiation) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
+        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
 
         if (callbackAddress != null) {
             var type = ContractRequestMessage.Type.INITIAL;
@@ -177,7 +177,7 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
     }
 
     private StatusResult<Void> handleOffering(ContractNegotiation negotiation) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
+        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
         if (callbackAddress == null) {
             transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
             return StatusResult.failure(FATAL_ERROR, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
@@ -230,7 +230,7 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
     }
 
     protected StatusResult<Void> processAgreeing(ContractNegotiation negotiation) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
+        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
         if (callbackAddress == null) {
             transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
             return StatusResult.failure(FATAL_ERROR, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
