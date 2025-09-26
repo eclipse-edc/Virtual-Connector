@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendin
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -31,6 +30,7 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.eclipse.edc.virtualized.controlplane.participantcontext.spi.ParticipantWebhookResolver;
 import org.eclipse.edc.virtualized.controlplane.transfer.spi.TransferProcessStateMachineService;
 
 import java.time.Clock;
@@ -55,7 +55,7 @@ public class TransferManagerExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Inject
-    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    private ParticipantWebhookResolver webhookResolver;
 
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
@@ -90,7 +90,7 @@ public class TransferManagerExtension implements ServiceExtension {
                 .transactionContext(transactionContext)
                 .dataFlowManager(dataFlowManager)
                 .dispatcherRegistry(dispatcherRegistry)
-                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
+                .webhookResolver(webhookResolver)
                 .vault(vault)
                 .addressResolver(dataAddressResolver)
                 .monitor(monitor)

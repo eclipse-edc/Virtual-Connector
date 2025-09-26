@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     implementation(libs.edc.spi.core)
+    implementation(libs.edc.spi.protocol)
     implementation(libs.edc.spi.contract)
     implementation(libs.edc.spi.transfer)
 }

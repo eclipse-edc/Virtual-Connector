@@ -52,7 +52,7 @@ public class MemoryEdcVirtualCompatibilityDockerTest {
     private static Config runtimeConfiguration() {
         return ConfigFactory.fromMap(new HashMap<>() {
             {
-                put("edc.participant.id", "CONNECTOR_UNDER_TEST");
+                put("edc.participant.id", "participantContextId");
                 put("web.http.port", "8080");
                 put("web.http.path", "/api");
                 put("web.http.version.port", String.valueOf(getFreePort()));

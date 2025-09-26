@@ -31,13 +31,13 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.eclipse.edc.virtualized.controlplane.participantcontext.spi.ParticipantWebhookResolver;
 import org.eclipse.edc.virtualized.controlplane.transfer.spi.TransferProcessStateMachineService;
 
 import java.util.HashMap;
@@ -72,7 +72,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
     private TransactionContext transactionContext;
     private DataFlowManager dataFlowManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    private ParticipantWebhookResolver webhookResolver;
     private Vault vault;
     private DataAddressResolver addressResolver;
     private TransferProcessObservable observable;
@@ -83,7 +83,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
     private TransferProcessStateMachineServiceImpl() {
         registerStateHandlers();
     }
-    
+
     private void registerStateHandlers() {
         stateHandlers.put(INITIAL, new Handler(this::processInitial, null));
         stateHandlers.put(REQUESTING, new Handler(this::processRequesting, CONSUMER));
@@ -259,7 +259,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
 
     private StatusResult<Void> processRequesting(TransferProcess process) {
         var originalDestination = process.getDataDestination();
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(process.getProtocol());
+        var callbackAddress = webhookResolver.getWebhook(process.getParticipantContextId(), process.getProtocol());
 
         if (callbackAddress != null) {
             var dataDestination = Optional.ofNullable(originalDestination)
@@ -472,8 +472,8 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
             return this;
         }
 
-        public Builder dataspaceProfileContextRegistry(DataspaceProfileContextRegistry dataspaceProfileContextRegistry) {
-            service.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
+        public Builder webhookResolver(ParticipantWebhookResolver webhookResolver) {
+            service.webhookResolver = webhookResolver;
             return this;
         }
 

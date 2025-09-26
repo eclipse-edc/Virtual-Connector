@@ -17,13 +17,25 @@ plugins {
 }
 
 dependencies {
+    runtimeOnly(project(":core:v-connector-core"))
     runtimeOnly(project(":core:negotiation-manager"))
     runtimeOnly(project(":core:transfer-process-manager"))
     runtimeOnly(project(":extensions:banner-extension"))
-    runtimeOnly(libs.edc.bom.controlplane) {
+    runtimeOnly(project(":data-protocols:dsp"))
+    runtimeOnly(libs.edc.core.connector)
+    runtimeOnly(libs.edc.core.runtime)
+    runtimeOnly(libs.edc.core.token)
+    runtimeOnly(libs.edc.core.jersey)
+    runtimeOnly(libs.edc.core.jetty)
+    runtimeOnly(libs.edc.api.observability)
+    runtimeOnly(libs.bundles.dcp)
+    runtimeOnly(libs.edc.core.controlplane) {
         exclude("org.eclipse.edc", "control-plane-contract-manager")
         exclude("org.eclipse.edc", "control-plane-transfer-manager")
     }
+    runtimeOnly(libs.edc.core.dataplane.selector)
+    runtimeOnly(libs.edc.core.dataplane.signaling.client)
+    runtimeOnly(libs.edc.core.dataplane.signaling.transfer)
 }
 
 

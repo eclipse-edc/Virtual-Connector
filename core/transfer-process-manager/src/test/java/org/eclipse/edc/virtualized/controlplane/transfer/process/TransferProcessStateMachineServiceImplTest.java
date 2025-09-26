@@ -25,13 +25,13 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
+import org.eclipse.edc.virtualized.controlplane.participantcontext.spi.ParticipantWebhookResolver;
 import org.eclipse.edc.virtualized.controlplane.transfer.spi.TransferProcessStateMachineService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,7 +84,7 @@ public class TransferProcessStateMachineServiceImplTest {
     private final DataFlowManager dataFlowManager = mock();
     private final Vault vault = mock();
     private final TransferProcessListener listener = mock();
-    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
+    private final ParticipantWebhookResolver participantWebhookResolver = mock();
     private final DataAddressResolver addressResolver = mock();
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
     private final TransferProcessPendingGuard pendingGuard = mock();
@@ -102,7 +102,7 @@ public class TransferProcessStateMachineServiceImplTest {
                 .policyArchive(policyArchive)
                 .vault(vault)
                 .addressResolver(addressResolver)
-                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
+                .webhookResolver(participantWebhookResolver)
                 .pendingGuard(pendingGuard)
                 .transactionContext(new NoopTransactionContext())
                 .build();
@@ -122,7 +122,7 @@ public class TransferProcessStateMachineServiceImplTest {
         when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
 
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
-        when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
+        when(participantWebhookResolver.getWebhook(any(), any())).thenReturn(() -> protocolWebhookUrl);
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id(transferProcessId)
                 .type(type)

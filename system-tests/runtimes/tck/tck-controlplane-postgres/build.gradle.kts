@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
 
+    runtimeOnly(project(":system-tests:extensions:v-tck-extension"));
     runtimeOnly(project(":system-tests:runtimes:controlplane-postgres")) {
         exclude("org.eclipse.edc", "identity-trust-service")
         exclude("org.eclipse.edc", "identity-trust-core")
@@ -31,6 +32,7 @@ dependencies {
     runtimeOnly(project(":extensions:transfer-process-cdc-publisher-nats"))
     runtimeOnly(project(":extensions:transfer-process-subscriber-nats"))
     runtimeOnly(libs.edc.tck.extension)
+    runtimeOnly(libs.edc.core.participantcontext.single)
     runtimeOnly(libs.edc.bom.dataplane) {
         exclude(module = "data-plane-selector-client")
     }
