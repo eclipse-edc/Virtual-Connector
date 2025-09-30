@@ -53,7 +53,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNam
  */
 @Consumes({APPLICATION_JSON})
 @Produces({APPLICATION_JSON})
-@Path(V_2025_1_PATH + "/{participantContextId}" + BASE_PATH)
+@Path("/{participantContextId}" + V_2025_1_PATH + BASE_PATH)
 public class DspCatalogApiController20251 {
 
     private final CatalogProtocolService service;

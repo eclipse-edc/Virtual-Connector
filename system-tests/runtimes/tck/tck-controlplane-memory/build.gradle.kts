@@ -17,8 +17,8 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly(project(":system-tests:extensions:v-tck-extension"));
-    runtimeOnly(project(":system-tests:runtimes:controlplane-memory")) {
+    implementation(project(":system-tests:extensions:v-tck-extension"));
+    implementation(project(":system-tests:runtimes:controlplane-memory")) {
         exclude("org.eclipse.edc", "identity-trust-service")
         exclude("org.eclipse.edc", "identity-trust-core")
         exclude("org.eclipse.edc", "identity-trust-sts-remote-client")

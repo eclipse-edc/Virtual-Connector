@@ -36,6 +36,7 @@ include(":core:transfer-process-manager")
 // data-protocols
 include(":data-protocols:dsp")
 include(":data-protocols:dsp:dsp-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-http-api-configuration-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-catalog-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-http-api-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025")

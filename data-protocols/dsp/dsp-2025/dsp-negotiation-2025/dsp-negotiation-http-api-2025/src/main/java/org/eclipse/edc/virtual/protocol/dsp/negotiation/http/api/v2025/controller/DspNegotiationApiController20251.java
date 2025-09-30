@@ -63,7 +63,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTyp
  */
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
-@Path(V_2025_1_PATH + "/{participantContextId}" + BASE_PATH)
+@Path("/{participantContextId}" + V_2025_1_PATH + BASE_PATH)
 public class DspNegotiationApiController20251 {
 
     private final ContractNegotiationProtocolService protocolService;

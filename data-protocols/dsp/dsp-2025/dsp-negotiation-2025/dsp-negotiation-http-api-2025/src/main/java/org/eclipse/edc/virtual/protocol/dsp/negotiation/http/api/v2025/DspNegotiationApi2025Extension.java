@@ -64,7 +64,7 @@ public class DspNegotiationApi2025Extension implements ServiceExtension {
     @Inject
     private DspRequestHandler dspRequestHandler;
     @Inject
-    private DataspaceProfileContextRegistry versionRegistry;
+    private DataspaceProfileContextRegistry contextRegistry;
 
     @Inject
     private JsonLd jsonLd;
