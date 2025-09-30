@@ -18,19 +18,19 @@ plugins {
 
 dependencies {
 
-    runtimeOnly(project(":system-tests:extensions:v-tck-extension"));
-    runtimeOnly(project(":system-tests:runtimes:controlplane-postgres")) {
+    implementation(project(":system-tests:extensions:v-tck-extension"));
+    implementation(project(":system-tests:runtimes:controlplane-postgres")) {
         exclude("org.eclipse.edc", "identity-trust-service")
         exclude("org.eclipse.edc", "identity-trust-core")
         exclude("org.eclipse.edc", "identity-trust-sts-remote-client")
         exclude("org.eclipse.edc", "identity-trust-issuers-configuration")
         exclude("org.eclipse.edc", "vault-hashicorp")
     }
-    runtimeOnly(project(":extensions:postgres-cdc"))
-    runtimeOnly(project(":extensions:negotiation-cdc-publisher-nats"))
-    runtimeOnly(project(":extensions:negotiation-subscriber-nats"))
-    runtimeOnly(project(":extensions:transfer-process-cdc-publisher-nats"))
-    runtimeOnly(project(":extensions:transfer-process-subscriber-nats"))
+    implementation(project(":extensions:postgres-cdc"))
+    implementation(project(":extensions:negotiation-cdc-publisher-nats"))
+    implementation(project(":extensions:negotiation-subscriber-nats"))
+    implementation(project(":extensions:transfer-process-cdc-publisher-nats"))
+    implementation(project(":extensions:transfer-process-subscriber-nats"))
     runtimeOnly(libs.edc.tck.extension)
     runtimeOnly(libs.edc.core.participantcontext.single)
     runtimeOnly(libs.edc.bom.dataplane) {

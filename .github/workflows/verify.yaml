@@ -84,3 +84,13 @@ jobs:
       - uses: ./.github/actions/setup-java
       - name: End to End Integration Tests
         run: ./gradlew test -DincludeTags="EndToEndTest"
+
+  Run-Dsp-Compatibility-Test:
+    name: "Run DSP Compatibility Test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-java
+      - name: DSP Compatibility
+        run: |
+          ./gradlew test -DincludeTags="NightlyTest" -PverboseTest=true

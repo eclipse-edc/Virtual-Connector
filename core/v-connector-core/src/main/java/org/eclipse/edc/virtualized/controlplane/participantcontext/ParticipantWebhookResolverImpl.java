@@ -36,7 +36,7 @@ public class ParticipantWebhookResolverImpl implements ParticipantWebhookResolve
     }
 
     private ProtocolWebhook wrap(String participantContextId, ProtocolWebhook protocolWebhook) {
-        return () -> protocolWebhook.url() + "/" + participantContextId;
+        return () -> protocolWebhook.url().formatted(participantContextId);
 
     }
 

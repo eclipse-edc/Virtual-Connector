@@ -40,7 +40,6 @@ edc-core-jersey = { module = "org.eclipse.edc:jersey-core", version.ref = "edc" 
 edc-core-jetty = { module = "org.eclipse.edc:jetty-core", version.ref = "edc" }
 edc-core-dsp-http = { module = "org.eclipse.edc:dsp-http-core", version.ref = "edc" }
 edc-core-dsp-http-configuration = { module = "org.eclipse.edc:dsp-http-api-base-configuration", version.ref = "edc" }
-edc-core-dsp-http-configuration-v2025 = { module = "org.eclipse.edc:dsp-http-api-configuration-2025", version.ref = "edc" }
 edc-core-dsp-http-dispatcher-v2025 = { module = "org.eclipse.edc:dsp-http-dispatcher-2025", version.ref = "edc" }
 edc-core-dsp-http-catalog-dispatcher = { module = "org.eclipse.edc:dsp-catalog-http-dispatcher", version.ref = "edc" }
 edc-core-dsp-http-negotiation-dispatcher = { module = "org.eclipse.edc:dsp-negotiation-http-dispatcher", version.ref = "edc" }
@@ -57,6 +56,8 @@ edc-core-dataplane-signaling-transfer = { module = "org.eclipse.edc:transfer-dat
 # EDC Lib modules
 edc-lib-store = { module = "org.eclipse.edc:store-lib", version.ref = "edc" }
 edc-lib-query = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
+edc-lib-transform = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
+edc-lib-controlplane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
 edc-lib-jersey-providers = { module = "org.eclipse.edc:jersey-providers-lib", version.ref = "edc" }
 edc-lib-dsp-catalog-validation = { module = "org.eclipse.edc:dsp-catalog-validation-lib", version.ref = "edc" }
 edc-lib-dsp-catalog-http = { module = "org.eclipse.edc:dsp-catalog-http-api-lib", version.ref = "edc" }

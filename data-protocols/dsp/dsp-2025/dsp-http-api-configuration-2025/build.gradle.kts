@@ -17,10 +17,11 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-2025:dsp-http-api-configuration-2025"))
-    api(project(":data-protocols:dsp:dsp-2025:dsp-catalog-2025"))
-    api(project(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025"))
-    api(project(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025"))
-    api(libs.edc.core.dsp.http.dispatcher.v2025)
-
+    api(libs.edc.spi.core)
+    api(libs.edc.spi.protocol)
+    api(libs.edc.spi.jsonld)
+    api(libs.edc.spi.dsp.http)
+    api(libs.edc.spi.dsp.v2025)
+    implementation(libs.edc.lib.transform)
+    implementation(libs.edc.lib.controlplane.transform)
 }

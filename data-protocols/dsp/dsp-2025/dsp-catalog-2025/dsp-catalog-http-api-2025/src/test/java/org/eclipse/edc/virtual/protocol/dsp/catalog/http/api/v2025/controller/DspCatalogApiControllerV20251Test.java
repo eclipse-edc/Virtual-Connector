@@ -42,7 +42,7 @@ public class DspCatalogApiControllerV20251Test extends DspCatalogApiControllerTe
 
     @Override
     protected String basePath() {
-        return V_2025_1_PATH + "/%s".formatted(participantContext.getParticipantContextId()) + BASE_PATH;
+        return "/%s".formatted(participantContext.getParticipantContextId()) + V_2025_1_PATH + BASE_PATH;
     }
 
     @Override
