@@ -11,7 +11,7 @@ nimbus = "10.5"
 opentelemetry = "2.20.1"
 postgres = "42.7.8"
 parsson = "1.1.7"
-nats = "2.22.0"
+nats = "2.23.0"
 
 [libraries]
 # EDC SPI modules
