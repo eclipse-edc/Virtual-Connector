@@ -114,8 +114,7 @@ public class DspCatalogApiController20251 {
         return dspRequestHandler.getResource(request);
     }
 
-    // TODO refactor upstream to use ServiceResult
     private ParticipantContextSupplier participantContextSupplier(String id) {
-        return () -> participantContextService.getParticipantContext(id).getContent();
+        return () -> participantContextService.getParticipantContext(id);
     }
 }

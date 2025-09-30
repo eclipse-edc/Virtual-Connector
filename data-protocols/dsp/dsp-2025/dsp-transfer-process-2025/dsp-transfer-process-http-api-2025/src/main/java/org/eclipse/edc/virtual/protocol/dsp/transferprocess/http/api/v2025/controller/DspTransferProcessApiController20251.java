@@ -220,9 +220,8 @@ public class DspTransferProcessApiController20251 {
         return dspRequestHandler.updateResource(request);
     }
 
-    // TODO refactor upstream to use ServiceResult
     private ParticipantContextSupplier participantContextSupplier(String id) {
-        return () -> participantContextService.getParticipantContext(id).getContent();
+        return () -> participantContextService.getParticipantContext(id);
     }
 
 }
