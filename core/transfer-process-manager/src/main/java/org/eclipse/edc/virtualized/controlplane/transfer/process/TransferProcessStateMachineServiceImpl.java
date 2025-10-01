@@ -260,6 +260,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
     private StatusResult<Void> processRequesting(TransferProcess process) {
         var originalDestination = process.getDataDestination();
         var callbackAddress = webhookResolver.getWebhook(process.getParticipantContextId(), process.getProtocol());
+        var agreementId = policyArchive.getAgreementIdForContract(process.getContractId());
 
         if (callbackAddress != null) {
             var dataDestination = Optional.ofNullable(originalDestination)
@@ -272,7 +273,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
                     .callbackAddress(callbackAddress.url())
                     .dataDestination(dataDestination)
                     .transferType(process.getTransferType())
-                    .contractId(process.getContractId());
+                    .contractId(agreementId);
 
             return dispatch(messageBuilder, process, TransferProcessAck.class)
                     .onSuccess(ack -> transitionToRequested(process, ack))
@@ -392,7 +393,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
         process.lastSentProtocolMessage(message.getId());
 
         try {
-            return dispatcherRegistry.dispatch(responseType, message).get();
+            return dispatcherRegistry.dispatch(process.getParticipantContextId(), responseType, message).get();
         } catch (Exception e) {
             return StatusResult.failure(FATAL_ERROR, "Failed to dispatch message: %s".formatted(e.getMessage()));
         }

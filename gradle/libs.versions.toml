@@ -12,6 +12,8 @@ opentelemetry = "2.20.1"
 postgres = "42.7.8"
 parsson = "1.1.7"
 nats = "2.23.0"
+wiremock = "3.13.1"
+bouncyCastle-jdk18on = "1.82"
 
 [libraries]
 # EDC SPI modules
@@ -28,6 +30,7 @@ edc-spi-dsp = { module = "org.eclipse.edc:dsp-spi", version.ref = "edc" }
 edc-spi-dsp-v2025 = { module = "org.eclipse.edc:dsp-spi-2025", version.ref = "edc" }
 edc-spi-dsp-http = { module = "org.eclipse.edc:dsp-http-spi", version.ref = "edc" }
 edc-spi-web = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }
+edc-spi-dataplane = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
 edc-spi-control-plane = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
 
 # EDC Core modules
@@ -66,7 +69,6 @@ edc-lib-dsp-negotiation-http = { module = "org.eclipse.edc:dsp-negotiation-http-
 edc-lib-dsp-transferprocess-validation = { module = "org.eclipse.edc:dsp-transfer-process-validation-lib", version.ref = "edc" }
 edc-lib-dsp-transferprocess-http = { module = "org.eclipse.edc:dsp-transfer-process-http-api-lib", version.ref = "edc" }
 edc-build-plugin = { module = "org.eclipse.edc.edc-build:org.eclipse.edc.edc-build.gradle.plugin", version.ref = "edc" }
-edc-sql-test-fixtures = { module = "org.eclipse.edc:sql-test-fixtures", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 
 # EDC Extensions modules
@@ -85,6 +87,11 @@ edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "e
 edc-bom-controlplane-sql = { module = "org.eclipse.edc:controlplane-feature-sql-bom", version.ref = "edc" }
 edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
 
+## EDC Fixtures
+edc-fixtures-sql = { module = "org.eclipse.edc:sql-test-fixtures", version.ref = "edc" }
+edc-fixtures-managementapi = { module = "org.eclipse.edc:management-api-test-fixtures", version.ref = "edc" }
+
+
 # Other libraries
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 restAssured = { module = "io.rest-assured:rest-assured", version.ref = "restAssured" }
@@ -97,7 +104,9 @@ opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrum
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 parsson = { module = "org.eclipse.parsson:parsson", version.ref = "parsson" }
 nats-client = { module = "io.nats:jnats", version.ref = "nats" }
-
+wiremock = { module = "org.wiremock:wiremock-jetty12", version.ref = "wiremock" }
+bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle-jdk18on" }
+bouncyCastle-bcprovJdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 
 [bundles]
 dcp = [
