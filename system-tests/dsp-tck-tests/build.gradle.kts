@@ -21,13 +21,13 @@ dependencies {
     testImplementation(libs.edc.junit)
     testImplementation(libs.restAssured)
     testImplementation(libs.edc.junit)
-    testImplementation(testFixtures(libs.edc.sql.test.fixtures))
+    testImplementation(testFixtures(libs.edc.fixtures.sql))
     testImplementation(testFixtures(project(":extensions:lib:nats-lib")))
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.vault)
     testImplementation(libs.testcontainers.postgres)
     runtimeOnly(libs.parsson)
-    
+
     testCompileOnly(project(":system-tests:runtimes:tck:tck-controlplane-memory"))
     testCompileOnly(project(":system-tests:runtimes:tck:tck-controlplane-postgres"))
 }

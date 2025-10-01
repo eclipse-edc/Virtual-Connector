@@ -14,19 +14,11 @@
 
 plugins {
     `java-library`
+    `java-test-fixtures`
 }
 
 dependencies {
-    api(libs.edc.spi.core)
-    api(libs.edc.spi.contract)
-    api(libs.edc.spi.transfer)
-    api(libs.edc.spi.transaction.datasource)
-    api(project(":spi:v-core-spi"))
-    implementation(libs.postgres)
-    testImplementation(libs.edc.junit)
-    testImplementation(libs.testcontainers.junit)
-    testImplementation(libs.testcontainers.postgres)
-    testImplementation(testFixtures(libs.edc.fixtures.sql))
+    testFixturesImplementation(libs.edc.junit)
+    testFixturesImplementation(testFixtures(libs.edc.fixtures.managementapi))
 
 }
-

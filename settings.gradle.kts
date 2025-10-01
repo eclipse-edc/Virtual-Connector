@@ -45,6 +45,7 @@ include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025:dsp-transfer-process-http-api-2025")
 // extensions
 include(":extensions:banner-extension")
+include(":extensions:v-iam-mock")
 include(":extensions:negotiation-cdc-memory")
 include(":extensions:transfer-process-cdc-memory")
 include(":extensions:postgres-cdc")
@@ -54,6 +55,7 @@ include(":extensions:transfer-process-cdc-publisher-nats")
 include(":extensions:transfer-process-subscriber-nats")
 include(":extensions:lib:nats-lib")
 
+include(":system-tests:system-test-fixtures")
 include(":system-tests:runtimes:controlplane-base")
 include(":system-tests:runtimes:controlplane-memory")
 include(":system-tests:runtimes:controlplane-postgres")
@@ -62,4 +64,7 @@ include(":system-tests:dsp-tck-tests")
 include(":system-tests:extensions:v-tck-extension")
 include(":system-tests:runtimes:tck:tck-controlplane-memory")
 include(":system-tests:runtimes:tck:tck-controlplane-postgres")
+include(":system-tests:runtimes:e2e:e2e-controlplane-memory")
+include(":system-tests:runtimes:e2e:e2e-controlplane-postgres")
+
 
