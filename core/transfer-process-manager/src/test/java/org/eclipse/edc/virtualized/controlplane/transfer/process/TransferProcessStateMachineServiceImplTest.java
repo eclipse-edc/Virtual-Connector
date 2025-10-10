@@ -121,7 +121,7 @@ public class TransferProcessStateMachineServiceImplTest {
         when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
         when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
 
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
+        when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
         when(participantWebhookResolver.getWebhook(any(), any())).thenReturn(() -> protocolWebhookUrl);
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id(transferProcessId)

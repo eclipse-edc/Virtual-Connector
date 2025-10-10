@@ -392,7 +392,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
         process.lastSentProtocolMessage(message.getId());
 
         try {
-            return dispatcherRegistry.dispatch(responseType, message).get();
+            return dispatcherRegistry.dispatch(process.getParticipantContextId(), responseType, message).get();
         } catch (Exception e) {
             return StatusResult.failure(FATAL_ERROR, "Failed to dispatch message: %s".formatted(e.getMessage()));
         }
