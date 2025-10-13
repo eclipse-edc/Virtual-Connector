@@ -18,11 +18,17 @@ plugins {
 
 dependencies {
     testImplementation(libs.awaitility)
+    testImplementation(libs.edc.spi.dataplane)
     testImplementation(libs.edc.junit)
     testImplementation(libs.restAssured)
-    testImplementation(testFixtures(libs.edc.sql.test.fixtures))
+    testImplementation(testFixtures(libs.edc.fixtures.sql))
+    testImplementation(testFixtures(libs.edc.fixtures.managementapi))
+    testImplementation(testFixtures((project(":system-tests:system-test-fixtures"))))
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.vault)
+    testImplementation(libs.wiremock)
+    testImplementation(libs.nimbus.jwt)
+    testImplementation(libs.bouncyCastle.bcpkixJdk18on)
 }
 
 

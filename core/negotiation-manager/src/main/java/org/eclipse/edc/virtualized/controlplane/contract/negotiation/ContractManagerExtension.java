@@ -27,6 +27,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtualized.controlplane.contract.spi.negotiation.ContractNegotiationStateMachineService;
+import org.eclipse.edc.virtualized.controlplane.participantcontext.spi.ParticipantIdentityResolver;
 import org.eclipse.edc.virtualized.controlplane.participantcontext.spi.ParticipantWebhookResolver;
 
 import java.time.Clock;
@@ -50,7 +51,10 @@ public class ContractManagerExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Inject
-    private ParticipantWebhookResolver dataspaceProfileContextRegistry;
+    private ParticipantWebhookResolver webhookResolver;
+
+    @Inject
+    private ParticipantIdentityResolver identityResolver;
 
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
@@ -68,6 +72,6 @@ public class ContractManagerExtension implements ServiceExtension {
 
     @Provider
     public ContractNegotiationStateMachineService contractNegotiationStateMachineService(ServiceExtensionContext context) {
-        return new ContractNegotiationStateMachineServiceImpl(context.getParticipantId(), clock, dataspaceProfileContextRegistry, dispatcherRegistry, contractNegotiationStore, transactionContext, pendingGuard, observable, monitor);
+        return new ContractNegotiationStateMachineServiceImpl(clock, identityResolver, webhookResolver, dispatcherRegistry, contractNegotiationStore, transactionContext, pendingGuard, observable, monitor);
     }
 }

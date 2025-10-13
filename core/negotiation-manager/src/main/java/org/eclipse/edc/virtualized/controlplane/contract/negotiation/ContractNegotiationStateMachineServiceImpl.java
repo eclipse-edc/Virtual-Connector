@@ -34,6 +34,7 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtualized.controlplane.contract.spi.negotiation.ContractNegotiationStateMachineService;
+import org.eclipse.edc.virtualized.controlplane.participantcontext.spi.ParticipantIdentityResolver;
 import org.eclipse.edc.virtualized.controlplane.participantcontext.spi.ParticipantWebhookResolver;
 
 import java.time.Clock;
@@ -44,6 +45,7 @@ import java.util.function.Function;
 
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
@@ -58,9 +60,9 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 public class ContractNegotiationStateMachineServiceImpl implements ContractNegotiationStateMachineService {
 
-    private final String participantId;
     private final Clock clock;
-    private final ParticipantWebhookResolver dataspaceProfileContextRegistry;
+    private final ParticipantIdentityResolver identityResolver;
+    private final ParticipantWebhookResolver webhookResolver;
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
     private final ContractNegotiationStore store;
     private final TransactionContext transactionContext;
@@ -71,17 +73,17 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
 
     private final Map<ContractNegotiationStates, Handler> stateHandlers = new HashMap<>();
 
-    public ContractNegotiationStateMachineServiceImpl(String participantId, Clock clock,
-                                                      ParticipantWebhookResolver dataspaceProfileContextRegistry,
+    public ContractNegotiationStateMachineServiceImpl(Clock clock, ParticipantIdentityResolver identityResolver,
+                                                      ParticipantWebhookResolver webhookResolver,
                                                       RemoteMessageDispatcherRegistry dispatcherRegistry,
                                                       ContractNegotiationStore store,
                                                       TransactionContext transactionContext,
                                                       ContractNegotiationPendingGuard pendingGuard,
                                                       ContractNegotiationObservable observable,
                                                       Monitor monitor) {
-        this.participantId = participantId;
+        this.identityResolver = identityResolver;
         this.clock = clock;
-        this.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
+        this.webhookResolver = webhookResolver;
         this.dispatcherRegistry = dispatcherRegistry;
         this.store = store;
         this.transactionContext = transactionContext;
@@ -101,6 +103,7 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
         stateHandlers.put(ACCEPTING, new Handler(this::processAccepting, ContractNegotiation.Type.CONSUMER));
         stateHandlers.put(ACCEPTED, new Handler(this::processAccepted, ContractNegotiation.Type.PROVIDER));
         stateHandlers.put(AGREEING, new Handler(this::processAgreeing, ContractNegotiation.Type.PROVIDER));
+        stateHandlers.put(AGREED, new Handler(this::processAgreed, ContractNegotiation.Type.CONSUMER));
         stateHandlers.put(INITIAL, new Handler(this::processInitial, ContractNegotiation.Type.CONSUMER));
         stateHandlers.put(FINALIZING, new Handler(this::processFinalizing, ContractNegotiation.Type.PROVIDER));
     }
@@ -155,7 +158,7 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
     }
 
     private StatusResult<Void> handleRequesting(ContractNegotiation negotiation) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
+        var callbackAddress = webhookResolver.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
 
         if (callbackAddress != null) {
             var type = ContractRequestMessage.Type.INITIAL;
@@ -177,7 +180,7 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
     }
 
     private StatusResult<Void> handleOffering(ContractNegotiation negotiation) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
+        var callbackAddress = webhookResolver.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
         if (callbackAddress == null) {
             transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
             return StatusResult.failure(FATAL_ERROR, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
@@ -230,7 +233,7 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
     }
 
     protected StatusResult<Void> processAgreeing(ContractNegotiation negotiation) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
+        var callbackAddress = webhookResolver.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
         if (callbackAddress == null) {
             transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
             return StatusResult.failure(FATAL_ERROR, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
@@ -239,6 +242,8 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
         var agreement = Optional.ofNullable(negotiation.getContractAgreement())
                 .orElseGet(() -> {
                     var lastOffer = negotiation.getLastContractOffer();
+
+                    var participantId = identityResolver.getParticipantId(negotiation.getParticipantContextId(), negotiation.getProtocol());
 
                     var contractPolicy = lastOffer.getPolicy().toBuilder().type(PolicyType.CONTRACT)
                             .assignee(negotiation.getCounterPartyId())
@@ -262,6 +267,11 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
         return dispatch(messageBuilder, negotiation, Object.class)
                 .onSuccess(v -> transitionToAgreed(negotiation, agreement))
                 .mapEmpty();
+    }
+
+    private StatusResult<Void> processAgreed(ContractNegotiation negotiation) {
+        transitionToVerifying(negotiation);
+        return StatusResult.success();
     }
 
     private StatusResult<Void> processInitial(ContractNegotiation negotiation) {
@@ -326,6 +336,11 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
         observable.invokeForEach(l -> l.accepted(negotiation));
     }
 
+    protected void transitionToVerifying(ContractNegotiation negotiation) {
+        negotiation.transitionVerifying();
+        update(negotiation);
+    }
+
     protected void transitionToVerified(ContractNegotiation negotiation) {
         negotiation.transitionVerified();
         update(negotiation);
@@ -363,7 +378,7 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
         negotiation.lastSentProtocolMessage(message.getId());
 
         try {
-            return dispatcherRegistry.dispatch(responseType, message).get();
+            return dispatcherRegistry.dispatch(negotiation.getParticipantContextId(), responseType, message).get();
         } catch (Exception e) {
             return StatusResult.failure(FATAL_ERROR, "Failed to dispatch message: %s".formatted(e.getMessage()));
         }
