@@ -14,14 +14,23 @@
 
 package org.eclipse.edc.virtualized.controlplane.participantcontext;
 
+import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.virtualized.controlplane.participantcontext.spi.ParticipantIdentityResolver;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.virtualized.controlplane.VirtualCoreServicesExtension.PARTICIPANT_ID;
+
 public class ParticipantContextIdentityResolverImpl implements ParticipantIdentityResolver {
 
-    //TODO replace with upstream identity resolution logic
+    private final ParticipantContextConfig contextConfig;
+
+    public ParticipantContextIdentityResolverImpl(ParticipantContextConfig contextConfig) {
+        this.contextConfig = contextConfig;
+    }
+
+    //TODO take into account the protocol, probably wait for upstream final changes
     @Override
     public @Nullable String getParticipantId(String participantContextId, String protocol) {
-        return participantContextId;
+        return contextConfig.getString(participantContextId, PARTICIPANT_ID);
     }
 }

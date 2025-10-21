@@ -19,6 +19,7 @@ bouncyCastle-jdk18on = "1.82"
 # EDC SPI modules
 edc-spi-core = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-spi-participantcontext = { module = "org.eclipse.edc:connector-participant-context-spi", version.ref = "edc" }
+edc-spi-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-spi", version.ref = "edc" }
 edc-spi-transaction = { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
 edc-spi-transaction-datasource = { module = "org.eclipse.edc:transaction-datasource-spi", version.ref = "edc" }
 edc-spi-protocol = { module = "org.eclipse.edc:protocol-spi", version.ref = "edc" }

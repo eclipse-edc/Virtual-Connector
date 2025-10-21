@@ -50,6 +50,8 @@ public class TestFunctions {
 
     public static final String PROVIDER_CONTEXT = "provider";
     public static final String CONSUMER_CONTEXT = "consumer";
+    public static final String PROVIDER_ID = "provider-id";
+    public static final String CONSUMER_ID = "consumer-id";
     protected static final Duration TIMEOUT = Duration.ofSeconds(30);
     private static final String PROTOCOL = "dataspace-protocol-http:2025-1";
     private static final JsonLdNamespace NS = new JsonLdNamespace(EDC_NAMESPACE);
@@ -89,7 +91,7 @@ public class TestFunctions {
         var catalogService = cp.getService(CatalogService.class);
 
         try {
-            var asset = catalogService.requestDataset(new ParticipantContext(CONSUMER_CONTEXT), assetId, PROVIDER_CONTEXT, providerAddress, PROTOCOL).get();
+            var asset = catalogService.requestDataset(new ParticipantContext(CONSUMER_CONTEXT), assetId, PROVIDER_ID, providerAddress, PROTOCOL).get();
             var responseBody = MAPPER.readValue(asset.getContent(), JsonObject.class);
             var offerId = responseBody.getJsonArray("hasPolicy").getJsonObject(0).getString(ID);
 
@@ -111,7 +113,7 @@ public class TestFunctions {
                         .id(offerId)
                         .assetId(assetId)
                         .policy(Policy.Builder.newInstance()
-                                .assigner(PROVIDER_CONTEXT)
+                                .assigner(PROVIDER_ID)
                                 .target(assetId)
                                 .build())
                         .build())
