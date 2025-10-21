@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.virtual.iam.mock;
 
+import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
@@ -22,23 +23,27 @@ import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 
-public class MockIdentityService implements IdentityService {
-    private final String region;
-    private final TypeManager typeManager;
-    private final String faultyClientId;
+import static org.eclipse.edc.virtual.iam.mock.IamMockExtension.DEFAULT_FAULTY_CLIENT_ID;
+import static org.eclipse.edc.virtual.iam.mock.IamMockExtension.DEFAULT_MOCK_REGION;
+import static org.eclipse.edc.virtual.iam.mock.IamMockExtension.EDC_MOCK_FAULTY_CLIENT_ID;
+import static org.eclipse.edc.virtual.iam.mock.IamMockExtension.EDC_MOCK_REGION;
+import static org.eclipse.edc.virtual.iam.mock.IamMockExtension.PARTICIPANT_ID;
 
-    public MockIdentityService(TypeManager typeManager, String region, String faultyClientId) {
+public class MockIdentityService implements IdentityService {
+    private final ParticipantContextConfig contextConfig;
+    private final TypeManager typeManager;
+
+    public MockIdentityService(ParticipantContextConfig contextConfig, TypeManager typeManager) {
+        this.contextConfig = contextConfig;
         this.typeManager = typeManager;
-        this.region = region;
-        this.faultyClientId = faultyClientId;
     }
 
     @Override
     public Result<TokenRepresentation> obtainClientCredentials(String participantContextId, TokenParameters parameters) {
         var token = new MockToken();
         token.setAudience(parameters.getStringClaim("aud"));
-        token.setRegion(region);
-        token.setClientId(participantContextId);
+        token.setRegion(contextConfig.getString(participantContextId, EDC_MOCK_REGION, DEFAULT_MOCK_REGION));
+        token.setClientId(contextConfig.getString(participantContextId, PARTICIPANT_ID));
         TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(typeManager.writeValueAsString(token))
                 .build();
@@ -48,7 +53,7 @@ public class MockIdentityService implements IdentityService {
     @Override
     public Result<ClaimToken> verifyJwtToken(String participantContextId, TokenRepresentation tokenRepresentation, VerificationContext context) {
         var token = typeManager.readValue(tokenRepresentation.getToken(), MockToken.class);
-
+        var faultyClientId = contextConfig.getString(participantContextId, EDC_MOCK_FAULTY_CLIENT_ID, DEFAULT_FAULTY_CLIENT_ID);
         if (faultyClientId.equals(token.clientId)) {
             return Result.failure("Unauthorized");
         }
