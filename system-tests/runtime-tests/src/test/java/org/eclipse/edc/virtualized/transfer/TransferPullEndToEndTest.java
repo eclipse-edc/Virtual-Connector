@@ -191,18 +191,20 @@ class TransferPullEndToEndTest {
             POSTGRESQL_EXTENSION.execute(CONNECTOR.toLowerCase(), "ALTER TABLE edc_contract_negotiation REPLICA IDENTITY FULL;");
             POSTGRESQL_EXTENSION.execute(CONNECTOR.toLowerCase(), "ALTER TABLE edc_transfer_process REPLICA IDENTITY FULL;");
         };
-        
+
         private static Config runtimeConfiguration() {
-            return ConfigFactory.fromMap(new HashMap<>() {{
-                put("edc.postgres.cdc.url", POSTGRESQL_EXTENSION.getJdbcUrl(CONNECTOR.toLowerCase()));
-                put("edc.postgres.cdc.user", POSTGRESQL_EXTENSION.getUsername());
-                put("edc.postgres.cdc.password", POSTGRESQL_EXTENSION.getPassword());
-                put("edc.postgres.cdc.slot", "edc_cdc_slot_" + CONNECTOR.toLowerCase());
-                put("edc.nats.cn.subscriber.url", NATS_EXTENSION.getNatsUrl());
-                put("edc.nats.cn.publisher.url", NATS_EXTENSION.getNatsUrl());
-                put("edc.nats.tp.subscriber.url", NATS_EXTENSION.getNatsUrl());
-                put("edc.nats.tp.publisher.url", NATS_EXTENSION.getNatsUrl());
-            }});
+            return ConfigFactory.fromMap(new HashMap<>() {
+                {
+                    put("edc.postgres.cdc.url", POSTGRESQL_EXTENSION.getJdbcUrl(CONNECTOR.toLowerCase()));
+                    put("edc.postgres.cdc.user", POSTGRESQL_EXTENSION.getUsername());
+                    put("edc.postgres.cdc.password", POSTGRESQL_EXTENSION.getPassword());
+                    put("edc.postgres.cdc.slot", "edc_cdc_slot_" + CONNECTOR.toLowerCase());
+                    put("edc.nats.cn.subscriber.url", NATS_EXTENSION.getNatsUrl());
+                    put("edc.nats.cn.publisher.url", NATS_EXTENSION.getNatsUrl());
+                    put("edc.nats.tp.subscriber.url", NATS_EXTENSION.getNatsUrl());
+                    put("edc.nats.tp.publisher.url", NATS_EXTENSION.getNatsUrl());
+                }
+            });
         }
     }
 
