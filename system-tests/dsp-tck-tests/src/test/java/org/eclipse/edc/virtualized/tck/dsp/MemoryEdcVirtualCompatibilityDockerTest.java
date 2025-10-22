@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.virtualized.tck.dsp;
 
-import org.eclipse.edc.junit.annotations.NightlyTest;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
@@ -38,7 +38,7 @@ import java.util.HashMap;
 import static org.assertj.core.api.Assertions.fail;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-@NightlyTest
+@EndToEndTest
 @Testcontainers
 public class MemoryEdcVirtualCompatibilityDockerTest {
 
