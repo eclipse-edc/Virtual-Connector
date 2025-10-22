@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.utils.LazySupplier;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
@@ -41,7 +42,9 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -56,7 +59,7 @@ public class VirtualConnector {
     private static final String PROTOCOL = "dataspace-protocol-http:2025-1";
     private static final JsonLdNamespace NS = new JsonLdNamespace(EDC_NAMESPACE);
     private static final ObjectMapper MAPPER = JacksonJsonLd.createObjectMapper();
-
+    private final Function<Class<?>, ?> serviceLocator;
     private final ParticipantContextService contextService;
     private final ParticipantContextConfigService contextConfigService;
     private final AssetService assetService;
@@ -67,11 +70,12 @@ public class VirtualConnector {
     private final TransferProcessService transferProcessService;
     private final LazySupplier<URI> protocolEndpoint;
 
-    public VirtualConnector(ParticipantContextService contextService,
+    public VirtualConnector(Function<Class<?>, ?> serviceLocator, ParticipantContextService contextService,
                             ParticipantContextConfigService contextConfigService, AssetService assetService,
                             PolicyDefinitionService policyService, ContractDefinitionService contractDefinitionService,
                             CatalogService catalogService, ContractNegotiationService negotiationService, TransferProcessService transferProcessService,
                             LazySupplier<URI> protocolEndpoint) {
+        this.serviceLocator = serviceLocator;
         this.contextService = contextService;
         this.contextConfigService = contextConfigService;
         this.assetService = assetService;
@@ -81,6 +85,21 @@ public class VirtualConnector {
         this.negotiationService = negotiationService;
         this.transferProcessService = transferProcessService;
         this.protocolEndpoint = protocolEndpoint;
+    }
+
+    public static VirtualConnector forContext(ComponentRuntimeContext ctx) {
+        return new VirtualConnector(
+                ctx::getService,
+                ctx.getService(ParticipantContextService.class),
+                ctx.getService(ParticipantContextConfigService.class),
+                ctx.getService(AssetService.class),
+                ctx.getService(PolicyDefinitionService.class),
+                ctx.getService(ContractDefinitionService.class),
+                ctx.getService(CatalogService.class),
+                ctx.getService(ContractNegotiationService.class),
+                ctx.getService(TransferProcessService.class),
+                ctx.getEndpoint("protocol")
+        );
     }
 
     public LazySupplier<URI> getProtocolEndpoint() {
@@ -173,9 +192,20 @@ public class VirtualConnector {
     }
 
     public void createParticipant(String participantContextId, String participantId) {
+        createParticipant(participantContextId, participantId, Map.of());
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T getService(Class<T> serviceClass) {
+        return (T) serviceLocator.apply(serviceClass);
+    }
+
+    public void createParticipant(String participantContextId, String participantId, Map<String, String> cfg) {
+        var configuration = new HashMap<>(cfg);
+        configuration.put("edc.participant.id", participantId);
         contextService.createParticipantContext(new ParticipantContext(participantContextId))
                 .orElseThrow(e -> new RuntimeException(e.getFailureDetail()));
-        contextConfigService.save(participantContextId, ConfigFactory.fromMap(Map.of("edc.participant.id", participantId)))
+        contextConfigService.save(participantContextId, ConfigFactory.fromMap(configuration))
                 .orElseThrow(e -> new RuntimeException(e.getFailureDetail()));
     }
 }
