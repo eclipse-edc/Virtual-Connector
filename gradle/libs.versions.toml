@@ -60,6 +60,7 @@ edc-core-dataplane-signaling-transfer = { module = "org.eclipse.edc:transfer-dat
 # EDC Lib modules
 edc-lib-store = { module = "org.eclipse.edc:store-lib", version.ref = "edc" }
 edc-lib-query = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
+edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
 edc-lib-transform = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
 edc-lib-controlplane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
 edc-lib-jersey-providers = { module = "org.eclipse.edc:jersey-providers-lib", version.ref = "edc" }
@@ -90,8 +91,6 @@ edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref
 
 ## EDC Fixtures
 edc-fixtures-sql = { module = "org.eclipse.edc:sql-test-fixtures", version.ref = "edc" }
-edc-fixtures-managementapi = { module = "org.eclipse.edc:management-api-test-fixtures", version.ref = "edc" }
-
 
 # Other libraries
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }

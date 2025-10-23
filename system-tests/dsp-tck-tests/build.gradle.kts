@@ -23,6 +23,7 @@ dependencies {
     testImplementation(libs.edc.junit)
     testImplementation(testFixtures(libs.edc.fixtures.sql))
     testImplementation(testFixtures(project(":extensions:lib:nats-lib")))
+    testImplementation(project(":system-tests:system-test-fixtures"))
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.vault)
     testImplementation(libs.testcontainers.postgres)
