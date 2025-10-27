@@ -15,9 +15,8 @@
 package org.eclipse.edc.virtualized.tck.dsp;
 
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
-import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
-import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -31,19 +30,16 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.containers.SelinuxContext;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
-import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.fail;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
 
 @PostgresqlIntegrationTest
 @Testcontainers
@@ -52,29 +48,20 @@ public class PostgresVirtualCompatibilityDockerTest {
 
     protected static final String CONNECTOR = "CUT";
 
-    static final ImageFromDockerfile BASE_IMAGE = new ImageFromDockerfile()
-            .withDockerfileFromBuilder(builder ->
-                    builder.from("postgres:17.5")
-                            .run("apt update && apt install -y postgresql-17-wal2json postgresql-contrib")
-                            .build());
-
-    static final DockerImageName PG_IMAGE = DockerImageName.parse(BASE_IMAGE.get())
-            .asCompatibleSubstituteFor(PostgreSQLContainer.IMAGE);
-
-    @SuppressWarnings("resource")
-    static final PostgreSQLContainer<?> POSTGRESQL_CONTAINER = new PostgreSQLContainer<>(PG_IMAGE)
-            .withCommand("-c", "wal_level=logical");
-
     @Order(0)
     @RegisterExtension
-    static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension(POSTGRESQL_CONTAINER);
+    static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension(createPgContainer());
+    
     @Order(0)
     @RegisterExtension
     static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
     @RegisterExtension
-    static final RuntimeExtension RUNTIME = new RuntimePerClassExtension(new EmbeddedRuntime(CONNECTOR, ":system-tests:runtimes:tck:tck-controlplane-postgres")
+    static final RuntimeExtension RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
+            .name(CONNECTOR)
+            .modules(":system-tests:runtimes:tck:tck-controlplane-postgres")
             .configurationProvider(PostgresVirtualCompatibilityDockerTest::runtimeConfiguration)
-            .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONNECTOR.toLowerCase())));
+            .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONNECTOR.toLowerCase()))
+            .build();
     @Order(1)
     @RegisterExtension
     static final BeforeAllCallback SETUP = context -> {
@@ -89,19 +76,9 @@ public class PostgresVirtualCompatibilityDockerTest {
         return ConfigFactory.fromMap(new HashMap<>() {
             {
                 put("edc.participant.id", "participantContextId");
-                put("web.http.port", "8080");
-                put("web.http.path", "/api");
-                put("web.http.version.port", String.valueOf(getFreePort()));
-                put("web.http.version.path", "/api/version");
-                put("web.http.control.port", String.valueOf(getFreePort()));
-                put("web.http.control.path", "/api/control");
-                put("web.http.management.port", "8081");
-                put("web.http.management.path", "/api/management");
                 put("web.http.protocol.port", "8282"); // this must match the configured connector url in resources/docker.tck.properties
                 put("web.http.protocol.path", "/api/dsp"); // this must match the configured connector url in resources/docker.tck.properties
-                put("web.api.auth.key", "password");
                 put("edc.dsp.callback.address", "http://host.docker.internal:8282/api/dsp"); // host.docker.internal is required by the container to communicate with the host
-                put("edc.management.context.enabled", "true");
                 put("edc.hostname", "host.docker.internal");
                 put("edc.component.id", "DSP-compatibility-test");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");

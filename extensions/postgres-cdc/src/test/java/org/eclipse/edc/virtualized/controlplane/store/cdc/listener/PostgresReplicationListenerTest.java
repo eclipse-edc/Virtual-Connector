@@ -27,14 +27,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentCaptor;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -45,20 +43,9 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 @Testcontainers
 public class PostgresReplicationListenerTest {
 
-    static final ImageFromDockerfile BASE_IMAGE = new ImageFromDockerfile()
-            .withDockerfileFromBuilder(builder ->
-                    builder.from("postgres:17.5")
-                            .run("apt update && apt install -y postgresql-17-wal2json postgresql-contrib")
-                            .build());
-
-    static final DockerImageName PG_IMAGE = DockerImageName.parse(BASE_IMAGE.get())
-            .asCompatibleSubstituteFor(PostgreSQLContainer.IMAGE);
-    static final PostgreSQLContainer<?> POSTGRESQL_CONTAINER = new PostgreSQLContainer<>(PG_IMAGE)
-            .withCommand("-c", "wal_level=logical");
-
     @Order(0)
     @RegisterExtension
-    static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension(POSTGRESQL_CONTAINER);
+    static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension(createPgContainer());
 
     @Order(1)
     @RegisterExtension

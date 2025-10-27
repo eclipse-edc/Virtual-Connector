@@ -15,9 +15,8 @@
 package org.eclipse.edc.virtualized.tck.dsp;
 
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
-import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -36,36 +35,30 @@ import java.time.Duration;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.fail;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 @EndToEndTest
 @Testcontainers
 public class MemoryEdcVirtualCompatibilityDockerTest {
 
+    protected static final String CONNECTOR = "CUT";
+
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC4");
+
     @RegisterExtension
-    protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime("CUT",
-            ":system-tests:runtimes:tck:tck-controlplane-memory"
-    ).configurationProvider(MemoryEdcVirtualCompatibilityDockerTest::runtimeConfiguration));
+    protected static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+            .name(CONNECTOR)
+            .modules(":system-tests:runtimes:tck:tck-controlplane-memory")
+            .configurationProvider(MemoryEdcVirtualCompatibilityDockerTest::runtimeConfiguration)
+            .build();
 
 
     private static Config runtimeConfiguration() {
         return ConfigFactory.fromMap(new HashMap<>() {
             {
                 put("edc.participant.id", "participantContextId");
-                put("web.http.port", "8080");
-                put("web.http.path", "/api");
-                put("web.http.version.port", String.valueOf(getFreePort()));
-                put("web.http.version.path", "/api/version");
-                put("web.http.control.port", String.valueOf(getFreePort()));
-                put("web.http.control.path", "/api/control");
-                put("web.http.management.port", "8081");
-                put("web.http.management.path", "/api/management");
                 put("web.http.protocol.port", "8282"); // this must match the configured connector url in resources/docker.tck.properties
                 put("web.http.protocol.path", "/api/dsp"); // this must match the configured connector url in resources/docker.tck.properties
-                put("web.api.auth.key", "password");
                 put("edc.dsp.callback.address", "http://host.docker.internal:8282/api/dsp"); // host.docker.internal is required by the container to communicate with the host
-                put("edc.management.context.enabled", "true");
                 put("edc.hostname", "host.docker.internal");
                 put("edc.component.id", "DSP-compatibility-test");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");

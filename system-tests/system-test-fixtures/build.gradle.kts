@@ -14,11 +14,9 @@
 
 plugins {
     `java-library`
-    `java-test-fixtures`
 }
 
 dependencies {
-    testFixturesImplementation(libs.edc.junit)
-    testFixturesImplementation(testFixtures(libs.edc.fixtures.managementapi))
-
+    implementation(libs.testcontainers.junit)
+    implementation(libs.testcontainers.postgres)
 }
