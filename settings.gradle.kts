@@ -59,6 +59,8 @@ include(":system-tests:system-test-fixtures")
 include(":system-tests:runtimes:controlplane-base")
 include(":system-tests:runtimes:controlplane-memory")
 include(":system-tests:runtimes:controlplane-postgres")
+include(":system-tests:runtimes:issuer")
+include(":system-tests:runtimes:identity-hub")
 include(":system-tests:runtime-tests")
 include(":system-tests:dsp-tck-tests")
 include(":system-tests:extensions:v-tck-extension")
@@ -66,5 +68,7 @@ include(":system-tests:runtimes:tck:tck-controlplane-memory")
 include(":system-tests:runtimes:tck:tck-controlplane-postgres")
 include(":system-tests:runtimes:e2e:e2e-controlplane-memory")
 include(":system-tests:runtimes:e2e:e2e-controlplane-postgres")
+include(":system-tests:runtimes:e2e:e2e-dcp-controlplane-postgres")
+
 
 

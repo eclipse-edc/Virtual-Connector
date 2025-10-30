@@ -14,27 +14,19 @@
 
 package org.eclipse.edc.virtualized;
 
-import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
-import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
-import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
-import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
-import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
-import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.utils.Endpoints;
-import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
-import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.virtualized.transfer.fixtures.VirtualConnector;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public interface Runtimes {
-    
+
     interface ControlPlane {
         String NAME = "controlplane";
 
@@ -44,6 +36,10 @@ public interface Runtimes {
 
         String[] PG_MODULES = {
                 ":system-tests:runtimes:e2e:e2e-controlplane-postgres",
+        };
+
+        String[] DCP_PG_MODULES = {
+                ":system-tests:runtimes:e2e:e2e-dcp-controlplane-postgres",
         };
 
         Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
@@ -58,19 +54,40 @@ public interface Runtimes {
                 }
             });
         }
+    }
 
-        static VirtualConnector connector(ComponentRuntimeContext ctx) {
-            return new VirtualConnector(
-                    ctx.getService(ParticipantContextService.class),
-                    ctx.getService(ParticipantContextConfigService.class),
-                    ctx.getService(AssetService.class),
-                    ctx.getService(PolicyDefinitionService.class),
-                    ctx.getService(ContractDefinitionService.class),
-                    ctx.getService(CatalogService.class),
-                    ctx.getService(ContractNegotiationService.class),
-                    ctx.getService(TransferProcessService.class),
-                    ctx.getEndpoint("protocol")
-            );
+    interface Issuer {
+        String NAME = "issuer";
+
+        String[] MODULES = {
+                ":system-tests:runtimes:issuer",
+        };
+    }
+
+    interface IdentityHub {
+        String NAME = "identityhub";
+
+        String[] MODULES = {
+                ":system-tests:runtimes:identity-hub",
+        };
+
+        static String didFor(Endpoints endpoints, String participantContextId) {
+            var didEndpoint = Objects.requireNonNull(endpoints.getEndpoint("did"));
+            String didLocation = String.format("%s%%3A%s", didEndpoint.get().getHost(), didEndpoint.get().getPort());
+            return String.format("did:web:%s:%s", didLocation, participantContextId);
+        }
+
+        static Config dcpConfig(Endpoints endpoints, String participantContextId) {
+            var did = didFor(endpoints, participantContextId);
+            var stsEndpoint = Objects.requireNonNull(endpoints.getEndpoint("sts"));
+            return ConfigFactory.fromMap(Map.of(
+                    "edc.participant.id", did,
+                    "edc.iam.issuer.id", did,
+                    "edc.iam.sts.oauth.client.id", did,
+                    "edc.iam.sts.oauth.client.secret.alias", did + "-alias",
+                    "edc.iam.sts.oauth.token.url", stsEndpoint.get().toString() + "/token",
+                    "edc.iam.did.web.use.https", "false"
+            ));
         }
     }
 }
