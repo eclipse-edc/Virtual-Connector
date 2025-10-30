@@ -15,6 +15,7 @@
 package org.eclipse.edc.virtualized.controlplane;
 
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
+import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -23,7 +24,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.virtualized.controlplane.participantcontext.ParticipantContextIdentityResolverImpl;
 import org.eclipse.edc.virtualized.controlplane.participantcontext.ParticipantWebhookResolverImpl;
-import org.eclipse.edc.virtualized.controlplane.participantcontext.spi.ParticipantIdentityResolver;
 import org.eclipse.edc.virtualized.controlplane.participantcontext.spi.ParticipantWebhookResolver;
 
 import static org.eclipse.edc.virtualized.controlplane.VirtualCoreServicesExtension.NAME;
