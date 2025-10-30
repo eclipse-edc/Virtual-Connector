@@ -86,7 +86,7 @@ public class DspApiConfigurationV2025Extension implements ServiceExtension {
         registerTransformers();
 
         // dynamic webhook registration based on participant context
-        dataspaceProfileContextRegistry.register(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2025_1, V_2025_1, () -> dspWebhookAddress.get() + "/%s" + V_2025_1_PATH, context.getParticipantId(), participantIdExtractionFunction));
+        dataspaceProfileContextRegistry.register(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2025_1, V_2025_1, () -> dspWebhookAddress.get() + "/%s" + V_2025_1_PATH, participantIdExtractionFunction));
     }
 
     private void registerNamespaces() {
