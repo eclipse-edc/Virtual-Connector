@@ -26,6 +26,7 @@ dependencies {
     runtimeOnly(libs.edc.vault.hashicorp)
     runtimeOnly(libs.edc.bom.controlplane.sql)
     runtimeOnly(libs.edc.participantcontext.store.sql)
+    runtimeOnly(libs.edc.participantcontext.config.store.sql)
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
