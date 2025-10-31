@@ -81,6 +81,8 @@ edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref 
 edc-crypto-verifiablecredentials-ldp = { module = "org.eclipse.edc:ldp-verifiable-credentials", version.ref = "edc" }
 edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiable-credentials", version.ref = "edc" }
 edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
+edc-participantcontext-store-sql = { module = "org.eclipse.edc:participantcontext-store-sql", version.ref = "edc" }
+edc-participantcontext-config-store-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
 # EDC DCP modules
 edc-iam-dcp-core = { module = "org.eclipse.edc:identity-trust-core", version.ref = "edc" }
 edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", version.ref = "edc" }
@@ -126,6 +128,6 @@ dcp = [
 ]
 
 [plugins]
-edc-build = { id = "org.eclipse.edc.edc-build", version = "1.1.1" }
+edc-build = { id = "org.eclipse.edc.edc-build", version = "1.1.2" }
 shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 docker = { id = "com.bmuschko.docker-remote-api", version = "9.4.0" }

@@ -18,11 +18,13 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.virtualized.nats.testfixtures.NatsEndToEndExtension;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -51,7 +53,7 @@ public class PostgresVirtualCompatibilityDockerTest {
     @Order(0)
     @RegisterExtension
     static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension(createPgContainer());
-    
+
     @Order(0)
     @RegisterExtension
     static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
@@ -62,6 +64,7 @@ public class PostgresVirtualCompatibilityDockerTest {
             .configurationProvider(PostgresVirtualCompatibilityDockerTest::runtimeConfiguration)
             .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONNECTOR.toLowerCase()))
             .build();
+
     @Order(1)
     @RegisterExtension
     static final BeforeAllCallback SETUP = context -> {
@@ -71,6 +74,17 @@ public class PostgresVirtualCompatibilityDockerTest {
         NATS_EXTENSION.createConsumer("state_machine", "tp-subscriber", "transfers.>");
     };
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC4");
+
+    @BeforeAll
+    static void setup(ParticipantContextConfigStore configStore) {
+        var config = ConfigFactory.fromMap(new HashMap<>() {
+            {
+                put("edc.participant.id", "participantContextId");
+            }
+        });
+        configStore.save("participantContextId", config);
+
+    }
 
     private static Config runtimeConfiguration() {
         return ConfigFactory.fromMap(new HashMap<>() {

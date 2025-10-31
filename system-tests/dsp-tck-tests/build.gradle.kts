@@ -19,6 +19,7 @@ plugins {
 dependencies {
     testImplementation(libs.awaitility)
     testImplementation(libs.edc.junit)
+    testImplementation(libs.edc.spi.participantcontext.config)
     testImplementation(libs.restAssured)
     testImplementation(libs.edc.junit)
     testImplementation(testFixtures(libs.edc.fixtures.sql))
