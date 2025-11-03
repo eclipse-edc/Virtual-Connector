@@ -23,6 +23,8 @@ on:
 
 jobs:
   trigger-workflow:
+    permissions:
+      issues: write
     uses: eclipse-edc/.github/.github/workflows/stale-bot.yml@main
     secrets:
       envGH: ${{ secrets.GITHUB_TOKEN }}
