@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":extensions:v-iam-mock"))
+    implementation(libs.edc.iam.mock)
     implementation(project(":system-tests:runtimes:controlplane-postgres")) {
         exclude("org.eclipse.edc", "identity-trust-service")
         exclude("org.eclipse.edc", "identity-trust-core")
