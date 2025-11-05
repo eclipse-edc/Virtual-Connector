@@ -38,5 +38,8 @@ dependencies {
     runtimeOnly(libs.edc.core.dataplane.signaling.transfer)
 }
 
+edcBuild {
+    publish.set(false)
+}
 
 

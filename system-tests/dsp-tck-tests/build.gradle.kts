@@ -34,3 +34,6 @@ dependencies {
     testCompileOnly(project(":system-tests:runtimes:tck:tck-controlplane-postgres"))
 }
 
+edcBuild {
+    publish.set(false)
+}
