@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -68,6 +69,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -244,6 +246,63 @@ public class TransferProcessStateMachineServiceImplTest {
         assertThat(result).isSucceeded();
         verify(transferProcessStore, times(0)).save(any());
         verify(monitor).debug(contains("due matched guard"));
+    }
+
+    @Test
+    void handle_whenStartingFails() {
+        var transferProcessId = "transferProcessId";
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .id(transferProcessId)
+                .state(STARTING.code())
+                .type(PROVIDER)
+                .contractId("contractId")
+                .build();
+
+        when(transferProcessStore.findById(transferProcessId)).thenReturn(transferProcess);
+        when(dataFlowManager.start(eq(transferProcess), any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, "test message"));
+
+        var result = stateMachineService.handle(transferProcessId, STARTING);
+        assertThat(result).isFailed()
+                .detail().contains("test message");
+        assertThat(transferProcess.getState()).isEqualTo(TERMINATING.code());
+    }
+
+    @Test
+    void handle_initial_whenPolicyNull_expectTerminating() {
+        var transferProcessId = "transferProcessId";
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .id(transferProcessId)
+                .state(INITIAL.code())
+                .type(PROVIDER)
+                .contractId("contractId")
+                .build();
+
+        when(transferProcessStore.findById(transferProcessId)).thenReturn(transferProcess);
+        when(policyArchive.findPolicyForContract(any())).thenReturn(null);
+
+        var result = stateMachineService.handle(transferProcessId, INITIAL);
+        assertThat(result).isFailed()
+                .detail().contains("Policy not found for contract");
+        assertThat(transferProcess.getState()).isEqualTo(TERMINATING.code());
+    }
+
+    @Test
+    void handle_whenSuspendingFails() {
+        var transferProcessId = "transferProcessId";
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .id(transferProcessId)
+                .state(SUSPENDING.code())
+                .type(PROVIDER)
+                .contractId("contractId")
+                .build();
+
+        when(transferProcessStore.findById(transferProcessId)).thenReturn(transferProcess);
+        when(dataFlowManager.suspend(eq(transferProcess))).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, "test message"));
+
+        var result = stateMachineService.handle(transferProcessId, SUSPENDING);
+        assertThat(result).isFailed()
+                .detail().contains("test message");
+        assertThat(transferProcess.getState()).isEqualTo(TERMINATING.code());
     }
 
 
