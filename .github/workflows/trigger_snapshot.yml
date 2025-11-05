@@ -28,5 +28,7 @@ jobs:
     secrets: inherit
 
   Publish-Dependencies:
+    permissions:
+      contents: write
     uses: eclipse-edc/.github/.github/workflows/publish-dependencies.yml@main
     secrets: inherit
