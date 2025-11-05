@@ -20,3 +20,7 @@ dependencies {
     implementation(libs.testcontainers.junit)
     implementation(libs.testcontainers.postgres)
 }
+
+edcBuild {
+    publish.set(false)
+}

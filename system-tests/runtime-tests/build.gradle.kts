@@ -39,5 +39,9 @@ dependencies {
     testImplementation(libs.bouncyCastle.bcpkixJdk18on)
 }
 
+edcBuild {
+    publish.set(false)
+}
+
 
 
