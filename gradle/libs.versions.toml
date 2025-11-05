@@ -51,7 +51,6 @@ edc-core-dsp-http-transferprocess-dispatcher = { module = "org.eclipse.edc:dsp-t
 edc-core-dsp-catalog-transform-v2025 = { module = "org.eclipse.edc:dsp-catalog-transform-2025", version.ref = "edc" }
 edc-core-dsp-negotiation-transform-v2025 = { module = "org.eclipse.edc:dsp-negotiation-transform-2025", version.ref = "edc" }
 edc-core-dsp-transferprocess-transform-v2025 = { module = "org.eclipse.edc:dsp-transfer-process-transform-2025", version.ref = "edc" }
-edc-core-dsp-version-http-api = { module = "org.eclipse.edc:dsp-version-http-api", version.ref = "edc" }
 edc-core-participantcontext-single = { module = "org.eclipse.edc:participant-context-single-core", version.ref = "edc" }
 edc-core-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-core", version.ref = "edc" }
 edc-core-dataplane-signaling-client = { module = "org.eclipse.edc:data-plane-signaling-client", version.ref = "edc" }
