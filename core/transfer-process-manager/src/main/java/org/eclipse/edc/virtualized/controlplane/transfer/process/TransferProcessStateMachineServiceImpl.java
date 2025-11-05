@@ -162,7 +162,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
         var policy = policyArchive.findPolicyForContract(contractId);
 
         if (policy == null) {
-            transitionToTerminated(process, "Policy not found for contract: " + contractId);
+            transitionToTerminating(process, "Policy not found for contract: " + contractId);
             return StatusResult.failure(FATAL_ERROR, "Policy not found for contract: " + contractId);
         }
 
@@ -191,7 +191,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
         var result = dataFlowManager.start(process, policy);
 
         if (result.failed()) {
-            transitionToTerminated(process, result.getFailureDetail());
+            transitionToTerminating(process, result.getFailureDetail());
             return StatusResult.failure(FATAL_ERROR, result.getFailureDetail());
         }
         var dataFlowResponse = result.getContent();
@@ -243,7 +243,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
         if (process.getType() == PROVIDER) {
             var result = dataFlowManager.suspend(process);
             if (result.failed()) {
-                transitionToTerminated(process, "Failed to suspend transfer process: " + result.getFailureDetail());
+                transitionToTerminating(process, "Failed to suspend transfer process: " + result.getFailureDetail());
                 return StatusResult.failure(FATAL_ERROR, result.getFailureDetail());
             }
         }
