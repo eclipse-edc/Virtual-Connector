@@ -29,7 +29,7 @@ defined in [RFC 7519](https://tools.ietf.org/html/rfc7519), the following claims
   on the role, or additionally on the scope. For example, `admin` users may not even need scopes, as all scopes are
   granted implicitly.
 - `scope`: contains a space-separated list of scopes that the user is authorized to access, for example
-  `"scope": "management-api-read management-api-write"`. For further information, see chapter [Scopes](#scopes)
+  `"scope": "management-api:read management-api:write"`. For further information, see chapter [Scopes](#scopes)
 - `participant_context_id`: this is the identifier of the participant context that is used throughout the EDC-V
   ecosystem to identify a participant. This may be different from the `client_id`. 
   
@@ -40,12 +40,12 @@ Unfortunately, [RFC-8707](https://datatracker.ietf.org/doc/html/rfc8707) is not 
 
 Scopes used in EDC-V are:
 
-- `management-api-read`: allows read access to the control plane's management API
-- `management-api-write`: allows write access to the control plane's management API
-- `data-plane-read`: allows read access to the data plane's management API
-- `data-plane-write`: allows write access to the data plane's management API
-- `identity-api-read`: allows read access to IdentityHub's identity API
-- `identity-api-write`: allows write access to IdentityHub's identity API
+- `management-api:read`: allows read access to the control plane's management API
+- `management-api:write`: allows write access to the control plane's management API
+- `data-plane:read`: allows read access to the data plane's management API
+- `data-plane:write`: allows write access to the data plane's management API
+- `identity-api:read`: allows read access to IdentityHub's identity API
+- `identity-api:write`: allows write access to IdentityHub's identity API
 - `issuer-admin-api`: allows full access to the IssuerService's Issuer Admin API. A distinction between read and write
   access is not required here, as this scope is only granted to provisioner users.
 
@@ -57,7 +57,7 @@ request:
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "grant_type=client_credentials" \
   -d "client_id=$CLIENT_ID" \
-  -d "scope=management-api-write management-api-read" \
+  -d "scope=management-api:write management-api:read" \
   -d "client_secret=$CLIENT_SECRET"
 ```
 
