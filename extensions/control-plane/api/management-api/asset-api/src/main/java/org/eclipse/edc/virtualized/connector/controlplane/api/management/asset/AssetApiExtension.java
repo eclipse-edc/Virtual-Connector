@@ -1,0 +1,100 @@
+/*
+ *  Copyright (c) 2025 Metaform Systems, Inc.
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Metaform Systems, Inc. - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.virtualized.connector.controlplane.api.management.asset;
+
+import org.eclipse.edc.api.auth.spi.AuthorizationService;
+import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.virtualized.connector.controlplane.api.management.asset.v1.AssetApiController;
+import org.eclipse.edc.virtualized.connector.controlplane.api.management.asset.validation.AssetValidator;
+import org.eclipse.edc.virtualized.connector.controlplane.api.management.asset.validation.DataAddressValidator;
+import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
+import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.configuration.ApiContext;
+
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE;
+
+@Extension(value = AssetApiExtension.NAME)
+public class AssetApiExtension implements ServiceExtension {
+
+    public static final String NAME = "Management API: Asset";
+
+    @Inject
+    private WebService webService;
+
+    @Inject
+    private TypeTransformerRegistry transformerRegistry;
+
+    @Inject
+    private AssetService assetService;
+
+    @Inject
+    private JsonObjectValidatorRegistry validatorRegistry;
+
+    @Inject
+    private JsonLd jsonLd;
+
+    @Inject
+    private TypeManager typeManager;
+    @Inject
+    private AuthorizationService authorizationService;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        var monitor = context.getMonitor();
+
+        validatorRegistry.register(EDC_ASSET_TYPE, AssetValidator.instance());
+        validatorRegistry.register(EDC_DATA_ADDRESS_TYPE, DataAddressValidator.instance());
+
+        var managementTypeTransformerRegistry = transformerRegistry.forContext("management-api");
+
+        authorizationService.addLookupFunction(Asset.class, this::findAsset);
+
+        webService.registerResource(ApiContext.MANAGEMENT, new AssetApiController(assetService, managementTypeTransformerRegistry, validatorRegistry, monitor, authorizationService));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, AssetApiController.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+
+    }
+
+    private ParticipantResource findAsset(String ownerId, String assetId) {
+        var res = assetService.search(QuerySpec.Builder.newInstance()
+                .filter(new Criterion("participantContextId", "=", ownerId))
+                .filter(new Criterion("id", "=", assetId))
+                .build());
+        if (res.failed()) return null;
+
+        return res.getContent().stream().findFirst().orElse(null);
+    }
+
+}

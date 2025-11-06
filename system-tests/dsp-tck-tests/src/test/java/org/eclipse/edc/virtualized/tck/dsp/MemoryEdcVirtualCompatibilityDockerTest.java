@@ -63,6 +63,8 @@ public class MemoryEdcVirtualCompatibilityDockerTest {
                 put("edc.component.id", "DSP-compatibility-test");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
+                put("edc.iam.oauth2.jwksurl", "https://example.com/jwks");
+                put("edc.iam.oauth2.issuer", "test-issuer");
             }
         });
     }

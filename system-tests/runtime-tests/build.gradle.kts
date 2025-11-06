@@ -21,7 +21,7 @@ dependencies {
     testImplementation(libs.edc.spi.dataplane)
     testImplementation(libs.edc.spi.jsonld)
     testImplementation(libs.edc.spi.transaction.datasource)
-    testImplementation(libs.edc.spi.control.plane)
+    testImplementation(libs.edc.spi.controlplane)
     testImplementation(libs.edc.spi.participantcontext.config)
     testImplementation(libs.edc.lib.jsonld)
     testImplementation(libs.edc.lib.sql)

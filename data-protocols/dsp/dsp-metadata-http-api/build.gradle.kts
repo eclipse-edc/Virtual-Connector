@@ -19,7 +19,7 @@ plugins {
 dependencies {
     api(libs.edc.spi.core)
     api(libs.edc.spi.dsp)
-    api(libs.edc.spi.control.plane)
+    api(libs.edc.spi.controlplane)
     api(libs.edc.spi.jsonld)
     api(libs.edc.spi.web)
 

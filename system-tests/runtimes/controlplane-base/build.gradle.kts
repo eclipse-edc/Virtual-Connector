@@ -17,6 +17,7 @@ plugins {
 }
 
 dependencies {
+    runtimeOnly(project(":extensions:control-plane:api:management-api"))
     runtimeOnly(project(":core:v-connector-core"))
     runtimeOnly(project(":core:negotiation-manager"))
     runtimeOnly(project(":core:transfer-process-manager"))
