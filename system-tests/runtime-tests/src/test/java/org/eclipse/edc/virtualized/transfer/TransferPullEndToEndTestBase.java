@@ -40,8 +40,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 abstract class TransferPullEndToEndTestBase {
 
-    private static final String ASSET_ID = "asset-id";
-    private static final String POLICY_ID = "policy-id";
+    protected static final String ASSET_ID = "asset-id";
+    protected static final String POLICY_ID = "policy-id";
 
     @RegisterExtension
     static WireMockExtension callbacksEndpoint = WireMockExtension.newInstance()

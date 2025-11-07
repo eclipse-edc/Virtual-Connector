@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.virtualized.transfer;
 
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.identityhub.tests.fixtures.DefaultRuntimes;
 import org.eclipse.edc.identityhub.tests.fixtures.credentialservice.IdentityHub;
 import org.eclipse.edc.identityhub.tests.fixtures.credentialservice.IdentityHubApiClient;
@@ -22,24 +25,37 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.utils.Endpoints;
+import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.virtualized.Runtimes;
 import org.eclipse.edc.virtualized.extensions.DcpPatchExtension;
 import org.eclipse.edc.virtualized.nats.testfixtures.NatsEndToEndExtension;
+import org.eclipse.edc.virtualized.policy.cel.model.CelExpression;
+import org.eclipse.edc.virtualized.policy.cel.service.CelPolicyExpressionService;
 import org.eclipse.edc.virtualized.transfer.fixtures.Participants;
 import org.eclipse.edc.virtualized.transfer.fixtures.VirtualConnector;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
 import static org.eclipse.edc.virtualized.transfer.fixtures.TestFunction.setupHolder;
 import static org.eclipse.edc.virtualized.transfer.fixtures.TestFunction.setupIssuer;
@@ -95,6 +111,67 @@ class DcpTransferPullEndToEndTest {
             identityHub.waitForCredentialIssuer(providerPid, providerHolderDid);
             identityHub.waitForCredentialIssuer(consumerPid, consumerHolderDid);
 
+        }
+
+
+        @Test
+        void httpPull_dataTransfer_withMembershipExpression(VirtualConnector env, Participants participants,
+                                                            TransferProcessService transferService,
+                                                            CelPolicyExpressionService celPolicyExpressionService) {
+
+            var leftOperand = "https://w3id.org/example/credentials/MembershipCredential";
+            var expression = """
+                    ctx.agent.claims.vc
+                    .exists(c, c.type.exists(t, t == 'MembershipCredential'))
+                    """;
+
+            var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
+            celPolicyExpressionService.create(new CelExpression("id", leftOperand, expression, "membership expression"))
+                    .orElseThrow(f -> new RuntimeException("Failed to store CEL expression: " + f.getFailureDetail()));
+
+            var policy = Policy.Builder.newInstance()
+                    .permission(Permission.Builder
+                            .newInstance()
+                            .action(Action.Builder.newInstance().type(ODRL_SCHEMA + "use").build())
+                            .constraint(AtomicConstraint.Builder.newInstance()
+                                    .leftExpression(new LiteralExpression(leftOperand))
+                                    .operator(Operator.EQ)
+                                    .rightExpression(new LiteralExpression("active"))
+                                    .build())
+                            .build())
+                    .build();
+            var assetId = setup(env, participants.provider(), policy);
+            var transferProcessId = env.startTransfer(participants.consumer().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL", policy);
+
+            var consumerTransfer = transferService.findById(transferProcessId);
+            assertThat(consumerTransfer).isNotNull();
+
+            var providerTransfer = transferService.findById(consumerTransfer.getCorrelationId());
+
+            assertThat(providerTransfer).isNotNull();
+
+            assertThat(consumerTransfer.getParticipantContextId()).isEqualTo(participants.consumer().contextId());
+            assertThat(providerTransfer.getParticipantContextId()).isEqualTo(participants.provider().contextId());
+
+        }
+
+        private String setup(VirtualConnector env, Participants.Participant provider, Policy policy) {
+
+            var asset = Asset.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .dataAddress(DataAddress.Builder.newInstance().type("HttpData").build())
+                    .participantContextId(provider.contextId())
+                    .build();
+
+            var policyDefinition = PolicyDefinition.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .policy(policy)
+                    .participantContextId(provider.contextId())
+                    .build();
+
+            env.setupResources(provider.contextId(), asset, policyDefinition, policyDefinition);
+
+            return asset.getId();
         }
     }
 

@@ -45,6 +45,7 @@ public class DcpPatchExtension implements ServiceExtension {
     @Inject
     private RuleBindingRegistry ruleBindingRegistry;
 
+
     @Override
     public void initialize(ServiceExtensionContext context) {
 
@@ -57,6 +58,7 @@ public class DcpPatchExtension implements ServiceExtension {
         bindPermissionFunction(MembershipCredentialEvaluationFunction.create(), TransferProcessPolicyContext.class, TransferProcessPolicyContext.TRANSFER_SCOPE, MEMBERSHIP_CONSTRAINT_KEY);
         bindPermissionFunction(MembershipCredentialEvaluationFunction.create(), ContractNegotiationPolicyContext.class, ContractNegotiationPolicyContext.NEGOTIATION_SCOPE, MEMBERSHIP_CONSTRAINT_KEY);
         bindPermissionFunction(MembershipCredentialEvaluationFunction.create(), CatalogPolicyContext.class, CatalogPolicyContext.CATALOG_SCOPE, MEMBERSHIP_CONSTRAINT_KEY);
+
     }
 
     private <C extends PolicyContext> void bindPermissionFunction(AtomicConstraintRuleFunction<Permission, C> function, Class<C> contextClass, String scope, String constraintType) {
@@ -66,4 +68,5 @@ public class DcpPatchExtension implements ServiceExtension {
 
         policyEngine.registerFunction(contextClass, Permission.class, constraintType, function);
     }
+
 }

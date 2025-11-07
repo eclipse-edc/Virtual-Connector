@@ -22,6 +22,7 @@ dependencies {
     runtimeOnly(project(":core:negotiation-manager"))
     runtimeOnly(project(":core:transfer-process-manager"))
     runtimeOnly(project(":extensions:banner-extension"))
+    runtimeOnly(project(":extensions:cel:cel-extension"))
     runtimeOnly(project(":data-protocols:dsp"))
     runtimeOnly(libs.edc.core.connector)
     runtimeOnly(libs.edc.core.runtime)

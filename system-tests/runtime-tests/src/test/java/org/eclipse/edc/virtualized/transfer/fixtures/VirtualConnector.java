@@ -127,16 +127,21 @@ public class VirtualConnector {
     }
 
     private String startContractNegotiation(String participantContext, String assetId, String offerId, String providerAddress, String providerId) {
+        return startContractNegotiation(participantContext, assetId, offerId, Policy.Builder.newInstance().build(), providerAddress, providerId);
+    }
+
+    private String startContractNegotiation(String participantContext, String assetId, String offerId, Policy policy, String providerAddress, String providerId) {
+        var newPolicy = policy.toBuilder()
+                .assigner(providerId)
+                .target(assetId)
+                .build();
         var contractRequest = ContractRequest.Builder.newInstance()
                 .protocol(PROTOCOL)
                 .counterPartyAddress(providerAddress)
                 .contractOffer(ContractOffer.Builder.newInstance()
                         .id(offerId)
                         .assetId(assetId)
-                        .policy(Policy.Builder.newInstance()
-                                .assigner(providerId)
-                                .target(assetId)
-                                .build())
+                        .policy(newPolicy)
                         .build())
                 .build();
 
@@ -161,13 +166,18 @@ public class VirtualConnector {
     }
 
     public String startTransfer(String participantContext, String providerAddress, String providerId, String assetId, String transferType) {
+        return startTransfer(participantContext, providerAddress, providerId, assetId, transferType, Policy.Builder.newInstance().build());
+
+    }
+
+    public String startTransfer(String participantContext, String providerAddress, String providerId, String assetId, String transferType, Policy policy) {
 
         try {
             var asset = catalogService.requestDataset(new ParticipantContext(participantContext), assetId, providerId, providerAddress, PROTOCOL).get();
             var responseBody = MAPPER.readValue(asset.getContent(), JsonObject.class);
             var offerId = responseBody.getJsonArray("hasPolicy").getJsonObject(0).getString(ID);
 
-            var agreementId = startContractNegotiation(participantContext, assetId, offerId, providerAddress, providerId);
+            var agreementId = startContractNegotiation(participantContext, assetId, offerId, policy, providerAddress, providerId);
 
             return startTransferProcess(participantContext, agreementId, providerAddress, transferType);
 

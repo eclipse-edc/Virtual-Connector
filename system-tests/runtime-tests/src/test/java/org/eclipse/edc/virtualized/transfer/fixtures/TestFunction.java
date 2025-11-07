@@ -70,7 +70,7 @@ public class TestFunction {
                 .attestation(attestationDefinition.getId())
                 .validity(3600)
                 .mapping(new MappingDefinition("member_name", "credentialSubject.name", true))
-                .mapping(new MappingDefinition("membership_start_date", "credentialSubject.membershipStartData", true))
+                .mapping(new MappingDefinition("membership_start_date", "credentialSubject.membershipStartDate", true))
                 .rule(new CredentialRuleDefinition("expression", ruleConfiguration))
                 .participantContextId(participantContextId)
                 .formatFrom(VC1_0_JWT)
