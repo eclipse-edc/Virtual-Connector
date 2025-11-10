@@ -19,10 +19,10 @@ plugins {
 dependencies {
     implementation(project(":system-tests:extensions:v-tck-extension"));
     implementation(project(":system-tests:runtimes:controlplane-memory")) {
-        exclude("org.eclipse.edc", "identity-trust-service")
-        exclude("org.eclipse.edc", "identity-trust-core")
-        exclude("org.eclipse.edc", "identity-trust-sts-remote-client")
-        exclude("org.eclipse.edc", "identity-trust-issuers-configuration")
+        exclude("org.eclipse.edc", "decentralized-claims-service")
+        exclude("org.eclipse.edc", "decentralized-claims-core")
+        exclude("org.eclipse.edc", "decentralized-claims-sts-remote-client")
+        exclude("org.eclipse.edc", "decentralized-claims-issuers-configuration")
     }
     runtimeOnly(libs.edc.tck.extension)
     runtimeOnly(libs.edc.core.participantcontext.single)
