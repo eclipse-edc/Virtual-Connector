@@ -20,10 +20,10 @@ dependencies {
 
     implementation(project(":system-tests:extensions:v-tck-extension"));
     implementation(project(":system-tests:runtimes:controlplane-postgres")) {
-        exclude("org.eclipse.edc", "identity-trust-service")
-        exclude("org.eclipse.edc", "identity-trust-core")
-        exclude("org.eclipse.edc", "identity-trust-sts-remote-client")
-        exclude("org.eclipse.edc", "identity-trust-issuers-configuration")
+        exclude("org.eclipse.edc", "decentralized-claims-service")
+        exclude("org.eclipse.edc", "decentralized-claims-core")
+        exclude("org.eclipse.edc", "decentralized-claims-sts-remote-client")
+        exclude("org.eclipse.edc", "decentralized-claims-issuers-configuration")
         exclude("org.eclipse.edc", "vault-hashicorp")
     }
     implementation(project(":extensions:postgres-cdc"))

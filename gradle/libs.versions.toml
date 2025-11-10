@@ -83,7 +83,7 @@ edc-api-observability = { module = "org.eclipse.edc:api-observability", version.
 edc-participantcontext-store-sql = { module = "org.eclipse.edc:participantcontext-store-sql", version.ref = "edc" }
 edc-participantcontext-config-store-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
 # EDC DCP modules
-edc-iam-dcp-core = { module = "org.eclipse.edc:identity-trust-core", version.ref = "edc" }
+edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", version.ref = "edc" }
 edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", version.ref = "edc" }
 edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "edc" }
 
