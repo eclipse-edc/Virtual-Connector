@@ -34,7 +34,9 @@ dependencies {
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.vault)
     testImplementation(libs.testcontainers.postgres)
-    testImplementation(libs.wiremock)
+    testImplementation(libs.wiremock) {
+        exclude("com.networknt", "json-schema-validator")
+    }
     testImplementation(libs.nimbus.jwt)
     testImplementation(libs.bouncyCastle.bcpkixJdk18on)
 }
