@@ -29,7 +29,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
     private final Map<Class<?>, BiFunction<String, String, ParticipantResource>> resourceLookupFunctions = new HashMap<>();
 
     @Override
-    public ServiceResult<ParticipantResource> authorize(SecurityContext securityContext, String resourceOwnerId, String resourceId, Class<? extends ParticipantResource> resourceClass) {
+    public ServiceResult<Void> authorize(SecurityContext securityContext, String resourceOwnerId, String resourceId, Class<? extends ParticipantResource> resourceClass) {
         var securityPrincipalName = securityContext.getUserPrincipal().getName();
 
         if (resourceOwnerId == null) {
@@ -48,7 +48,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 
         // for admins, only the owner ID and the participantContextId must match
         if (securityContext.isUserInRole(ParticipantPrincipal.ROLE_ADMIN)) {
-            return ServiceResult.success(resource);
+            return ServiceResult.success();
         }
 
         // for all other users, the service principal, the resource owner and the participantContextID must be equal
@@ -56,7 +56,7 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             return ServiceResult.unauthorized("User '%s' is not authorized to access this resource.".formatted(securityPrincipalName));
         }
 
-        return ServiceResult.success(resource);
+        return ServiceResult.success();
 
     }
 

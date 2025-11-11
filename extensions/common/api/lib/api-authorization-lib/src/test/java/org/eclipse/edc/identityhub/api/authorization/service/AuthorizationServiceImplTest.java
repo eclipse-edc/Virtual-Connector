@@ -46,8 +46,7 @@ class AuthorizationServiceImplTest {
         var securityContext = mock(SecurityContext.class);
         when(securityContext.getUserPrincipal()).thenReturn(principal);
         assertThat(authorizationService.authorize(securityContext, "test-id", "test-resource-id", TestResource.class))
-                .isSucceeded()
-                .satisfies(r -> assertThat(r.getParticipantContextId()).isEqualTo("test-id"));
+                .isSucceeded();
     }
 
     @Test

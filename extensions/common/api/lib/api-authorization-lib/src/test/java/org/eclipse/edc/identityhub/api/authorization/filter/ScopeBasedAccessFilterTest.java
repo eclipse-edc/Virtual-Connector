@@ -102,7 +102,7 @@ class ScopeBasedAccessFilterTest {
 
         verify(request).getSecurityContext();
         verify(securityContext).getUserPrincipal();
-        verify(request).abortWith(argThat(r -> r.getStatus() == 401));
+        verify(request).abortWith(argThat(r -> r.getStatus() == 403));
         verifyNoMoreInteractions(request, securityContext);
     }
 
@@ -118,7 +118,7 @@ class ScopeBasedAccessFilterTest {
 
         verify(request).getSecurityContext();
         verify(securityContext).getUserPrincipal();
-        verify(request).abortWith(argThat(r -> r.getStatus() == 401));
+        verify(request).abortWith(argThat(r -> r.getStatus() == 403));
         verifyNoMoreInteractions(request, securityContext);
     }
 
@@ -135,7 +135,7 @@ class ScopeBasedAccessFilterTest {
 
         verify(request).getSecurityContext();
         verify(securityContext).getUserPrincipal();
-        verify(request).abortWith(argThat(r -> r.getStatus() == 401));
+        verify(request).abortWith(argThat(r -> r.getStatus() == 403));
         verifyNoMoreInteractions(request, securityContext);
     }
 

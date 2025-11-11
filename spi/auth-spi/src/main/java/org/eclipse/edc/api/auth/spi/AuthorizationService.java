@@ -37,9 +37,9 @@ public interface AuthorizationService {
      * @param resourceId      The ID of the resource. The resource must be of type {@link AbstractParticipantResource}.
      * @param resourceClass   The concrete type of the resource.
      * @return success if authorized, containing the {@link ParticipantResource}, {@link ServiceResult#unauthorized(String)}
-     *          if the principal is not authorized, or {@link ServiceResult#notFound(String)} if the resource owner does not own the resource.
+     * if the principal is not authorized, or {@link ServiceResult#notFound(String)} if the resource owner does not own the resource.
      */
-    ServiceResult<ParticipantResource> authorize(SecurityContext securityContext, String resourceOwnerId, String resourceId, Class<? extends ParticipantResource> resourceClass);
+    ServiceResult<Void> authorize(SecurityContext securityContext, String resourceOwnerId, String resourceId, Class<? extends ParticipantResource> resourceClass);
 
     /**
      * Register a function that can look up a particular resource type by ID. Typically, every resource that should be protected with

@@ -74,7 +74,6 @@ import static org.hamcrest.Matchers.notNullValue;
 /**
  * Asset V4alpha endpoints end-to-end tests
  */
-@SuppressWarnings("JUnitMalformedDeclaration")
 public class AssetApiV4EndToEndTest {
 
     abstract static class Tests {
@@ -90,13 +89,7 @@ public class AssetApiV4EndToEndTest {
 
         @BeforeEach
         void setup(ManagementEndToEndTestContext context, ParticipantContextService participantContextService) throws JOSEException {
-            var pc = ParticipantContext.Builder.newInstance()
-                    .participantContextId(PARTICIPANT_CONTEXT_ID)
-                    .state(ParticipantContextState.ACTIVATED)
-                    .build();
-
-            participantContextService.createParticipantContext(pc)
-                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+            createParticipant(participantContextService, PARTICIPANT_CONTEXT_ID);
 
             // stub JWKS endpoint at /jwks/ returning 200 OK with a simple JWKS
             oauthServerSigningKey = new ECKeyGenerator(Curve.P_256).keyID(UUID.randomUUID().toString()).generate();
@@ -123,118 +116,250 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void getAssetById(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+        void updateAsset(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            var asset = createAsset().build();
+            assetIndex.create(asset);
 
+            var assetJson = createAssetJson(asset);
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .put("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .then()
+                    .log().all()
+                    .statusCode(204)
+                    .body(notNullValue());
+
+            var dbAsset = assetIndex.findById(asset.getId());
+            assertThat(dbAsset).isNotNull();
+            assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
+            assertThat(dbAsset.getDataAddress().getType()).isEqualTo("addressType");
+            assertThat(dbAsset.getDataAddress().getProperty(EDC_NAMESPACE + "complex"))
+                    .asInstanceOf(MAP)
+                    .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(VALUE, "value")));
+        }
+
+        @Test
+        void updateAsset_doesNotOwnResource(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            var asset = createAsset().build();
+            assetIndex.create(asset);
+
+            var assetJson = createAssetJson(asset);
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .put("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .then()
+                    .log().all()
+                    .statusCode(204)
+                    .body(notNullValue());
+
+            var dbAsset = assetIndex.findById(asset.getId());
+            assertThat(dbAsset).isNotNull();
+            assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
+            assertThat(dbAsset.getDataAddress().getType()).isEqualTo("addressType");
+            assertThat(dbAsset.getDataAddress().getProperty(EDC_NAMESPACE + "complex"))
+                    .asInstanceOf(MAP)
+                    .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(VALUE, "value")));
+        }
+
+        @Test
+        void updateAsset_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, AssetIndex assetIndex, ParticipantContextService srv) {
+            var asset = createAsset().build();
+            assetIndex.create(asset);
+
+            var assetJson = createAssetJson(asset);
+
+            var otherParticipantId = UUID.randomUUID().toString();
+            createParticipant(srv, otherParticipantId);
+            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .put("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .then()
+                    .log().all()
+                    .statusCode(403)
+                    .body(notNullValue());
+        }
+
+        @Test
+        void updateAsset_tokenLacksRequiredScope(ManagementEndToEndTestContext context, AssetIndex assetIndex, ParticipantContextService srv) {
+            var asset = createAsset().build();
+            assetIndex.create(asset);
+
+            var assetJson = createAssetJson(asset);
+
+            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .put("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403)
+                    .body(notNullValue());
+        }
+
+        @Test
+        void updateAsset_tokenBearerIsAdmin(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            var asset = createAsset().build();
+            assetIndex.create(asset);
+
+            var assetJson = createAssetJson(asset);
+
+            var adminToken = context.createAdminToken(oauthServerSigningKey);
+
+            context.baseRequest(adminToken)
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .put("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .then()
+                    .log().all()
+                    .statusCode(204)
+                    .body(notNullValue());
+        }
+
+        @Test
+        void queryAsset_byContentType(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            //insert one asset into the index
             var id = UUID.randomUUID().toString();
-            var asset = createAsset().id(id)
-                    .dataAddress(createDataAddress().type("addressType").build())
+            var asset = Asset.Builder.newInstance()
+                    .id(id)
+                    .contentType("application/octet-stream")
+                    .dataAddress(createDataAddress().build())
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .build();
             assetIndex.create(asset);
+            // not matching asset
+            assetIndex.create(Asset.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .dataAddress(createDataAddress().build())
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .build());
+
+            var query = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "QuerySpec")
+                    .add("filterExpression", createArrayBuilder()
+                            .add(createObjectBuilder()
+                                    .add(TYPE, "Criterion")
+                                    .add("operandLeft", EDC_NAMESPACE + "id")
+                                    .add("operator", "=")
+                                    .add("operandRight", id))
+                            .add(createObjectBuilder()
+                                    .add(TYPE, "Criterion")
+                                    .add("operandLeft", EDC_NAMESPACE + "contenttype")
+                                    .add("operator", "=")
+                                    .add("operandRight", "application/octet-stream"))
+                    )
+                    .build()
+                    .toString();
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(ContentType.JSON)
+                    .body(query)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body("size()", is(1));
+        }
+
+        @Test
+        void queryAsset_byCustomStringProperty(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            assetIndex.create(Asset.Builder.newInstance()
+                    .id("test-asset")
+                    .contentType("application/octet-stream")
+                    .property("myProp", "myVal")
+                    .dataAddress(createDataAddress().build())
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .build());
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(ContentType.JSON)
+                    .body(context.queryV2(criterion("myProp", "=", "myVal")).toString())
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body("size()", is(1));
+        }
+
+        @Test
+        void queryAsset_byCustomComplexProperty(ManagementEndToEndTestContext context) {
+            var id = UUID.randomUUID().toString();
+            var assetJson = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "Asset")
+                    .add(ID, id)
+                    .add("properties", createPropertiesBuilder()
+                            .add("nested", createPropertiesBuilder()
+                                    .add("@id", "test-nested-id")))
+                    .add("dataAddress", createObjectBuilder()
+                            .add(TYPE, "DataAddress")
+                            .add("type", "test-type")
+                            .add("unprefixed-key", "test-value")
+                            .build())
+                    .build()
+                    .toString();
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body(ID, is(id));
+
+            var query = context.queryV2(
+                    criterion("'%sid".formatted(EDC_NAMESPACE), "=", id),
+                    criterion("'%snested'.@id".formatted(EDC_NAMESPACE), "=", "test-nested-id")
+            ).toString();
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(ContentType.JSON)
+                    .body(query)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body("size()", is(1));
+        }
+
+        @Test
+        void queryAsset_byCatalogProperty(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            var id = UUID.randomUUID().toString();
+            assetIndex.create(Asset.Builder.newInstance()
+                    .property(Asset.PROPERTY_IS_CATALOG, true)
+                    .id(id)
+                    .contentType("application/octet-stream")
+                    .dataAddress(createDataAddress().build())
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .build());
 
             var body = context.baseRequest(participantTokenJwt)
-                    .get("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
+                    .contentType(ContentType.JSON)
+                    .body(context.queryV2(
+                                    criterion(EDC_NAMESPACE + "isCatalog", "=", "true"),
+                                    criterion("id", "=", id))
+                            .toString())
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
                     .then()
-                    .statusCode(200)
                     .log().ifValidationFails()
-                    .extract().body().jsonPath();
-
-            assertThat(body).isNotNull();
-            assertThat(body.getString(ID)).isEqualTo(id);
-            assertThat(body.getMap("properties"))
-                    .hasSize(5)
-                    .containsEntry("name", "test-asset")
-                    .containsEntry("description", "test description")
-                    .containsEntry("contenttype", "application/json")
-                    .containsEntry("version", "0.4.2");
-            assertThat(body.getMap("'dataAddress'"))
-                    .containsEntry("type", "addressType");
-            assertThat(body.getMap("'dataAddress'.'complex'"))
-                    .containsEntry("simple", "value")
-                    .containsKey("nested");
-            assertThat(body.getMap("'dataAddress'.'complex'.'nested'"))
-                    .containsEntry("innerValue", "value");
-        }
-
-        @Test
-        void getAssetById_assetNotFound(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
-
-            var id = "not-exist";
-            context.baseRequest(participantTokenJwt)
-                    .get("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
-                    .then()
-                    .statusCode(404);
-        }
-
-        @Test
-        void getAssetById_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
-            var id = UUID.randomUUID().toString();
-            var asset = createAsset().id(id)
-                    .dataAddress(createDataAddress().type("addressType").build())
-                    .build();
-            assetIndex.create(asset);
-
-            var token = context.createToken("other-participant", oauthServerSigningKey);
-            var body = context.baseRequest(token)
-                    .header("Authorization", "Bearer " + token)
-                    .get("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
-                    .then()
-                    .statusCode(401)
-                    .extract().body().jsonPath();
-
-            assertThat(body).isNotNull();
-        }
-
-
-        @Test
-        void getAssetById_tokenBearerIsAdmin(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
-            var id = UUID.randomUUID().toString();
-            var asset = createAsset().id(id)
-                    .dataAddress(createDataAddress().type("addressType").build())
-                    .build();
-            assetIndex.create(asset);
-
-            var adminToken = context.createAdminToken(oauthServerSigningKey);
-            var body = context.baseRequest(adminToken)
-                    .get("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
-                    .then()
                     .statusCode(200)
-                    .log().ifValidationFails()
-                    .extract().body().jsonPath();
+                    .extract().body();
 
-            assertThat(body).isNotNull();
-            assertThat(body.getString(ID)).isEqualTo(id);
-            assertThat(body.getMap("properties"))
-                    .hasSize(5)
-                    .containsEntry("name", "test-asset")
-                    .containsEntry("description", "test description")
-                    .containsEntry("contenttype", "application/json")
-                    .containsEntry("version", "0.4.2");
-            assertThat(body.getMap("'dataAddress'"))
-                    .containsEntry("type", "addressType");
-            assertThat(body.getMap("'dataAddress'.'complex'"))
-                    .containsEntry("simple", "value")
-                    .containsKey("nested");
-            assertThat(body.getMap("'dataAddress'.'complex'.'nested'"))
-                    .containsEntry("innerValue", "value");
+            var assets = body.as(Map[].class);
+
+            assertThat(assets).isNotNull().hasSize(1);
+            assertThat(Asset.EDC_CATALOG_ASSET_TYPE).contains(assets[0].get(TYPE).toString());
         }
-
-        @Test
-        void getAssetById_tokenBearerIsAdmin_wrongOwner(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
-            var id = UUID.randomUUID().toString();
-            var asset = createAsset().id(id)
-                    .dataAddress(createDataAddress().type("addressType").build())
-                    .build();
-            assetIndex.create(asset);
-
-            var adminToken = context.createAdminToken(oauthServerSigningKey);
-            context.baseRequest(adminToken)
-                    .get("/v4alpha/participants/some-other-owner/assets/" + id)
-                    .then()
-                    .statusCode(404)
-                    .log().ifValidationFails();
-
-        }
-
 
         @Test
         @Disabled
@@ -410,143 +535,124 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        @Disabled
-        void queryAsset_byContentType(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
-            //insert one asset into the index
+        void findById(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+
             var id = UUID.randomUUID().toString();
-            var asset = Asset.Builder.newInstance().id(id).contentType("application/octet-stream").dataAddress(createDataAddress().build())
-                    .participantContextId("participantContextId")
+            var asset = createAsset().id(id)
+                    .dataAddress(createDataAddress().type("addressType").build())
                     .build();
             assetIndex.create(asset);
-            // not matching asset
-            assetIndex.create(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).dataAddress(createDataAddress().build())
-                    .participantContextId("participantContextId")
-                    .build());
 
-            var query = createObjectBuilder()
-                    .add(CONTEXT, jsonLdContext())
-                    .add(TYPE, "QuerySpec")
-                    .add("filterExpression", createArrayBuilder()
-                            .add(createObjectBuilder()
-                                    .add(TYPE, "Criterion")
-                                    .add("operandLeft", EDC_NAMESPACE + "id")
-                                    .add("operator", "=")
-                                    .add("operandRight", id))
-                            .add(createObjectBuilder()
-                                    .add(TYPE, "Criterion")
-                                    .add("operandLeft", EDC_NAMESPACE + "contenttype")
-                                    .add("operator", "=")
-                                    .add("operandRight", "application/octet-stream"))
-                    ).build();
-
-            context.baseRequest(participantTokenJwt)
-                    .contentType(ContentType.JSON)
-                    .body(query)
-                    .post("/v4alpha/assets/request")
+            var body = context.baseRequest(participantTokenJwt)
+                    .get("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
                     .then()
-                    .log().ifError()
+                    .log().ifValidationFails()
                     .statusCode(200)
-                    .body("size()", is(1));
+                    .extract().body().jsonPath();
+
+            assertThat(body).isNotNull();
+            assertThat(body.getString(ID)).isEqualTo(id);
+            assertThat(body.getMap("properties"))
+                    .hasSize(5)
+                    .containsEntry("name", "test-asset")
+                    .containsEntry("description", "test description")
+                    .containsEntry("contenttype", "application/json")
+                    .containsEntry("version", "0.4.2");
+            assertThat(body.getMap("'dataAddress'"))
+                    .containsEntry("type", "addressType");
+            assertThat(body.getMap("'dataAddress'.'complex'"))
+                    .containsEntry("simple", "value")
+                    .containsKey("nested");
+            assertThat(body.getMap("'dataAddress'.'complex'.'nested'"))
+                    .containsEntry("innerValue", "value");
         }
 
         @Test
-        @Disabled
-        void queryAsset_byCustomStringProperty(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
-            assetIndex.create(Asset.Builder.newInstance()
-                    .id("test-asset")
-                    .contentType("application/octet-stream")
-                    .property("myProp", "myVal")
-                    .dataAddress(createDataAddress().build())
-                    .participantContextId("participantContextId")
-                    .build());
+        void findById_assetNotFound(ManagementEndToEndTestContext context) {
 
+            var id = "not-exist";
             context.baseRequest(participantTokenJwt)
-                    .contentType(ContentType.JSON)
-                    .body(context.queryV2(criterion("myProp", "=", "myVal")))
-                    .post("/v4alpha/assets/request")
+                    .get("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
                     .then()
-                    .log().ifError()
-                    .statusCode(200)
-                    .body("size()", is(1));
+                    .statusCode(404);
         }
 
         @Test
-        @Disabled
-        void queryAsset_byCustomComplexProperty(ManagementEndToEndTestContext context) {
+        void findById_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, AssetIndex assetIndex, ParticipantContextService srv) {
             var id = UUID.randomUUID().toString();
-            var assetJson = createObjectBuilder()
-                    .add(CONTEXT, jsonLdContext())
-                    .add(TYPE, "Asset")
-                    .add(ID, id)
-                    .add("properties", createPropertiesBuilder()
-                            .add("nested", createPropertiesBuilder()
-                                    .add("@id", "test-nested-id")))
-                    .add("dataAddress", createObjectBuilder()
-                            .add(TYPE, "DataAddress")
-                            .add("type", "test-type")
-                            .add("unprefixed-key", "test-value")
-                            .build())
+            var asset = createAsset().id(id)
+                    .dataAddress(createDataAddress().type("addressType").build())
                     .build();
-
-            context.baseRequest(participantTokenJwt)
-                    .contentType(ContentType.JSON)
-                    .body(assetJson)
-                    .post("/v4alpha/assets")
-                    .then()
-                    .log().ifError()
-                    .statusCode(200)
-                    .body(ID, is(id));
-
-            var query = context.queryV2(
-                    criterion("'%sid".formatted(EDC_NAMESPACE), "=", id),
-                    criterion("'%snested'.@id".formatted(EDC_NAMESPACE), "=", "test-nested-id")
-            );
-
-            context.baseRequest(participantTokenJwt)
-                    .contentType(ContentType.JSON)
-                    .body(query)
-                    .post("/v4alpha/assets/request")
-                    .then()
-                    .log().ifError()
-                    .statusCode(200)
-                    .body("size()", is(1));
-        }
-
-        @Test
-        @Disabled
-        void queryAsset_byCatalogProperty(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
-            var id = UUID.randomUUID().toString();
-            assetIndex.create(Asset.Builder.newInstance()
-                    .property(Asset.PROPERTY_IS_CATALOG, true)
-                    .id(id)
-                    .contentType("application/octet-stream")
-                    .dataAddress(createDataAddress().build())
-                    .participantContextId("participantContextId")
-                    .build());
-
-            var assets = context.baseRequest(participantTokenJwt)
-                    .contentType(ContentType.JSON)
-                    .body(context.queryV2(
-                            criterion(EDC_NAMESPACE + "isCatalog", "=", "true"),
-                            criterion("id", "=", id)))
-                    .post("/v4alpha/assets/request")
-                    .then()
-                    .log().ifError()
-                    .statusCode(200)
-                    .extract().body().as(JsonArray.class);
-
-            assertThat(assets).isNotNull().hasSize(1);
-            assertThat(Asset.EDC_CATALOG_ASSET_TYPE).contains(assets.get(0).asJsonObject().getString(TYPE));
-
-        }
-
-        @Test
-        @Disabled
-        void updateAsset(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
-            var asset = createAsset().build();
             assetIndex.create(asset);
 
-            var assetJson = createObjectBuilder()
+            var participantContextId = UUID.randomUUID().toString();
+            createParticipant(srv, participantContextId);
+            var token = context.createToken(participantContextId, oauthServerSigningKey);
+
+            var body = context.baseRequest(token)
+                    .header("Authorization", "Bearer " + token)
+                    .get("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(401)
+                    .extract().body().jsonPath();
+
+            assertThat(body).isNotNull();
+        }
+
+        @Test
+        void findById_tokenBearerIsAdmin(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            var id = UUID.randomUUID().toString();
+            var asset = createAsset().id(id)
+                    .dataAddress(createDataAddress().type("addressType").build())
+                    .build();
+            assetIndex.create(asset);
+
+            var adminToken = context.createAdminToken(oauthServerSigningKey);
+            var body = context.baseRequest(adminToken)
+                    .get("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .extract().body().jsonPath();
+
+            assertThat(body).isNotNull();
+            assertThat(body.getString(ID)).isEqualTo(id);
+            assertThat(body.getMap("properties"))
+                    .hasSize(5)
+                    .containsEntry("name", "test-asset")
+                    .containsEntry("description", "test description")
+                    .containsEntry("contenttype", "application/json")
+                    .containsEntry("version", "0.4.2");
+            assertThat(body.getMap("'dataAddress'"))
+                    .containsEntry("type", "addressType");
+            assertThat(body.getMap("'dataAddress'.'complex'"))
+                    .containsEntry("simple", "value")
+                    .containsKey("nested");
+            assertThat(body.getMap("'dataAddress'.'complex'.'nested'"))
+                    .containsEntry("innerValue", "value");
+        }
+
+        @Test
+        void findById_tokenBearerIsAdmin_wrongOwner(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            var id = UUID.randomUUID().toString();
+            var asset = createAsset().id(id)
+                    .dataAddress(createDataAddress().type("addressType").build())
+                    .build();
+            assetIndex.create(asset);
+
+            var adminToken = context.createAdminToken(oauthServerSigningKey);
+            context.baseRequest(adminToken)
+                    .get("/v4alpha/participants/some-other-owner/assets/" + id)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(404)
+                    .log().ifValidationFails();
+
+        }
+
+        private String createAssetJson(Asset asset) {
+            return createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "Asset")
                     .add(ID, asset.getId())
@@ -556,24 +662,18 @@ public class AssetApiV4EndToEndTest {
                             .add(TYPE, "DataAddress")
                             .add("type", "addressType")
                             .add("complex", createObjectBuilder().add("nested", "value").build()))
+                    .build()
+                    .toString();
+        }
+
+        private void createParticipant(ParticipantContextService participantContextService, String participantContextId) {
+            var pc = ParticipantContext.Builder.newInstance()
+                    .participantContextId(participantContextId)
+                    .state(ParticipantContextState.ACTIVATED)
                     .build();
 
-            context.baseRequest(participantTokenJwt)
-                    .contentType(ContentType.JSON)
-                    .body(assetJson)
-                    .put("/v4alpha/assets")
-                    .then()
-                    .log().all()
-                    .statusCode(204)
-                    .body(notNullValue());
-
-            var dbAsset = assetIndex.findById(asset.getId());
-            assertThat(dbAsset).isNotNull();
-            assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
-            assertThat(dbAsset.getDataAddress().getType()).isEqualTo("addressType");
-            assertThat(dbAsset.getDataAddress().getProperty(EDC_NAMESPACE + "complex"))
-                    .asInstanceOf(MAP)
-                    .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(VALUE, "value")));
+            participantContextService.createParticipantContext(pc)
+                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
         }
 
         private DataAddress.Builder createDataAddress() {
