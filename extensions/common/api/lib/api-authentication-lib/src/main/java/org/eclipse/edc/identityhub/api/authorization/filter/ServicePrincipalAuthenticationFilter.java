@@ -36,7 +36,6 @@ import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
  * A {@link ContainerRequestFilter} that extracts a {@link ParticipantPrincipal} from the Authorization Header, specifically,
  * the JWT that is contained in the Authorization Header.
  */
-@PreMatching
 @Priority(Priorities.AUTHENTICATION)
 public class ServicePrincipalAuthenticationFilter implements ContainerRequestFilter {
 

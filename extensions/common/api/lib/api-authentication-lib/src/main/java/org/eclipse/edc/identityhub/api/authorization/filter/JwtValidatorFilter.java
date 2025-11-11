@@ -18,6 +18,7 @@ import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.token.spi.TokenValidationRule;
@@ -28,6 +29,7 @@ import java.util.List;
 /**
  * Validates the JWT signature against the IdP's public key and validates basic claims, such as {@code iss} and {@code exp}.
  */
+@PreMatching
 @Priority(Priorities.AUTHENTICATION)
 public class JwtValidatorFilter implements ContainerRequestFilter {
 
