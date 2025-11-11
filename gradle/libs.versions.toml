@@ -16,6 +16,7 @@ nats = "2.23.0"
 wiremock = "3.13.1"
 bouncyCastle-jdk18on = "1.82"
 jakarta-annotation = "2.1.1"
+cel = "0.11.1"
 
 [libraries]
 # EDC SPI modules
@@ -26,9 +27,14 @@ edc-spi-participantcontext-config = { module = "org.eclipse.edc:participant-cont
 edc-spi-transaction = { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
 edc-spi-transaction-datasource = { module = "org.eclipse.edc:transaction-datasource-spi", version.ref = "edc" }
 edc-spi-protocol = { module = "org.eclipse.edc:protocol-spi", version.ref = "edc" }
+edc-spi-catalog = { module = "org.eclipse.edc:catalog-spi", version.ref = "edc" }
 edc-spi-contract = { module = "org.eclipse.edc:contract-spi", version.ref = "edc" }
 edc-spi-transfer = { module = "org.eclipse.edc:transfer-spi", version.ref = "edc" }
 edc-spi-policy = { module = "org.eclipse.edc:policy-spi", version.ref = "edc" }
+edc-spi-policy-monitor = { module = "org.eclipse.edc:policy-monitor-spi", version.ref = "edc" }
+edc-spi-policy-engine = { module = "org.eclipse.edc:policy-engine-spi", version.ref = "edc" }
+edc-spi-participant = { module = "org.eclipse.edc:participant-spi", version.ref = "edc" }
+edc-spi-verifiablecredentials = { module = "org.eclipse.edc:verifiable-credentials-spi", version.ref = "edc" }
 edc-spi-jsonld = { module = "org.eclipse.edc:json-ld-spi", version.ref = "edc" }
 edc-spi-dsp = { module = "org.eclipse.edc:dsp-spi", version.ref = "edc" }
 edc-spi-dsp-v2025 = { module = "org.eclipse.edc:dsp-spi-2025", version.ref = "edc" }
@@ -130,6 +136,7 @@ wiremock = { module = "org.wiremock:wiremock-jetty12", version.ref = "wiremock" 
 bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 bouncyCastle-bcprovJdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
+cel = { module = "dev.cel:cel", version.ref = "cel" }
 
 [bundles]
 dcp = [

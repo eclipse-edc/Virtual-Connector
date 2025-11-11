@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class MembershipCredentialEvaluationFunction<C extends ParticipantAgentPolicyContext> implements AtomicConstraintRuleFunction<Permission, C> {
     public static final String MEMBERSHIP_CONSTRAINT_KEY = "MembershipCredential";
-    protected static final String MVD_NAMESPACE = "https://w3id.org/mvd/credentials/";
+    protected static final String EXAMPLE_NAMESPACE = "https://w3id.org/example/credentials/";
     private static final String VC_CLAIM = "vc";
     private static final String MEMBERSHIP_CLAIM = "membership";
     private static final String SINCE_CLAIM = "since";
@@ -70,7 +70,7 @@ public class MembershipCredentialEvaluationFunction<C extends ParticipantAgentPo
                 .filter(vc -> vc.getType().stream().anyMatch(t -> t.endsWith(MEMBERSHIP_CONSTRAINT_KEY)))
                 .flatMap(vc -> vc.getCredentialSubject().stream().filter(cs -> cs.getClaims().containsKey(MEMBERSHIP_CLAIM)))
                 .anyMatch(credential -> {
-                    var membershipClaim = (Map<String, ?>) credential.getClaim(MVD_NAMESPACE, MEMBERSHIP_CLAIM);
+                    var membershipClaim = (Map<String, ?>) credential.getClaim(EXAMPLE_NAMESPACE, MEMBERSHIP_CLAIM);
                     var membershipStartDate = Instant.parse(membershipClaim.get(SINCE_CLAIM).toString());
                     return membershipStartDate.isBefore(Instant.now());
                 });
