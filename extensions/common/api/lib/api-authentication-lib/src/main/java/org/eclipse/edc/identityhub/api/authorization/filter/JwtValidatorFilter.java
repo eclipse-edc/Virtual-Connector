@@ -26,6 +26,8 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 
 import java.util.List;
 
+import static org.eclipse.edc.identityhub.api.authorization.filter.Constants.REQUEST_PROPERTY_CLAIMS;
+
 /**
  * Validates the JWT signature against the IdP's public key and validates basic claims, such as {@code iss} and {@code exp}.
  */
@@ -58,7 +60,10 @@ public class JwtValidatorFilter implements ContainerRequestFilter {
 
         if (tokenValidationResult.failed()) {
             abort(requestContext, tokenValidationResult.getFailureDetail());
+            return;
         }
+
+        requestContext.setProperty(REQUEST_PROPERTY_CLAIMS, tokenValidationResult.getContent());
     }
 
 

@@ -14,23 +14,22 @@
 
 package org.eclipse.edc.identityhub.api.authorization.filter;
 
-import com.nimbusds.jwt.SignedJWT;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
-import jakarta.ws.rs.container.PreMatching;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
+import org.eclipse.edc.spi.iam.ClaimToken;
 
 import java.security.Principal;
-import java.text.ParseException;
-import java.util.Map;
 
-import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
+import static org.eclipse.edc.identityhub.api.authorization.filter.Constants.REQUEST_PROPERTY_CLAIMS;
+import static org.eclipse.edc.identityhub.api.authorization.filter.Constants.TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID;
+import static org.eclipse.edc.identityhub.api.authorization.filter.Constants.TOKEN_CLAIM_ROLE;
+import static org.eclipse.edc.identityhub.api.authorization.filter.Constants.TOKEN_CLAIM_SCOPE;
 
 /**
  * A {@link ContainerRequestFilter} that extracts a {@link ParticipantPrincipal} from the Authorization Header, specifically,
@@ -47,65 +46,44 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) {
-        var authHeaders = containerRequestContext.getHeaders().get(AUTHORIZATION);
 
-        // reject 0 or >1 api key headers
-        if (authHeaders == null || authHeaders.size() != 1) {
-            containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization Header missing").build());
-        } else {
-            var authHeader = authHeaders.get(0);
-            if (!authHeader.startsWith("Bearer ")) {
-                containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization Header invalid: expected 'Bearer' prefix").build());
+        var claims = containerRequestContext.getProperty(REQUEST_PROPERTY_CLAIMS);
+        if (claims == null) {
+            containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization failure: no '%s' found".formatted(REQUEST_PROPERTY_CLAIMS)).build());
+            return;
+        }
+        var participantContextId = ((ClaimToken) claims).getStringClaim(TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID);
+        var role = ((ClaimToken) claims).getStringClaim(TOKEN_CLAIM_ROLE);
+        var scope = ((ClaimToken) claims).getStringClaim(TOKEN_CLAIM_SCOPE);
+
+        if (participantContextId != null) {
+            if (participantContextService.getParticipantContext(participantContextId).failed()) {
+                containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization Header invalid: participant context not found").build());
                 return;
             }
-            authHeader = authHeader.replace("Bearer ", "");
+        }
 
-            var claims = parseJwt(authHeader);
-            var participantContextId = claims.get("participant_context_id");
-
-            String participantContextIdString = null;
-            if (participantContextId != null) {
-                if (participantContextService.getParticipantContext(participantContextId.toString()).failed()) {
-                    containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization Header invalid: participant context not found").build());
-                    return;
-                }
-                participantContextIdString = participantContextId.toString();
+        var servicePrincipal = new ParticipantPrincipal(participantContextId, role, scope);
+        containerRequestContext.setSecurityContext(new SecurityContext() {
+            @Override
+            public Principal getUserPrincipal() {
+                return servicePrincipal;
             }
 
+            @Override
+            public boolean isUserInRole(String s) {
+                return servicePrincipal.getRoles().contains(s);
+            }
 
-            var servicePrincipal = new ParticipantPrincipal(participantContextIdString,
-                    claims.get("role").toString(),
-                    claims.get("scope").toString());
-            containerRequestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return servicePrincipal;
-                }
+            @Override
+            public boolean isSecure() {
+                return containerRequestContext.getUriInfo().getBaseUri().toString().startsWith("https");
+            }
 
-                @Override
-                public boolean isUserInRole(String s) {
-                    return servicePrincipal.getRoles().contains(s);
-                }
-
-                @Override
-                public boolean isSecure() {
-                    return containerRequestContext.getUriInfo().getBaseUri().toString().startsWith("https");
-                }
-
-                @Override
-                public String getAuthenticationScheme() {
-                    return null;
-                }
-            });
-        }
+            @Override
+            public String getAuthenticationScheme() {
+                return null;
+            }
+        });
     }
-
-    private Map<String, Object> parseJwt(String jwt) {
-        try {
-            return SignedJWT.parse(jwt).getJWTClaimsSet().toJSONObject();
-        } catch (ParseException e) {
-            throw new AuthenticationFailedException(e.getMessage());
-        }
-    }
-
 }
