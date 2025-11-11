@@ -32,7 +32,6 @@ dependencies {
     implementation(libs.edc.lib.jersey.providers)
     implementation(libs.edc.lib.mgmtapi)
     implementation(libs.edc.lib.validator)
-//    implementation(project(":extensions:common:api:lib:management-api-lib"))
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
 }

@@ -21,14 +21,6 @@ plugins {
 dependencies {
 
     api(project(":spi:auth-spi"))
-//    implementation(libs.edc.spi.core)
-//    implementation(libs.edc.spi.controlplane)
-//    implementation(libs.edc.spi.asset)
-//    implementation(libs.edc.spi.validator)
-//    implementation(libs.edc.spi.web)
-//    implementation(libs.edc.spi.transform)
-//    implementation(libs.jakarta.annotation)
-
     implementation(libs.edc.lib.jersey.providers)
     implementation(libs.edc.lib.mgmtapi)
     implementation(libs.edc.lib.validator)

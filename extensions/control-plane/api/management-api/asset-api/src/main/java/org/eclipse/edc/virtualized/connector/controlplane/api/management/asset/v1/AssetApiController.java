@@ -27,6 +27,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
+import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
@@ -61,7 +62,7 @@ public class AssetApiController {
     }
 
     @POST
-    @RolesAllowed({ "edcv-admin", "edcv-participant" })
+    @RolesAllowed({ ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT })
     @RequiredScope("management-api:write")
     public JsonObject createAsset(@PathParam("participantContextId") String participantContextId,
                                   @SchemaType({ EDC_ASSET_TYPE_TERM, EDC_CATALOG_ASSET_TYPE_TERM }) Asset assetJson,
@@ -75,7 +76,7 @@ public class AssetApiController {
 
 
     @PUT
-    @RolesAllowed({ "edcv-admin", "edcv-participant" })
+    @RolesAllowed({ ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT })
     @RequiredScope("management-api:write")
     public JsonObject updateAsset(@PathParam("participantContextId") String participantContextId,
                                   @SchemaType({ EDC_ASSET_TYPE_TERM, EDC_CATALOG_ASSET_TYPE_TERM }) Asset assetJson,
@@ -89,7 +90,7 @@ public class AssetApiController {
 
     @GET
     @Path("{id}")
-    @RolesAllowed({ "edcv-admin", "edcv-participant" })
+    @RolesAllowed({ ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT })
     @RequiredScope("management-api:read")
     public JsonObject getAsset(@PathParam("participantContextId") String participantContextId,
                                @PathParam("id") String id,

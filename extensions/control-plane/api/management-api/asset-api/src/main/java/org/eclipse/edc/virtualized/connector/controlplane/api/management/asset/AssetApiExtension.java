@@ -88,13 +88,14 @@ public class AssetApiExtension implements ServiceExtension {
     }
 
     private ParticipantResource findAsset(String ownerId, String assetId) {
-        var res = assetService.search(QuerySpec.Builder.newInstance()
-                .filter(new Criterion("participantContextId", "=", ownerId))
-                .filter(new Criterion("id", "=", assetId))
-                .build());
-        if (res.failed()) return null;
-
-        return res.getContent().stream().findFirst().orElse(null);
+        return assetService
+                .search(QuerySpec.Builder.newInstance()
+                        .filter(new Criterion("participantContextId", "=", ownerId))
+                        .filter(new Criterion("id", "=", assetId))
+                        .build()
+                )
+                .map(it -> it.stream().findFirst().orElse(null))
+                .orElse(f -> null);
     }
 
 }
