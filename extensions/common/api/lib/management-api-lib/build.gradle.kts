@@ -24,7 +24,6 @@ dependencies {
     testImplementation(libs.edc.junit)
     testImplementation(libs.edc.lib.jsonld)
     testImplementation(libs.edc.lib.transform)
-//    testImplementation(project(":extensions:common:json-ld"))
 }
 
 

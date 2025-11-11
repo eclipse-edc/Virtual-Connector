@@ -24,8 +24,4 @@ dependencies {
     implementation(libs.jakarta.annotation)
 
     implementation(project(":extensions:common:api:lib:api-authorization-lib"))
-//
-//
-//    testImplementation(libs.edc.junit)
-//    testRuntimeOnly(libs.jersey.common) // needs the RuntimeDelegate
 }
