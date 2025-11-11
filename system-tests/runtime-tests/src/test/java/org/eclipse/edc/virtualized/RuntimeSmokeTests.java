@@ -61,6 +61,9 @@ public class RuntimeSmokeTests {
                 put("edc.iam.sts.oauth.client.id", "test-client");
                 put("edc.iam.sts.oauth.client.secret.alias", "test-alias");
                 put("edc.iam.issuer.id", "did:web:someone");
+                put("edc.iam.oauth2.issuer", "test-issuer");
+                put("edc.iam.oauth2.jwks.cache.validity", "0");
+                put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
             }
         });
     }
@@ -150,6 +153,9 @@ public class RuntimeSmokeTests {
                 {
                     put("edc.vault.hashicorp.url", format("http://localhost:%s", getVaultPort()));
                     put("edc.vault.hashicorp.token", TOKEN);
+                    put("edc.iam.oauth2.issuer", "test-issuer");
+                    put("edc.iam.oauth2.jwks.cache.validity", "0");
+                    put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
                 }
             });
         }

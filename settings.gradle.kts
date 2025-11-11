@@ -26,6 +26,7 @@ pluginManagement {
 }
 
 // spi
+include(":spi:auth-spi")
 include(":spi:v-core-spi")
 
 // core
@@ -54,6 +55,17 @@ include(":extensions:negotiation-subscriber-nats")
 include(":extensions:transfer-process-cdc-publisher-nats")
 include(":extensions:transfer-process-subscriber-nats")
 include(":extensions:lib:nats-lib")
+include(":extensions:common:api:api-authentication")
+include(":extensions:common:api:api-authorization")
+
+// APIs
+include(":extensions:control-plane:api:management-api:asset-api")
+include(":extensions:control-plane:api:management-api:management-api-configuration")
+
+// lib
+include(":extensions:common:api:lib:management-api-lib")
+include(":extensions:common:api:lib:api-authorization-lib")
+include(":extensions:common:api:lib:api-authentication-lib")
 
 include(":system-tests:system-test-fixtures")
 include(":system-tests:runtimes:controlplane-base")
@@ -62,6 +74,7 @@ include(":system-tests:runtimes:controlplane-postgres")
 include(":system-tests:runtimes:issuer")
 include(":system-tests:runtimes:identity-hub")
 include(":system-tests:runtime-tests")
+include(":system-tests:management-api:management-api-tests")
 include(":system-tests:dsp-tck-tests")
 include(":system-tests:extensions:v-tck-extension")
 include(":system-tests:runtimes:tck:tck-controlplane-memory")

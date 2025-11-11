@@ -28,6 +28,7 @@ dependencies {
         exclude(module = "data-plane-selector-client")
     }
     runtimeOnly(libs.parsson)
+    runtimeOnly(libs.bouncyCastle.bcprovJdk18on)
 }
 
 application {
