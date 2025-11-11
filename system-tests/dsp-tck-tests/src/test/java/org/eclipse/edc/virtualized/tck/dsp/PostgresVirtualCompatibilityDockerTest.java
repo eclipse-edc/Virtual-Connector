@@ -105,7 +105,7 @@ public class PostgresVirtualCompatibilityDockerTest {
                 put("edc.nats.cn.publisher.url", NATS_EXTENSION.getNatsUrl());
                 put("edc.nats.tp.subscriber.url", NATS_EXTENSION.getNatsUrl());
                 put("edc.nats.tp.publisher.url", NATS_EXTENSION.getNatsUrl());
-                put("edc.iam.oauth2.jwksurl", "https://example.com/jwks");
+                put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
                 put("edc.iam.oauth2.issuer", "test-issuer");
             }
         });

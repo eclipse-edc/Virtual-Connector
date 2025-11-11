@@ -621,7 +621,7 @@ public class AssetApiV4EndToEndTest {
                 .modules(Runtimes.ControlPlane.MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwksurl", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
     }
@@ -662,7 +662,7 @@ public class AssetApiV4EndToEndTest {
                 .configurationProvider(Runtimes.ControlPlane::config)
                 .configurationProvider(() -> POSTGRES_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(Postgres::runtimeConfiguration)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwksurl", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
 

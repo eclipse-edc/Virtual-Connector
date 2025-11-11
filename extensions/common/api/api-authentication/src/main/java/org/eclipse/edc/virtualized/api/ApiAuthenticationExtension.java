@@ -89,7 +89,7 @@ public class ApiAuthenticationExtension implements ServiceExtension {
     record OauthConfiguration(
             @Setting(key = "edc.iam.oauth2.issuer", description = "Issuer of the OAuth2 server", required = false)
             String expectedIssuer,
-            @Setting(key = "edc.iam.oauth2.jwksurl", description = "Absolute URL where the JWKS of the OAuth2 server is hosted")
+            @Setting(key = "edc.iam.oauth2.jwks.url", description = "Absolute URL where the JWKS of the OAuth2 server is hosted")
             String jwksUrl,
             @Setting(key = "edc.iam.oauth2.jwks.cache.validity", description = "Time (in ms) that cached JWKS are cached", defaultValue = "" + FIVE_MINUTES)
             long cacheValidityInMillis
