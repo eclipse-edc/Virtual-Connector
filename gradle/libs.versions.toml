@@ -16,6 +16,8 @@ nats = "2.23.0"
 wiremock = "3.13.1"
 bouncyCastle-jdk18on = "1.82"
 jakarta-annotation = "2.1.1"
+swagger = "2.2.40"
+
 cel = "0.11.1"
 
 [libraries]
@@ -47,7 +49,6 @@ edc-spi-token = { module = "org.eclipse.edc:token-spi", version.ref = "edc" }
 edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
 
 # EDC Core modules
-edc-core-controlplane-client = { module = "org.eclipse.edc:control-plane-api-client", version.ref = "edc" }
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
 edc-core-runtime = { module = "org.eclipse.edc:runtime-core", version.ref = "edc" }
@@ -69,6 +70,7 @@ edc-core-dataplane-signaling-client = { module = "org.eclipse.edc:data-plane-sig
 edc-core-dataplane-signaling-transfer = { module = "org.eclipse.edc:transfer-data-plane-signaling", version.ref = "edc" }
 
 # EDC Lib modules
+edc-lib-api = { module = "org.eclipse.edc:api-lib", version.ref = "edc" }
 edc-lib-common-crypto = { module = "org.eclipse.edc:crypto-common-lib", version.ref = "edc" }
 edc-lib-store = { module = "org.eclipse.edc:store-lib", version.ref = "edc" }
 edc-lib-query = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
@@ -88,7 +90,6 @@ edc-lib-keys = { module = "org.eclipse.edc:keys-lib", version.ref = "edc" }
 edc-lib-token = { module = "org.eclipse.edc:token-lib", version.ref = "edc" }
 edc-lib-util = { module = "org.eclipse.edc:util-lib", version.ref = "edc" }
 edc-lib-validator = { module = "org.eclipse.edc:validator-lib", version.ref = "edc" }
-edc-build-plugin = { module = "org.eclipse.edc.edc-build:org.eclipse.edc.edc-build.gradle.plugin", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 
 # EDC Extensions modules
@@ -100,6 +101,7 @@ edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiabl
 edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
 edc-participantcontext-store-sql = { module = "org.eclipse.edc:participantcontext-store-sql", version.ref = "edc" }
 edc-participantcontext-config-store-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
+
 # EDC DCP modules
 edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", version.ref = "edc" }
 edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", version.ref = "edc" }
@@ -151,3 +153,4 @@ dcp = [
 edc-build = { id = "org.eclipse.edc.edc-build", version = "1.1.2" }
 shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 docker = { id = "com.bmuschko.docker-remote-api", version = "10.0.0" }
+swagger = { id = "io.swagger.core.v3.swagger-gradle-plugin", version.ref = "swagger" }

@@ -48,7 +48,7 @@ class ScopeBasedAccessFilter implements ContainerRequestFilter {
         if (principal instanceof ParticipantPrincipal participantPrincipal) {
             var matches = Arrays.asList(participantPrincipal.scope().split(" ")).contains(requiredScope);
             if (!matches) {
-                containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+                containerRequestContext.abortWith(Response.status(Response.Status.FORBIDDEN.getStatusCode(), "Required scope '%s' missing".formatted(requiredScope)).build());
             }
             // else: continue request normally
         } else {

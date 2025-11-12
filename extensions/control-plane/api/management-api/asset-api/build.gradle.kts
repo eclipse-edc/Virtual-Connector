@@ -16,6 +16,8 @@
 
 plugins {
     `java-library`
+    id(libs.plugins.swagger.get().pluginId)
+
 }
 
 dependencies {
@@ -29,9 +31,12 @@ dependencies {
     implementation(libs.edc.spi.transform)
     implementation(libs.jakarta.annotation)
 
+    implementation(libs.edc.lib.api)
     implementation(libs.edc.lib.jersey.providers)
     implementation(libs.edc.lib.mgmtapi)
     implementation(libs.edc.lib.validator)
+
+    testImplementation(testFixtures(libs.edc.core.jersey))
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
 }
