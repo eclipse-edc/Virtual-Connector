@@ -40,7 +40,6 @@ import org.eclipse.edc.test.e2e.managementapi.Runtimes;
 import org.eclipse.edc.virtualized.nats.testfixtures.NatsEndToEndExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -51,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
@@ -68,7 +68,9 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEME
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesRegex;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
@@ -362,7 +364,102 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        @Disabled
+        void queryAsset_tokenBearerIsAdmin_shouldReturnAllAssets(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            IntStream.range(0, 10)
+                    .forEach(i -> {
+                        // create assets for participant
+                        assetIndex.create(Asset.Builder.newInstance()
+                                        .id(UUID.randomUUID().toString())
+                                        .contentType("application/octet-stream")
+                                        .dataAddress(createDataAddress().build())
+                                        .participantContextId(PARTICIPANT_CONTEXT_ID)
+                                        .build())
+                                .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+
+                    });
+
+            var token = context.createAdminToken(oauthServerSigningKey);
+
+            var result = context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(context.queryV2().toString())
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .extract().body().as(Map[].class);
+
+            assertThat(result).isNotNull().hasSize(10);
+
+        }
+
+        @Test
+        void queryAsset_shouldLimitToResourceOwner(ManagementEndToEndTestContext context, AssetIndex assetIndex, ParticipantContextService srv) {
+            var otherParticipantId = UUID.randomUUID().toString();
+
+            srv.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+
+            var ownAssetId = UUID.randomUUID().toString();
+            var otherAssetId = UUID.randomUUID().toString();
+
+            assetIndex.create(createAsset()
+                            .id(ownAssetId)
+                            .participantContextId(PARTICIPANT_CONTEXT_ID)
+                            .build())
+                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+            assetIndex.create(createAsset()
+                            .id(otherAssetId)
+                            .participantContextId(otherParticipantId)
+                            .build())
+                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+
+            var query = context.queryV2().toString(); //empty query
+
+            var result = context.baseRequest(participantTokenJwt)
+                    .contentType(ContentType.JSON)
+                    .body(query)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .extract().body().as(Map[].class);
+
+            assertThat(result).isNotNull().hasSize(1)
+                    .allMatch(m -> m.get("@id").equals(ownAssetId));
+
+        }
+
+        @Test
+        void queryAsset_tokenBearerNotEqualResourceOwner(ManagementEndToEndTestContext context, AssetIndex assetIndex, ParticipantContextService srv) {
+            var participantId = UUID.randomUUID().toString();
+            srv.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantId).build())
+                    .orElseThrow(f -> new AssertionError("ParticipantContext " + participantId + " not created."));
+
+            var token = context.createToken(participantId, oauthServerSigningKey);
+
+            var id = UUID.randomUUID().toString();
+            assetIndex.create(Asset.Builder.newInstance()
+                    .id(id)
+                    .property("foo", "bar")
+                    .dataAddress(createDataAddress().build())
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .build());
+
+            var query = context.queryV2(criterion("foo", "=", "bar")).toString();
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(query)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(403)
+                    .body(containsString("User '%s' is not authorized to access this resource.".formatted(participantId)));
+
+        }
+
+        @Test
         void createAsset_shouldBeStored(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
             var id = UUID.randomUUID().toString();
             var assetJson = createObjectBuilder()
@@ -382,12 +479,13 @@ public class AssetApiV4EndToEndTest {
                                             .add("innerValue", "value"))
                                     .build())
                             .build())
-                    .build();
+                    .build()
+                    .toString();
 
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v4alpha/assets")
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -404,26 +502,25 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        @Disabled
         void createAsset_shouldFail_whenBodyIsNotValid(ManagementEndToEndTestContext context) {
             var assetJson = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "Asset")
                     .add(ID, " ")
                     .add("properties", createPropertiesBuilder().build())
-                    .build();
+                    .build()
+                    .toString();
 
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v4alpha/assets")
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifError()
                     .statusCode(400);
         }
 
         @Test
-        @Disabled
         void createAsset_withoutPrefix_shouldAddEdcNamespace(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
             var id = UUID.randomUUID().toString();
             var assetJson = createObjectBuilder()
@@ -437,12 +534,13 @@ public class AssetApiV4EndToEndTest {
                             .add("type", "test-type")
                             .add("unprefixed-key", "test-value")
                             .build())
-                    .build();
+                    .build()
+                    .toString();
 
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v4alpha/assets")
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -463,7 +561,6 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        @Disabled
         void createAsset_whenCatalogAsset_shouldSetProperty(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
             var id = UUID.randomUUID().toString();
             var assetJson = createObjectBuilder()
@@ -475,12 +572,13 @@ public class AssetApiV4EndToEndTest {
                             .add(TYPE, "DataAddress")
                             .add("type", "test-type")
                             .build())
-                    .build();
+                    .build()
+                    .toString();
 
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v4alpha/assets")
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -492,7 +590,6 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        @Disabled
         void createAsset_whenCatalogInPrivateProps_shouldReturnCatalogType(ManagementEndToEndTestContext context, AssetIndex index) {
             var id = UUID.randomUUID().toString();
             var assetJson = createObjectBuilder()
@@ -504,13 +601,14 @@ public class AssetApiV4EndToEndTest {
                             .add(TYPE, "DataAddress")
                             .add("type", "test-type")
                             .build())
-                    .build();
+                    .build()
+                    .toString();
 
             // create the asset
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v4alpha/assets")
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -523,15 +621,80 @@ public class AssetApiV4EndToEndTest {
             // query the asset, assert that @type: CatalogAsset
             var assets = context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
-                    .body(context.query(criterion("id", "=", id)))
-                    .post("/v3/assets/request")
+                    .body(context.query(criterion("id", "=", id)).toString())
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
-                    .extract().body().as(JsonArray.class);
+                    .extract().body().as(Map[].class);
 
             assertThat(assets).isNotNull().hasSize(1);
-            assertThat(Asset.EDC_CATALOG_ASSET_TYPE).contains(assets.get(0).asJsonObject().getString(TYPE));
+            assertThat(Asset.EDC_CATALOG_ASSET_TYPE).contains(assets[0].get(TYPE).toString());
+        }
+
+        @Test
+        void createAsset_tokenBearerWrong(ManagementEndToEndTestContext context, ParticipantContextService service) {
+            var json = createAssetJson(createAsset().build());
+            var id = "other-participant";
+            var pc = service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(id).build())
+                    .orElseThrow(f -> new AssertionError("ParticipantContext " + id + " not created."));
+
+            var token = context.createToken(id, oauthServerSigningKey);
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(json)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403)
+                    .body(containsString("User '%s' is not authorized to access this resource.".formatted(id)));
+        }
+
+        @Test
+        void createAsset_tokenLacksWriteScope(ManagementEndToEndTestContext context) {
+            var json = createAssetJson(createAsset().build());
+
+            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(json)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403)
+                    .body(matchesRegex("(?s).*Required scope.*missing.*"));
+        }
+
+        @Test
+        void createAsset_tokenBearerIsAdmin(ManagementEndToEndTestContext context) {
+            var json = createAssetJson(createAsset().build());
+
+            var token = context.createAdminToken(oauthServerSigningKey);
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(json)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200);
+        }
+
+        @Test
+        void createAsset_tokenBearerIsAdmin_participantNotFound(ManagementEndToEndTestContext context) {
+            var json = createAssetJson(createAsset().build());
+
+            var token = context.createAdminToken(oauthServerSigningKey);
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(json)
+                    .post("/v4alpha/participants/who-is-this/assets")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(404);
         }
 
         @Test
