@@ -371,6 +371,7 @@ public class AssetApiV4EndToEndTest {
                         assetIndex.create(Asset.Builder.newInstance()
                                         .id(UUID.randomUUID().toString())
                                         .contentType("application/octet-stream")
+                                        .property("quizz", "quazz")
                                         .dataAddress(createDataAddress().build())
                                         .participantContextId(PARTICIPANT_CONTEXT_ID)
                                         .build())
@@ -382,7 +383,7 @@ public class AssetApiV4EndToEndTest {
 
             var result = context.baseRequest(token)
                     .contentType(ContentType.JSON)
-                    .body(context.queryV2().toString())
+                    .body(context.queryV2(criterion("quizz", "=", "quazz")).toString())
                     .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
                     .then()
                     .log().ifError()
@@ -405,16 +406,18 @@ public class AssetApiV4EndToEndTest {
 
             assetIndex.create(createAsset()
                             .id(ownAssetId)
+                            .property("kind", "limit")
                             .participantContextId(PARTICIPANT_CONTEXT_ID)
                             .build())
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
             assetIndex.create(createAsset()
                             .id(otherAssetId)
+                            .property("kind", "limit")
                             .participantContextId(otherParticipantId)
                             .build())
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
-            var query = context.queryV2().toString(); //empty query
+            var query = context.queryV2(criterion("kind", "=", "limit")).toString(); //empty query
 
             var result = context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
