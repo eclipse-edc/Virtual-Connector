@@ -19,7 +19,6 @@ plugins {
 dependencies {
     testImplementation(project(":spi:v-auth-spi"))
     testImplementation(libs.edc.junit)
-    testImplementation(libs.edc.spi.asset)
     testImplementation(libs.edc.spi.contract)
     testImplementation(libs.edc.spi.transfer)
 
