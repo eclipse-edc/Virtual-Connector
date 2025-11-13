@@ -26,7 +26,7 @@ pluginManagement {
 }
 
 // spi
-include(":spi:auth-spi")
+include(":spi:v-auth-spi")
 include(":spi:v-core-spi")
 
 // core

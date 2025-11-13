@@ -19,7 +19,7 @@ plugins {
 
 dependencies {
     api(libs.edc.spi.core)
-    api(project(":spi:auth-spi"))
+    api(project(":spi:v-auth-spi"))
     api(libs.edc.spi.token)
     implementation(project(":extensions:common:api:lib:api-authorization-lib"))
 //

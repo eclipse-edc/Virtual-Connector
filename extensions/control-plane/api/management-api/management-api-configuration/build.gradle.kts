@@ -20,7 +20,7 @@ plugins {
 
 dependencies {
 
-    api(project(":spi:auth-spi"))
+    api(project(":spi:v-auth-spi"))
     implementation(libs.edc.lib.jersey.providers)
     implementation(libs.edc.lib.mgmtapi)
     implementation(libs.edc.lib.validator)
