@@ -20,7 +20,7 @@ plugins {
 dependencies {
     api(libs.edc.spi.core)
     api(libs.jakarta.rsApi)
-    api(project(":spi:auth-spi"))
+    api(project(":spi:v-auth-spi"))
     implementation(libs.jakarta.annotation)
 
     implementation(project(":extensions:common:api:lib:api-authorization-lib"))
