@@ -70,9 +70,12 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEME
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesRegex;
 
 @ApiTest
 public class ContractDefinitionApiV4EndToEndTest {
@@ -119,9 +122,125 @@ public class ContractDefinitionApiV4EndToEndTest {
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
         }
 
+
         @Test
-        void queryContractDefinitions_noQuerySpec(ManagementEndToEndTestContext context,
-                                                  ContractDefinitionStore store) {
+        void create(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+            var id = UUID.randomUUID().toString();
+            var requestJson = createDefinitionBuilder(id)
+                    .build()
+                    .toString();
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(requestJson)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .then()
+                    .statusCode(200)
+                    .body("@id", equalTo(id));
+
+            var actual = store.findById(id);
+
+            assertThat(actual.getId()).matches(id);
+        }
+
+        @Test
+        void create_tokenBearerNotOwner(ManagementEndToEndTestContext context, ContractDefinitionStore store, ParticipantContextService srv) {
+            var id = UUID.randomUUID().toString();
+            var requestJson = createDefinitionBuilder(id)
+                    .build()
+                    .toString();
+
+            // create a second participant who will make the request
+            var otherParticipantId = UUID.randomUUID().toString();
+            createParticipant(srv, otherParticipantId);
+            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+
+            context.baseRequest(token)
+                    .contentType(JSON)
+                    .body(requestJson)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .then()
+                    .statusCode(403)
+                    .body(containsString("User '%s' is not authorized to access this resource".formatted(otherParticipantId)));
+        }
+
+        @Test
+        void create_resourceNotOwnedByTokenBearer(ManagementEndToEndTestContext context, ParticipantContextService srv) {
+            var id = UUID.randomUUID().toString();
+            var requestJson = createDefinitionBuilder(id)
+                    .build()
+                    .toString();
+
+            // create a second participant who will make the request
+            var otherParticipantId = UUID.randomUUID().toString();
+            createParticipant(srv, otherParticipantId);
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(requestJson)
+                    .post("/v4alpha/participants/" + otherParticipantId + "/contractdefinitions")
+                    .then()
+                    .statusCode(403);
+        }
+
+        @Test
+        void create_tokenBearerIsAdmin(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+            var id = UUID.randomUUID().toString();
+            var requestJson = createDefinitionBuilder(id)
+                    .build()
+                    .toString();
+
+            context.baseRequest(context.createAdminToken(oauthServerSigningKey))
+                    .contentType(JSON)
+                    .body(requestJson)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .then()
+                    .statusCode(200)
+                    .body("@id", equalTo(id));
+
+            var actual = store.findById(id);
+
+            assertThat(actual.getId()).matches(id);
+        }
+
+        @Test
+        void create_tokenLacksRequiredScope(ManagementEndToEndTestContext context) {
+
+            var id = UUID.randomUUID().toString();
+            var requestJson = createDefinitionBuilder(id)
+                    .build()
+                    .toString();
+
+            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+            context.baseRequest(offendingToken)
+                    .contentType(JSON)
+                    .body(requestJson)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .then()
+                    .statusCode(403)
+                    .body(matchesRegex("(?s).*Required scope.*management-api:write.*missing.*"));
+        }
+
+        @Test
+        void create_tokenHasWrongRole(ManagementEndToEndTestContext context) {
+
+            var id = UUID.randomUUID().toString();
+            var requestJson = createDefinitionBuilder(id)
+                    .build()
+                    .toString();
+
+            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("role", "barbaz"));
+            context.baseRequest(offendingToken)
+                    .contentType(JSON)
+                    .body(requestJson)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .then()
+                    .statusCode(403)
+                    .body(matchesRegex("Required user role not satisfied."));
+        }
+
+        @Test
+        void queryContractDefinitions_noQuerySpec(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             store.save(createContractDefinition(id).build());
 
@@ -142,7 +261,7 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void queryContractDefinitionWithSimplePrivateProperties(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+        void queryContractDefinitionWithSimplePrivateProperties(ManagementEndToEndTestContext context) {
             var id = UUID.randomUUID().toString();
             var requestJson = createDefinitionBuilder(id)
                     .add("privateProperties", createObjectBuilder()
@@ -189,8 +308,7 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void queryContractDefinitions_sortByCreatedDate(ManagementEndToEndTestContext context,
-                                                        ContractDefinitionStore store) {
+        void queryContractDefinitions_sortByCreatedDate(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
             var id1 = UUID.randomUUID().toString();
             var id2 = UUID.randomUUID().toString();
             var id3 = UUID.randomUUID().toString();
@@ -224,24 +342,94 @@ public class ContractDefinitionApiV4EndToEndTest {
                     .containsExactlyElementsOf(List.of(id3, id2, id1));
         }
 
-        @Test
-        void shouldCreateAndRetrieve(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
-            var id = UUID.randomUUID().toString();
-            var requestJson = createDefinitionBuilder(id)
-                    .build()
-                    .toString();
 
-            context.baseRequest(participantTokenJwt)
+        @Test
+        void query_tokenBearerIsAdmin(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+            var id = UUID.randomUUID().toString();
+            store.save(createContractDefinition(id).build());
+
+            var body = context.baseRequest(context.createAdminToken(oauthServerSigningKey))
                     .contentType(JSON)
-                    .body(requestJson)
-                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
                     .then()
                     .statusCode(200)
-                    .body("@id", equalTo(id));
+                    .body("size()", greaterThan(0))
+                    .extract().body().as(Map[].class);
 
-            var actual = store.findById(id);
+            var assetsSelector = Arrays.stream(body)
+                    .filter(it -> it.get(ID).equals(id))
+                    .map(it -> it.get("assetsSelector"))
+                    .findAny();
 
-            assertThat(actual.getId()).matches(id);
+            assertThat(assetsSelector).isPresent().get().asInstanceOf(LIST).hasSize(2);
+        }
+
+        @Test
+        void query_shouldLimitToResourceOwner(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+            store.save(createContractDefinition("cd-1").build());
+            store.save(createContractDefinition("cd-2").build());
+            store.save(createContractDefinition("other-cd-1").participantContextId("another-participant").build());
+            store.save(createContractDefinition("other-cd-2").participantContextId("another-participant").build());
+
+            var body = context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .then()
+                    .statusCode(200)
+                    .body("size()", greaterThanOrEqualTo(2))
+                    .extract().body().as(Map[].class);
+
+
+            assertThat(Arrays.stream(body)).anyMatch(e -> e.get(ID).equals("cd-1"));
+            assertThat(Arrays.stream(body)).anyMatch(e -> e.get(ID).equals("cd-2"));
+            assertThat(Arrays.stream(body)).noneMatch(e -> e.get(ID).equals("another-cd-1"));
+            assertThat(Arrays.stream(body)).noneMatch(e -> e.get(ID).equals("another-cd-2"));
+        }
+
+        @Test
+        void query_tokenBearerNotResourceOwner(ManagementEndToEndTestContext context, ContractDefinitionStore store, ParticipantContextService srv) {
+            var id = UUID.randomUUID().toString();
+            store.save(createContractDefinition(id).build());
+
+            createParticipant(srv, "another-participant");
+            var token = context.createToken("another-participant", oauthServerSigningKey);
+
+            context.baseRequest(token)
+                    .contentType(JSON)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .then()
+                    .statusCode(403)
+                    .body(containsString("User '%s' is not authorized to access this resource".formatted("another-participant")));
+        }
+
+        @Test
+        void query_tokenLacksScope(ManagementEndToEndTestContext context, ContractDefinitionStore store, ParticipantContextService service) {
+            var id = UUID.randomUUID().toString();
+            store.save(createContractDefinition(id).build());
+
+            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:bizzbuzz"));
+
+            context.baseRequest(token)
+                    .contentType(JSON)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .then()
+                    .statusCode(403)
+                    .body(matchesRegex("(?s).*Required scope.*management-api:read.*missing.*"));
+        }
+
+        @Test
+        void query_tokenHasWrongRole(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+            var id = UUID.randomUUID().toString();
+            store.save(createContractDefinition(id).build());
+
+            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("role", "some-role"));
+
+            context.baseRequest(token)
+                    .contentType(JSON)
+                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .then()
+                    .statusCode(403)
+                    .body(containsString("Required user role not satisfied."));
         }
 
         @Test
@@ -258,6 +446,93 @@ public class ContractDefinitionApiV4EndToEndTest {
             var actual = store.findById(id);
 
             assertThat(actual).isNull();
+        }
+
+        @Test
+        void delete_tokenBearerNotOwner(ManagementEndToEndTestContext context, ContractDefinitionStore store, ParticipantContextService srv) {
+            var id = UUID.randomUUID().toString();
+            var entity = createContractDefinition(id)
+                    .build();
+            store.save(entity).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+
+            // create a second participant who will make the request
+            var otherParticipantId = UUID.randomUUID().toString();
+            createParticipant(srv, otherParticipantId);
+            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+
+            context.baseRequest(token)
+                    .delete("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
+                    .then()
+                    .statusCode(403)
+                    .body(containsString("User '%s' is not authorized to access this resource".formatted(otherParticipantId)));
+
+        }
+
+        @Test
+        void delete_resourceNotOwnedByTokenBearer(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+            var id = UUID.randomUUID().toString();
+            var otherParticipantId = "other-participant";
+            var entity = createContractDefinition(id)
+                    .participantContextId(otherParticipantId)
+                    .build();
+            store.save(entity).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+
+            //url path != actual owner
+            context.baseRequest(participantTokenJwt)
+                    .delete("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
+                    .then()
+                    .statusCode(404);
+
+            // url path == actual owner, but token is not authorized to access it
+            context.baseRequest(participantTokenJwt)
+                    .delete("/v4alpha/participants/" + otherParticipantId + "/contractdefinitions/" + id)
+                    .then()
+                    .statusCode(403);
+        }
+
+        @Test
+        void delete_tokenBearerIsAdmin(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+            var id = UUID.randomUUID().toString();
+            var entity = createContractDefinition(id).build();
+            store.save(entity);
+
+            var adminToken = context.createAdminToken(oauthServerSigningKey);
+            context.baseRequest(adminToken)
+                    .delete("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
+                    .then()
+                    .statusCode(204);
+
+            var actual = store.findById(id);
+
+            assertThat(actual).isNull();
+        }
+
+        @Test
+        void delete_tokenLacksRequiredScopes(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+            var id = UUID.randomUUID().toString();
+            var entity = createContractDefinition(id).build();
+            store.save(entity);
+
+            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:foobar"));
+
+            context.baseRequest(offendingToken)
+                    .delete("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
+                    .then()
+                    .statusCode(403);
+        }
+
+        @Test
+        void delete_tokenHasWrongRole(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+            var id = UUID.randomUUID().toString();
+            var entity = createContractDefinition(id).build();
+            store.save(entity);
+
+            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("role", "barbaz"));
+
+            context.baseRequest(offendingToken)
+                    .delete("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
+                    .then()
+                    .statusCode(403);
         }
 
         @Test
@@ -296,6 +571,122 @@ public class ContractDefinitionApiV4EndToEndTest {
                     .put("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(404);
+        }
+
+        @Test
+        void update_tokenBearerNotOwner(ManagementEndToEndTestContext context, ContractDefinitionStore store, ParticipantContextService srv) {
+
+            var id = UUID.randomUUID().toString();
+            var entity = createContractDefinition(id).build();
+            store.save(entity);
+
+            // create a second participant who will make the request
+            var otherParticipantId = UUID.randomUUID().toString();
+            createParticipant(srv, otherParticipantId);
+            var offendingToken = context.createToken(otherParticipantId, oauthServerSigningKey);
+
+
+            var updated = createDefinitionBuilder(id)
+                    .add("accessPolicyId", "new-policy")
+                    .build()
+                    .toString();
+
+            context.baseRequest(offendingToken)
+                    .contentType(JSON)
+                    .body(updated)
+                    .put("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .then()
+                    .statusCode(403)
+                    .body(containsString("User '%s' is not authorized to access this resource".formatted(otherParticipantId)));
+        }
+
+        @Test
+        void update_resourceNotOwnedByTokenBearer(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+            var id = UUID.randomUUID().toString();
+            var otherParticipantId = "other-participant";
+            var entity = createContractDefinition(id)
+                    .participantContextId(otherParticipantId)
+                    .build();
+            store.save(entity);
+
+            var updated = createDefinitionBuilder(id)
+                    .add("accessPolicyId", "new-policy")
+                    .build()
+                    .toString();
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(updated)
+                    .put("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .then()
+                    .statusCode(404);
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(updated)
+                    .put("/v4alpha/participants/" + otherParticipantId + "/contractdefinitions")
+                    .then()
+                    .statusCode(403);
+        }
+
+        @Test
+        void update_tokenBearerIsAdmin(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+            var id = UUID.randomUUID().toString();
+            var entity = createContractDefinition(id).build();
+            store.save(entity);
+
+            var updated = createDefinitionBuilder(id)
+                    .add("accessPolicyId", "new-policy")
+                    .build()
+                    .toString();
+
+            context.baseRequest(context.createAdminToken(oauthServerSigningKey))
+                    .contentType(JSON)
+                    .body(updated)
+                    .put("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .then()
+                    .statusCode(204);
+        }
+
+        @Test
+        void update_tokenHasWrongRole(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+
+            var id = UUID.randomUUID().toString();
+            var entity = createContractDefinition(id).build();
+            store.save(entity);
+
+            var updated = createDefinitionBuilder(id)
+                    .add("accessPolicyId", "new-policy")
+                    .build()
+                    .toString();
+
+            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("role", "barbaz"));
+            context.baseRequest(offendingToken)
+                    .contentType(JSON)
+                    .body(updated)
+                    .put("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .then()
+                    .statusCode(403);
+        }
+
+        @Test
+        void update_tokenLacksRequiredScopes(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+            var id = UUID.randomUUID().toString();
+            var entity = createContractDefinition(id).build();
+            store.save(entity);
+
+            var updated = createDefinitionBuilder(id)
+                    .add("accessPolicyId", "new-policy")
+                    .build()
+                    .toString();
+
+            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+            context.baseRequest(offendingToken)
+                    .contentType(JSON)
+                    .body(updated)
+                    .put("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .then()
+                    .statusCode(403);
         }
 
         private JsonObjectBuilder createDefinitionBuilder(String id) {
@@ -366,7 +757,7 @@ public class ContractDefinitionApiV4EndToEndTest {
 
     @Nested
     @PostgresqlIntegrationTest
-    class Postgres extends AssetApiV4EndToEndTest.Tests {
+    class Postgres extends Tests {
 
         @RegisterExtension
         @Order(0)
