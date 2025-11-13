@@ -101,12 +101,12 @@ class AuthorizationServiceImplTest {
         var securityContext = mock(SecurityContext.class);
         when(securityContext.getUserPrincipal()).thenReturn(principal);
 
-        when(securityContext.isUserInRole(eq("edcv-admin"))).thenReturn(true);
+        when(securityContext.isUserInRole(eq("admin"))).thenReturn(true);
 
         assertThat(authorizationService.authorize(securityContext, "test-id", "test-resource-id", TestResource.class))
                 .isSucceeded();
 
-        verify(securityContext).isUserInRole(eq("edcv-admin"));
+        verify(securityContext).isUserInRole(eq("admin"));
         verify(securityContext).getUserPrincipal();
         verifyNoMoreInteractions(securityContext);
     }
