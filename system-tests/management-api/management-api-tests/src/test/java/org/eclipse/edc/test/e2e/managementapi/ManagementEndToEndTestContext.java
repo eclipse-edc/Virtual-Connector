@@ -43,9 +43,7 @@ import static jakarta.json.Json.createObjectBuilder;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.PROTOCOL;
 
@@ -71,10 +69,6 @@ public record ManagementEndToEndTestContext(LazySupplier<URI> managementApiUri, 
     }
 
     public JsonObject query(Criterion... criteria) {
-        return query(createObjectBuilder().add(VOCAB, EDC_NAMESPACE).build(), criteria);
-    }
-
-    public JsonObject queryV2(Criterion... criteria) {
         return query(createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2).build(), criteria);
     }
 

@@ -284,7 +284,7 @@ public class AssetApiV4EndToEndTest {
 
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
-                    .body(context.queryV2(criterion("myProp", "=", "myVal")).toString())
+                    .body(context.query(criterion("myProp", "=", "myVal")).toString())
                     .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
                     .then()
                     .log().ifError()
@@ -319,7 +319,7 @@ public class AssetApiV4EndToEndTest {
                     .statusCode(200)
                     .body(ID, is(id));
 
-            var query = context.queryV2(
+            var query = context.query(
                     criterion("'%sid".formatted(EDC_NAMESPACE), "=", id),
                     criterion("'%snested'.@id".formatted(EDC_NAMESPACE), "=", "test-nested-id")
             ).toString();
@@ -347,7 +347,7 @@ public class AssetApiV4EndToEndTest {
 
             var body = context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
-                    .body(context.queryV2(
+                    .body(context.query(
                                     criterion(EDC_NAMESPACE + "isCatalog", "=", "true"),
                                     criterion("id", "=", id))
                             .toString())
@@ -383,7 +383,7 @@ public class AssetApiV4EndToEndTest {
 
             var result = context.baseRequest(token)
                     .contentType(ContentType.JSON)
-                    .body(context.queryV2(criterion("quizz", "=", "quazz")).toString())
+                    .body(context.query(criterion("quizz", "=", "quazz")).toString())
                     .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
                     .then()
                     .log().ifError()
@@ -417,7 +417,7 @@ public class AssetApiV4EndToEndTest {
                             .build())
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
-            var query = context.queryV2(criterion("kind", "=", "limit")).toString(); //empty query
+            var query = context.query(criterion("kind", "=", "limit")).toString(); //empty query
 
             var result = context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
@@ -449,7 +449,7 @@ public class AssetApiV4EndToEndTest {
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .build());
 
-            var query = context.queryV2(criterion("foo", "=", "bar")).toString();
+            var query = context.query(criterion("foo", "=", "bar")).toString();
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)

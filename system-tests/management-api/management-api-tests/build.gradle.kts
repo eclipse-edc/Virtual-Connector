@@ -29,7 +29,9 @@ dependencies {
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
     testImplementation(libs.nimbus.jwt)
-    testImplementation(libs.wiremock)
+    testImplementation(libs.wiremock) {
+        exclude("com.networknt", "json-schema-validator")
+    }
     testImplementation(testFixtures(libs.edc.fixtures.sql))
 
     testImplementation(libs.testcontainers.junit)
