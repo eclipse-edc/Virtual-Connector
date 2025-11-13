@@ -501,9 +501,8 @@ public class ContractNegotiationApiV4EndToEndTest {
                     )
                     .build();
 
-            var token = context.createAdminToken(oauthServerSigningKey);
 
-            context.baseRequest(token)
+            context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(query.toString())
                     .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/request")

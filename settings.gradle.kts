@@ -65,6 +65,7 @@ include(":extensions:control-plane:api:management-api:asset-api")
 include(":extensions:control-plane:api:management-api:contract-definition-api")
 include(":extensions:control-plane:api:management-api:policy-definition-api")
 include(":extensions:control-plane:api:management-api:contract-negotiation-api")
+include(":extensions:control-plane:api:management-api:transfer-process-api")
 include(":extensions:control-plane:api:management-api:management-api-configuration")
 
 // lib
