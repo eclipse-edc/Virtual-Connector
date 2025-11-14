@@ -213,7 +213,7 @@ public class VirtualConnector {
     public void createParticipant(String participantContextId, String participantId, Map<String, String> cfg) {
         var configuration = new HashMap<>(cfg);
         configuration.put("edc.participant.id", participantId);
-        contextService.createParticipantContext(new ParticipantContext(participantContextId))
+        contextService.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).build())
                 .orElseThrow(e -> new RuntimeException(e.getFailureDetail()));
         contextConfigService.save(participantContextId, ConfigFactory.fromMap(configuration))
                 .orElseThrow(e -> new RuntimeException(e.getFailureDetail()));

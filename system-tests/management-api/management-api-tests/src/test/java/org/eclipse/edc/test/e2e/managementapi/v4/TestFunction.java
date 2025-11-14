@@ -19,6 +19,8 @@ import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 
+import java.util.Map;
+
 import static jakarta.json.Json.createArrayBuilder;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 
@@ -27,8 +29,13 @@ public class TestFunction {
     public static final String PARTICIPANT_CONTEXT_ID = "test-participant";
 
     public static void createParticipant(ParticipantContextService participantContextService, String participantContextId) {
+        createParticipant(participantContextService, participantContextId, Map.of());
+    }
+
+    public static void createParticipant(ParticipantContextService participantContextService, String participantContextId, Map<String, Object> properties) {
         var pc = ParticipantContext.Builder.newInstance()
                 .participantContextId(participantContextId)
+                .properties(properties)
                 .state(ParticipantContextState.ACTIVATED)
                 .build();
 

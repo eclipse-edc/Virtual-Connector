@@ -24,5 +24,6 @@ dependencies {
     api(project(":extensions:control-plane:api:management-api:policy-definition-api"))
     api(project(":extensions:control-plane:api:management-api:contract-negotiation-api"))
     api(project(":extensions:control-plane:api:management-api:transfer-process-api"))
+    api(project(":extensions:control-plane:api:management-api:participant-context-api"))
     api(project(":extensions:control-plane:api:management-api:management-api-configuration"))
 }

@@ -120,6 +120,20 @@ public record ManagementEndToEndTestContext(LazySupplier<URI> managementApiUri, 
         return createToken(key, defaultClaims);
     }
 
+    public String createProvisionerToken(ECKey key) {
+        var defaultClaims = new HashMap<String, Object>(Map.of(
+                "sub", "test-subject",
+                "iss", "test-issuer",
+                "iat", Instant.now().getEpochSecond(),
+                "exp", Instant.now().plusSeconds(3600).getEpochSecond(),
+                "jti", UUID.randomUUID().toString(),
+                "scope", "management-api:read management-api:write",
+                "role", ParticipantPrincipal.ROLE_PROVISIONER
+        ));
+
+        return createToken(key, defaultClaims);
+    }
+
     private JsonObject query(JsonValue ctx, Criterion... criteria) {
         var criteriaJson = Arrays.stream(criteria)
                 .map(it -> {
