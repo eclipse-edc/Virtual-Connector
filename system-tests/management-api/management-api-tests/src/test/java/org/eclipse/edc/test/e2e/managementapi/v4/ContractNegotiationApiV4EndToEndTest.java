@@ -87,6 +87,7 @@ public class ContractNegotiationApiV4EndToEndTest {
 
     abstract static class Tests {
 
+        private static final String COUNTER_PARTY_ID = "counter-party-id";
         @Order(0)
         @RegisterExtension
         static WireMockExtension mockJwksServer = WireMockExtension.newInstance()
@@ -143,18 +144,6 @@ public class ContractNegotiationApiV4EndToEndTest {
                     .extract().jsonPath().getString(ID);
 
             assertThat(store.findById(id)).isNotNull();
-        }
-
-        private JsonObject contractRequestJson() {
-            return createObjectBuilder()
-                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
-                    .add(TYPE, "ContractRequest")
-                    .add("counterPartyAddress", "test-address")
-                    .add("protocol", "test-protocol")
-                    .add("providerId", "test-provider-id")
-                    .add("callbackAddresses", createCallbackAddress())
-                    .add("policy", createPolicy())
-                    .build();
         }
 
         @Test
@@ -387,8 +376,8 @@ public class ContractNegotiationApiV4EndToEndTest {
         void query(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             var id1 = UUID.randomUUID().toString();
             var id2 = UUID.randomUUID().toString();
-            store.save(createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl()).build());
-            store.save(createContractNegotiationBuilder(id2).counterPartyAddress(context.providerProtocolUrl()).build());
+            store.save(createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
+            store.save(createContractNegotiationBuilder(id2).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
 
             var query = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -420,7 +409,7 @@ public class ContractNegotiationApiV4EndToEndTest {
                     .body("size()", is(2))
                     .extract().jsonPath();
 
-            assertThat(jsonPath.getString("[0].counterPartyAddress")).isEqualTo(context.providerProtocolUrl());
+            assertThat(jsonPath.getString("[0].counterPartyAddress")).isEqualTo(context.providerProtocolUrl(COUNTER_PARTY_ID));
             assertThat(jsonPath.getString("[0].@id")).isIn(id1, id2);
             assertThat(jsonPath.getString("[1].@id")).isIn(id1, id2);
             assertThat(jsonPath.getString("[0].protocol")).isEqualTo("dataspace-protocol-http");
@@ -437,8 +426,8 @@ public class ContractNegotiationApiV4EndToEndTest {
 
             var id1 = UUID.randomUUID().toString();
             var id2 = UUID.randomUUID().toString();
-            store.save(createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl()).build());
-            store.save(createContractNegotiationBuilder(id2).counterPartyAddress(context.providerProtocolUrl()).build());
+            store.save(createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
+            store.save(createContractNegotiationBuilder(id2).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
 
             var query = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -479,8 +468,8 @@ public class ContractNegotiationApiV4EndToEndTest {
 
             var id1 = UUID.randomUUID().toString();
             var id2 = UUID.randomUUID().toString();
-            store.save(createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl()).build());
-            store.save(createContractNegotiationBuilder(id2).participantContextId(otherParticipantId).counterPartyAddress(context.providerProtocolUrl()).build());
+            store.save(createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
+            store.save(createContractNegotiationBuilder(id2).participantContextId(otherParticipantId).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
 
             var query = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -522,7 +511,7 @@ public class ContractNegotiationApiV4EndToEndTest {
             srv.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
             var id = UUID.randomUUID().toString();
-            store.save(createContractNegotiationBuilder(id).counterPartyAddress(context.providerProtocolUrl()).build());
+            store.save(createContractNegotiationBuilder(id).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
 
             var query = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -682,6 +671,18 @@ public class ContractNegotiationApiV4EndToEndTest {
                     .delete("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
                     .then()
                     .statusCode(403);
+        }
+
+        private JsonObject contractRequestJson() {
+            return createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "ContractRequest")
+                    .add("counterPartyAddress", "test-address")
+                    .add("protocol", "test-protocol")
+                    .add("providerId", "test-provider-id")
+                    .add("callbackAddresses", createCallbackAddress())
+                    .add("policy", createPolicy())
+                    .build();
         }
 
         private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {

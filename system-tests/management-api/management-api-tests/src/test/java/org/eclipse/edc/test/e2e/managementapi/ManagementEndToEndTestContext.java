@@ -60,12 +60,12 @@ public record ManagementEndToEndTestContext(LazySupplier<URI> managementApiUri, 
                 .when();
     }
 
-    public String providerProtocolUrl() {
-        return providerProtocolUrl("");
+    public String providerProtocolUrl(String participantContextId) {
+        return providerProtocolUrl(participantContextId, "");
     }
 
-    public String providerProtocolUrl(String versionPath) {
-        return protocolApiUri.get() + versionPath;
+    public String providerProtocolUrl(String participantContextId, String versionPath) {
+        return "%s/%s%s".formatted(protocolApiUri.get(), participantContextId, versionPath);
     }
 
     public JsonObject query(Criterion... criteria) {
