@@ -41,10 +41,12 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.eclipse.edc.web.spi.validation.SchemaType;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE_TERM;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
@@ -106,7 +108,13 @@ public class ContractDefinitionApiV4Controller implements ContractDefinitionApiV
     public JsonObject getContractDefinitionV4(@PathParam("participantContextId") String participantContextId,
                                               @PathParam("id") String id,
                                               @Context SecurityContext securityContext) {
-        return null;
+        authorizationService.authorize(securityContext, participantContextId, id, ContractDefinition.class)
+                .orElseThrow(exceptionMapper(ContractDefinition.class, id));
+
+        return ofNullable(contractDefinitionService.findById(id))
+                .map(cd -> typeTransformerRegistry.transform(cd, JsonObject.class))
+                .map(Result::getContent)
+                .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
     }
 
     @POST

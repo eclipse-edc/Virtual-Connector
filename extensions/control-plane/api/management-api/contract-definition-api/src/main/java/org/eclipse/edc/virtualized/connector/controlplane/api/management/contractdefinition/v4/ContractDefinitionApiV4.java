@@ -28,8 +28,8 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v4beta"))
-@Tag(name = "Contract Definition v4beta")
+@OpenAPIDefinition(info = @Info(version = "v4alpha"))
+@Tag(name = "Contract Definition v4alpha")
 public interface ContractDefinitionApiV4 {
 
     @Operation(description = "Returns all contract definitions according to a query",
