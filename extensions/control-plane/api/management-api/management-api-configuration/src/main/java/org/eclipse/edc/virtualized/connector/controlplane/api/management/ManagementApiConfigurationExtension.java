@@ -41,7 +41,6 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransfo
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
-import org.eclipse.edc.virtualized.connector.controlplane.api.management.transform.JsonObjectFromContractAgreementTransformer;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -110,7 +109,6 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         var managementApiTransformerRegistry = transformerRegistry.forContext(MANAGEMENT_API_CONTEXT);
 
         var factory = Json.createBuilderFactory(Map.of());
-        managementApiTransformerRegistry.register(new JsonObjectFromContractAgreementTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(factory, typeManager, JSON_LD));
         managementApiTransformerRegistry.register(new JsonObjectFromAssetTransformer(factory, typeManager, JSON_LD));
         managementApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper));

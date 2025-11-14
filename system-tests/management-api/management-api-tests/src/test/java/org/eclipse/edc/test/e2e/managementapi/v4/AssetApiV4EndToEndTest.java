@@ -90,16 +90,19 @@ public class AssetApiV4EndToEndTest {
         private ECKey oauthServerSigningKey;
 
         @BeforeEach
-        void setup(ManagementEndToEndTestContext context, ParticipantContextService participantContextService) throws JOSEException {
+        void setup(ManagementEndToEndTestContext context, ParticipantContextService participantContextService)
+                throws JOSEException {
             createParticipant(participantContextService, PARTICIPANT_CONTEXT_ID);
 
             // stub JWKS endpoint at /jwks/ returning 200 OK with a simple JWKS
-            oauthServerSigningKey = new ECKeyGenerator(Curve.P_256).keyID(UUID.randomUUID().toString()).generate();
+            oauthServerSigningKey = new ECKeyGenerator(Curve.P_256).keyID(UUID.randomUUID().toString())
+                    .generate();
             participantTokenJwt = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey);
 
             // create JWKS with the participant's key
             var jwks = createObjectBuilder()
-                    .add("keys", createArrayBuilder().add(createObjectBuilder(oauthServerSigningKey.toPublicJWK().toJSONObject())))
+                    .add("keys", createArrayBuilder().add(createObjectBuilder(
+                            oauthServerSigningKey.toPublicJWK().toJSONObject())))
                     .build()
                     .toString();
 
@@ -135,7 +138,8 @@ public class AssetApiV4EndToEndTest {
 
             var dbAsset = assetIndex.findById(asset.getId());
             assertThat(dbAsset).isNotNull();
-            assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
+            assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property",
+                    "some-new-value");
             assertThat(dbAsset.getDataAddress().getType()).isEqualTo("addressType");
             assertThat(dbAsset.getDataAddress().getProperty(EDC_NAMESPACE + "complex"))
                     .asInstanceOf(MAP)
@@ -160,7 +164,8 @@ public class AssetApiV4EndToEndTest {
 
             var dbAsset = assetIndex.findById(asset.getId());
             assertThat(dbAsset).isNotNull();
-            assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
+            assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property",
+                    "some-new-value");
             assertThat(dbAsset.getDataAddress().getType()).isEqualTo("addressType");
             assertThat(dbAsset.getDataAddress().getProperty(EDC_NAMESPACE + "complex"))
                     .asInstanceOf(MAP)
@@ -168,7 +173,8 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void updateAsset_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, AssetIndex assetIndex, ParticipantContextService srv) {
+        void updateAsset_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context,
+                                                       AssetIndex assetIndex, ParticipantContextService srv) {
             var asset = createAsset().build();
             assetIndex.create(asset);
 
@@ -189,13 +195,15 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void updateAsset_tokenLacksRequiredScope(ManagementEndToEndTestContext context, AssetIndex assetIndex, ParticipantContextService srv) {
+        void updateAsset_tokenLacksRequiredScope(ManagementEndToEndTestContext context, AssetIndex assetIndex,
+                                                 ParticipantContextService srv) {
             var asset = createAsset().build();
             assetIndex.create(asset);
 
             var assetJson = createAssetJson(asset);
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey,
+                    Map.of("scope", "management-api:read"));
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -228,7 +236,7 @@ public class AssetApiV4EndToEndTest {
 
         @Test
         void queryAsset_byContentType(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
-            //insert one asset into the index
+            // insert one asset into the index
             var id = UUID.randomUUID().toString();
             var asset = Asset.Builder.newInstance()
                     .id(id)
@@ -255,10 +263,11 @@ public class AssetApiV4EndToEndTest {
                                     .add("operandRight", id))
                             .add(createObjectBuilder()
                                     .add(TYPE, "Criterion")
-                                    .add("operandLeft", EDC_NAMESPACE + "contenttype")
+                                    .add("operandLeft",
+                                            EDC_NAMESPACE + "contenttype")
                                     .add("operator", "=")
-                                    .add("operandRight", "application/octet-stream"))
-                    )
+                                    .add("operandRight",
+                                            "application/octet-stream")))
                     .build()
                     .toString();
 
@@ -320,9 +329,9 @@ public class AssetApiV4EndToEndTest {
                     .body(ID, is(id));
 
             var query = context.query(
-                    criterion("'%sid".formatted(EDC_NAMESPACE), "=", id),
-                    criterion("'%snested'.@id".formatted(EDC_NAMESPACE), "=", "test-nested-id")
-            ).toString();
+                            criterion("'%sid".formatted(EDC_NAMESPACE), "=", id),
+                            criterion("'%snested'.@id".formatted(EDC_NAMESPACE), "=", "test-nested-id"))
+                    .toString();
 
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
@@ -364,7 +373,8 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void queryAsset_tokenBearerIsAdmin_shouldReturnAllAssets(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+        void queryAsset_tokenBearerIsAdmin_shouldReturnAllAssets(ManagementEndToEndTestContext context,
+                                                                 AssetIndex assetIndex) {
             IntStream.range(0, 10)
                     .forEach(i -> {
                         // create assets for participant
@@ -375,7 +385,8 @@ public class AssetApiV4EndToEndTest {
                                         .dataAddress(createDataAddress().build())
                                         .participantContextId(PARTICIPANT_CONTEXT_ID)
                                         .build())
-                                .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+                                .orElseThrow(f -> new AssertionError(
+                                        f.getFailureDetail()));
 
                     });
 
@@ -395,10 +406,12 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void queryAsset_shouldLimitToResourceOwner(ManagementEndToEndTestContext context, AssetIndex assetIndex, ParticipantContextService srv) {
+        void queryAsset_shouldLimitToResourceOwner(ManagementEndToEndTestContext context, AssetIndex assetIndex,
+                                                   ParticipantContextService srv) {
             var otherParticipantId = UUID.randomUUID().toString();
 
-            srv.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+            srv.createParticipantContext(ParticipantContext.Builder.newInstance()
+                            .participantContextId(otherParticipantId).build())
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
             var ownAssetId = UUID.randomUUID().toString();
@@ -417,7 +430,7 @@ public class AssetApiV4EndToEndTest {
                             .build())
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
-            var query = context.query(criterion("kind", "=", "limit")).toString(); //empty query
+            var query = context.query(criterion("kind", "=", "limit")).toString(); // empty query
 
             var result = context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
@@ -434,10 +447,13 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void queryAsset_tokenBearerNotEqualResourceOwner(ManagementEndToEndTestContext context, AssetIndex assetIndex, ParticipantContextService srv) {
+        void queryAsset_tokenBearerNotEqualResourceOwner(ManagementEndToEndTestContext context,
+                                                         AssetIndex assetIndex, ParticipantContextService srv) {
             var participantId = UUID.randomUUID().toString();
-            srv.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantId).build())
-                    .orElseThrow(f -> new AssertionError("ParticipantContext " + participantId + " not created."));
+            srv.createParticipantContext(ParticipantContext.Builder.newInstance()
+                            .participantContextId(participantId).build())
+                    .orElseThrow(f -> new AssertionError(
+                            "ParticipantContext " + participantId + " not created."));
 
             var token = context.createToken(participantId, oauthServerSigningKey);
 
@@ -458,7 +474,8 @@ public class AssetApiV4EndToEndTest {
                     .then()
                     .log().ifError()
                     .statusCode(403)
-                    .body(containsString("User '%s' is not authorized to access this resource.".formatted(participantId)));
+                    .body(containsString("User '%s' is not authorized to access this resource."
+                            .formatted(participantId)));
 
         }
 
@@ -501,7 +518,9 @@ public class AssetApiV4EndToEndTest {
             assertThat(asset.getDataAddress().getProperty("complex"))
                     .asInstanceOf(MAP)
                     .containsEntry(EDC_NAMESPACE + "simple", List.of(Map.of(VALUE, "value")))
-                    .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(EDC_NAMESPACE + "innerValue", List.of(Map.of(VALUE, "value")))));
+                    .containsEntry(EDC_NAMESPACE + "nested",
+                            List.of(Map.of(EDC_NAMESPACE + "innerValue",
+                                    List.of(Map.of(VALUE, "value")))));
         }
 
         @Test
@@ -524,7 +543,8 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void createAsset_withoutPrefix_shouldAddEdcNamespace(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+        void createAsset_withoutPrefix_shouldAddEdcNamespace(ManagementEndToEndTestContext context,
+                                                             AssetIndex assetIndex) {
             var id = UUID.randomUUID().toString();
             var assetJson = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -551,7 +571,7 @@ public class AssetApiV4EndToEndTest {
 
             var asset = assetIndex.findById(id);
             assertThat(asset).isNotNull();
-            //make sure unprefixed keys are caught and prefixed with the EDC_NAMESPACE ns.
+            // make sure unprefixed keys are caught and prefixed with the EDC_NAMESPACE ns.
             assertThat(asset.getProperties().keySet())
                     .hasSize(6)
                     .allMatch(key -> key.startsWith(EDC_NAMESPACE));
@@ -564,7 +584,8 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void createAsset_whenCatalogAsset_shouldSetProperty(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+        void createAsset_whenCatalogAsset_shouldSetProperty(ManagementEndToEndTestContext context,
+                                                            AssetIndex assetIndex) {
             var id = UUID.randomUUID().toString();
             var assetJson = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -593,7 +614,8 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void createAsset_whenCatalogInPrivateProps_shouldReturnCatalogType(ManagementEndToEndTestContext context, AssetIndex index) {
+        void createAsset_whenCatalogInPrivateProps_shouldReturnCatalogType(
+                ManagementEndToEndTestContext context, AssetIndex index) {
             var id = UUID.randomUUID().toString();
             var assetJson = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -636,11 +658,14 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void createAsset_tokenBearerWrong(ManagementEndToEndTestContext context, ParticipantContextService service) {
+        void createAsset_tokenBearerWrong(ManagementEndToEndTestContext context,
+                                          ParticipantContextService service) {
             var json = createAssetJson(createAsset().build());
             var id = "other-participant";
-            var pc = service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(id).build())
-                    .orElseThrow(f -> new AssertionError("ParticipantContext " + id + " not created."));
+            var pc = service.createParticipantContext(
+                            ParticipantContext.Builder.newInstance().participantContextId(id).build())
+                    .orElseThrow(f -> new AssertionError(
+                            "ParticipantContext " + id + " not created."));
 
             var token = context.createToken(id, oauthServerSigningKey);
 
@@ -651,14 +676,16 @@ public class AssetApiV4EndToEndTest {
                     .then()
                     .log().ifValidationFails()
                     .statusCode(403)
-                    .body(containsString("User '%s' is not authorized to access this resource.".formatted(id)));
+                    .body(containsString("User '%s' is not authorized to access this resource."
+                            .formatted(id)));
         }
 
         @Test
         void createAsset_tokenLacksWriteScope(ManagementEndToEndTestContext context) {
             var json = createAssetJson(createAsset().build());
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey,
+                    Map.of("scope", "management-api:read"));
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -744,7 +771,8 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void findById_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, AssetIndex assetIndex, ParticipantContextService srv) {
+        void findById_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context,
+                                                    AssetIndex assetIndex, ParticipantContextService srv) {
             var id = UUID.randomUUID().toString();
             var asset = createAsset().id(id)
                     .dataAddress(createDataAddress().type("addressType").build())
@@ -800,7 +828,8 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void findById_tokenBearerIsAdmin_wrongOwner(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+        void findById_tokenBearerIsAdmin_wrongOwner(ManagementEndToEndTestContext context,
+                                                    AssetIndex assetIndex) {
             var id = UUID.randomUUID().toString();
             var asset = createAsset().id(id)
                     .dataAddress(createDataAddress().type("addressType").build())
@@ -827,12 +856,14 @@ public class AssetApiV4EndToEndTest {
                     .add("dataAddress", createObjectBuilder()
                             .add(TYPE, "DataAddress")
                             .add("type", "addressType")
-                            .add("complex", createObjectBuilder().add("nested", "value").build()))
+                            .add("complex", createObjectBuilder().add("nested", "value")
+                                    .build()))
                     .build()
                     .toString();
         }
 
-        private void createParticipant(ParticipantContextService participantContextService, String participantContextId) {
+        private void createParticipant(ParticipantContextService participantContextService,
+                                       String participantContextId) {
             var pc = ParticipantContext.Builder.newInstance()
                     .participantContextId(participantContextId)
                     .state(ParticipantContextState.ACTIVATED)
@@ -846,8 +877,8 @@ public class AssetApiV4EndToEndTest {
             return DataAddress.Builder.newInstance().type("test-type")
                     .property(EDC_NAMESPACE + "complex", Map.of(
                             EDC_NAMESPACE + "simple", "value",
-                            EDC_NAMESPACE + "nested", Map.of(EDC_NAMESPACE + "innerValue", "value")
-                    ));
+                            EDC_NAMESPACE + "nested",
+                            Map.of(EDC_NAMESPACE + "innerValue", "value")));
         }
 
         private Asset.Builder createAsset() {
@@ -887,8 +918,10 @@ public class AssetApiV4EndToEndTest {
                 .modules(Runtimes.ControlPlane.MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
-                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url",
+                        "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .paramProvider(ManagementEndToEndTestContext.class,
+                        ManagementEndToEndTestContext::forContext)
                 .build();
     }
 
@@ -898,7 +931,8 @@ public class AssetApiV4EndToEndTest {
 
         @RegisterExtension
         @Order(0)
-        static final PostgresqlEndToEndExtension POSTGRES_EXTENSION = new PostgresqlEndToEndExtension(createPgContainer());
+        static final PostgresqlEndToEndExtension POSTGRES_EXTENSION = new PostgresqlEndToEndExtension(
+                createPgContainer());
 
         @Order(0)
         @RegisterExtension
@@ -915,8 +949,10 @@ public class AssetApiV4EndToEndTest {
         @Order(3)
         @RegisterExtension
         static final BeforeAllCallback SEED = context -> {
-            POSTGRES_EXTENSION.execute(Runtimes.ControlPlane.NAME.toLowerCase(), "ALTER TABLE edc_contract_negotiation REPLICA IDENTITY FULL;");
-            POSTGRES_EXTENSION.execute(Runtimes.ControlPlane.NAME.toLowerCase(), "ALTER TABLE edc_transfer_process REPLICA IDENTITY FULL;");
+            POSTGRES_EXTENSION.execute(Runtimes.ControlPlane.NAME.toLowerCase(),
+                    "ALTER TABLE edc_contract_negotiation REPLICA IDENTITY FULL;");
+            POSTGRES_EXTENSION.execute(Runtimes.ControlPlane.NAME.toLowerCase(),
+                    "ALTER TABLE edc_transfer_process REPLICA IDENTITY FULL;");
         };
         @Order(2)
         @RegisterExtension
@@ -926,19 +962,24 @@ public class AssetApiV4EndToEndTest {
                 .modules(Runtimes.ControlPlane.PG_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
-                .configurationProvider(() -> POSTGRES_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
+                .configurationProvider(() -> POSTGRES_EXTENSION
+                        .configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(Postgres::runtimeConfiguration)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
-                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url",
+                        "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .paramProvider(ManagementEndToEndTestContext.class,
+                        ManagementEndToEndTestContext::forContext)
                 .build();
 
         private static Config runtimeConfiguration() {
             return ConfigFactory.fromMap(new HashMap<>() {
                 {
-                    put("edc.postgres.cdc.url", POSTGRES_EXTENSION.getJdbcUrl(Runtimes.ControlPlane.NAME.toLowerCase()));
+                    put("edc.postgres.cdc.url", POSTGRES_EXTENSION
+                            .getJdbcUrl(Runtimes.ControlPlane.NAME.toLowerCase()));
                     put("edc.postgres.cdc.user", POSTGRES_EXTENSION.getUsername());
                     put("edc.postgres.cdc.password", POSTGRES_EXTENSION.getPassword());
-                    put("edc.postgres.cdc.slot", "edc_cdc_slot_" + Runtimes.ControlPlane.NAME.toLowerCase());
+                    put("edc.postgres.cdc.slot",
+                            "edc_cdc_slot_" + Runtimes.ControlPlane.NAME.toLowerCase());
                     put("edc.nats.cn.subscriber.url", NATS_EXTENSION.getNatsUrl());
                     put("edc.nats.cn.publisher.url", NATS_EXTENSION.getNatsUrl());
                     put("edc.nats.tp.subscriber.url", NATS_EXTENSION.getNatsUrl());
@@ -948,6 +989,5 @@ public class AssetApiV4EndToEndTest {
         }
 
     }
-
 
 }

@@ -62,6 +62,7 @@ include(":extensions:common:api:api-authorization")
 
 // APIs
 include(":extensions:control-plane:api:management-api:asset-api")
+include(":extensions:control-plane:api:management-api:contract-definition-api")
 include(":extensions:control-plane:api:management-api:policy-definition-api")
 include(":extensions:control-plane:api:management-api:management-api-configuration")
 
