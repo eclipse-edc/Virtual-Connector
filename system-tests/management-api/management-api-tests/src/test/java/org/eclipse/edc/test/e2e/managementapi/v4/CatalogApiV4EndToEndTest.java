@@ -38,6 +38,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -76,6 +77,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesRegex;
 
 @ApiTest
 public class CatalogApiV4EndToEndTest {
@@ -123,8 +125,105 @@ public class CatalogApiV4EndToEndTest {
 
         @AfterEach
         void teardown(ParticipantContextService participantContextService) {
-            participantContextService.deleteParticipantContext(PARTICIPANT_CONTEXT_ID)
+            var list = participantContextService.search(QuerySpec.max())
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+
+            for (var p : list) {
+                participantContextService.deleteParticipantContext(p.getParticipantContextId()).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+            }
+        }
+
+        @Test
+        void requestCatalog_tokenBearerNotOwner(ManagementEndToEndTestContext context, ParticipantContextService srv, ParticipantContextConfigStore store) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "CatalogRequest")
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyId", COUNTER_PARTY_ID)
+                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .build()
+                    .toString();
+
+            var otherParticipant = "other-participant";
+            createParticipant(srv, store, otherParticipant);
+            var token = context.createToken(otherParticipant, oauthServerSigningKey);
+
+            context.baseRequest(token)
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v4alpha/participants/%s/catalog/request".formatted(PARTICIPANT_CONTEXT_ID))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403)
+                    .body(containsString("User '%s' is not authorized to access this resource".formatted(otherParticipant)));
+        }
+
+        @Test
+        void requestCatalog_tokenBearerIsAdmin(ManagementEndToEndTestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "CatalogRequest")
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyId", COUNTER_PARTY_ID)
+                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .build()
+                    .toString();
+
+            context.baseRequest(context.createAdminToken(oauthServerSigningKey))
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v4alpha/participants/%s/catalog/request".formatted(PARTICIPANT_CONTEXT_ID))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body(TYPE, is("Catalog"));
+        }
+
+        @Test
+        void requestCatalog_tokenLacksScope(ManagementEndToEndTestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "CatalogRequest")
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyId", COUNTER_PARTY_ID)
+                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .build()
+                    .toString();
+
+            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:fizzbuzz"));
+
+            context.baseRequest(offendingToken)
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v4alpha/participants/%s/catalog/request".formatted(PARTICIPANT_CONTEXT_ID))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403)
+                    .body(matchesRegex("(?s).*Required scope.*management-api:read.*missing.*"));
+        }
+
+        @Test
+        void requestCatalog_tokenHasWrongRole(ManagementEndToEndTestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "CatalogRequest")
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyId", COUNTER_PARTY_ID)
+                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .build()
+                    .toString();
+
+            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("role", "some-role"));
+
+            context.baseRequest(offendingToken)
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v4alpha/participants/%s/catalog/request".formatted(PARTICIPANT_CONTEXT_ID))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403)
+                    .body(containsString("Required user role not satisfied"));
         }
 
         @Test
@@ -343,6 +442,114 @@ public class CatalogApiV4EndToEndTest {
                     .body(ID, is("asset-response"))
                     .body(TYPE, is("Dataset"))
                     .body("distribution[0].format", is("any-PULL-response"));
+        }
+
+        @Test
+        void getDataset_tokenBearerNotOwner(ManagementEndToEndTestContext context, ParticipantContextService srv, ParticipantContextConfigStore store) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "DatasetRequest")
+                    .add(ID, "asset-id")
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyId", COUNTER_PARTY_ID)
+                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .build()
+                    .toString();
+
+
+            var otherParticipant = "other-participant";
+            createParticipant(srv, store, otherParticipant);
+            var token = context.createToken(otherParticipant, oauthServerSigningKey);
+
+            context.baseRequest(token)
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v4alpha/participants/%s/catalog/dataset/request".formatted(PARTICIPANT_CONTEXT_ID))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403)
+                    .body(containsString("User '%s' is not authorized to access this resource".formatted(otherParticipant)));
+        }
+
+        @Test
+        void getDataset_tokenBearerIsAdmin(ManagementEndToEndTestContext context, DataPlaneInstanceStore dataPlaneInstanceStore,
+                                           PolicyDefinitionStore policyDefinitionStore, ContractDefinitionStore contractDefinitionStore,
+                                           AssetIndex assetIndex) {
+            var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
+                    .allowedSourceType("test-type").allowedTransferType("any-PULL").build();
+            dataPlaneInstanceStore.save(dataPlaneInstance);
+
+            createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
+            assetIndex.create(createAsset("asset-id", "test-type").build());
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "DatasetRequest")
+                    .add(ID, "asset-id")
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyId", COUNTER_PARTY_ID)
+                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .build()
+                    .toString();
+
+            context.baseRequest(context.createAdminToken(oauthServerSigningKey))
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v4alpha/participants/%s/catalog/dataset/request".formatted(PARTICIPANT_CONTEXT_ID))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body(ID, is("asset-id"))
+                    .body(TYPE, is("Dataset"))
+                    .body("distribution[0].accessService.'@id'", notNullValue());
+        }
+
+        @Test
+        void getDataset_tokenLacksScope(ManagementEndToEndTestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "DatasetRequest")
+                    .add(ID, "asset-id")
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyId", COUNTER_PARTY_ID)
+                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .build()
+                    .toString();
+
+            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:fizzbuzz"));
+
+            context.baseRequest(offendingToken)
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v4alpha/participants/%s/catalog/dataset/request".formatted(PARTICIPANT_CONTEXT_ID))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403)
+                    .body(matchesRegex("(?s).*Required scope.*management-api:read.*missing.*"));
+        }
+
+        @Test
+        void getDataset_tokenHasWrongRole(ManagementEndToEndTestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "DatasetRequest")
+                    .add(ID, "asset-id")
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyId", COUNTER_PARTY_ID)
+                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .build()
+                    .toString();
+
+            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("role", "some-role"));
+
+            context.baseRequest(offendingToken)
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v4alpha/participants/%s/catalog/dataset/request".formatted(PARTICIPANT_CONTEXT_ID))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403)
+                    .body(containsString("Required user role not satisfied"));
         }
 
         private void createContractOffer(PolicyDefinitionStore policyStore, ContractDefinitionStore contractDefStore, List<Criterion> assetsSelectorCritera) {
