@@ -18,6 +18,7 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -39,6 +40,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.fail;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
@@ -77,12 +79,11 @@ public class PostgresVirtualCompatibilityDockerTest {
 
     @BeforeAll
     static void setup(ParticipantContextConfigStore configStore) {
-        var config = ConfigFactory.fromMap(new HashMap<>() {
-            {
-                put("edc.participant.id", "participantContextId");
-            }
-        });
-        configStore.save("participantContextId", config);
+        var cfg = ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId("participantContextId")
+                .entries(Map.of("edc.participant.id", "participantContextId"))
+                .build();
+        configStore.save(cfg);
 
     }
 
