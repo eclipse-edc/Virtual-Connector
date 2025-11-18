@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Metaform Systems, Inc.
+ *  Copyright (c) 2025 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -18,6 +18,7 @@ package org.eclipse.edc.virtualized.connector.controlplane.api.management.partic
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
@@ -25,6 +26,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
@@ -32,7 +34,6 @@ import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
-import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.EdcException;
@@ -45,9 +46,12 @@ import org.eclipse.edc.web.spi.exception.ServiceResultHandler;
 import org.eclipse.edc.web.spi.validation.SchemaType;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_TYPE_TERM;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
+@Consumes(APPLICATION_JSON)
+@Produces(APPLICATION_JSON)
 @Path("/v4alpha/participants")
 public class ParticipantContextApiV4Controller implements ParticipantContextApiV4 {
 
@@ -74,7 +78,7 @@ public class ParticipantContextApiV4Controller implements ParticipantContextApiV
                 .orElseThrow(InvalidRequestException::new);
 
         var created = participantContextService.createParticipantContext(participantContext)
-                .orElseThrow(exceptionMapper(PolicyDefinition.class, participantContext.getParticipantContextId()));
+                .orElseThrow(exceptionMapper(ParticipantContext.class, participantContext.getParticipantContextId()));
 
         var responseDto = IdResponse.Builder.newInstance()
                 .id(created.getParticipantContextId())
@@ -112,7 +116,7 @@ public class ParticipantContextApiV4Controller implements ParticipantContextApiV
                 .orElseThrow(exceptionMapper(ParticipantContext.class, id));
 
     }
-    
+
     @DELETE
     @Path("{id}")
     @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER})

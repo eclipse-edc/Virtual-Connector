@@ -32,6 +32,7 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -597,11 +598,14 @@ public class CatalogApiV4EndToEndTest {
                     .state(ParticipantContextState.ACTIVATED)
                     .build();
 
-            configStore.save(participantContextId, ConfigFactory.fromMap(
-                    Map.of("edc.mock.region", "eu",
+            var config = ParticipantContextConfiguration.Builder.newInstance()
+                    .participantContextId(participantContextId)
+                    .entries(Map.of("edc.mock.region", "eu",
                             "edc.participant.id", "did:web:" + PARTICIPANT_CONTEXT_ID
-                    )));
+                    ))
+                    .build();
 
+            configStore.save(config);
 
             participantContextService.createParticipantContext(pc)
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));

@@ -32,13 +32,13 @@ import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.utils.LazySupplier;
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 
 import java.net.URI;
 import java.time.Duration;
@@ -215,7 +215,13 @@ public class VirtualConnector {
         configuration.put("edc.participant.id", participantId);
         contextService.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).build())
                 .orElseThrow(e -> new RuntimeException(e.getFailureDetail()));
-        contextConfigService.save(participantContextId, ConfigFactory.fromMap(configuration))
+
+        var config = ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId(participantContextId)
+                .entries(configuration)
+                .build();
+        
+        contextConfigService.save(config)
                 .orElseThrow(e -> new RuntimeException(e.getFailureDetail()));
     }
 }
