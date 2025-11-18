@@ -49,6 +49,7 @@ include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025:dsp-transfer-pro
 include(":extensions:banner-extension")
 include(":extensions:cel:cel-spi")
 include(":extensions:cel:cel-extension")
+include(":extensions:cel:cel-store-sql")
 include(":extensions:negotiation-cdc-memory")
 include(":extensions:transfer-process-cdc-memory")
 include(":extensions:postgres-cdc")

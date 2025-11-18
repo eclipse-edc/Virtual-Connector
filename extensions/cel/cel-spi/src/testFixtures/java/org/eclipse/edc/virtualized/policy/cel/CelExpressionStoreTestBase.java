@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.virtualized.policy.cel;
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.virtualized.policy.cel.model.CelExpression;
@@ -36,7 +35,7 @@ public abstract class CelExpressionStoreTestBase {
         var result = getStore().create(expr);
         assertThat(result).isSucceeded();
         var expressions = getStore().query(QuerySpec.max());
-        Assertions.assertThat(expressions).usingRecursiveFieldByFieldElementComparator().containsExactly(expr);
+        assertThat(expressions).usingRecursiveFieldByFieldElementComparator().containsExactly(expr);
     }
 
     @Test
@@ -58,9 +57,24 @@ public abstract class CelExpressionStoreTestBase {
         resources.forEach(getStore()::create);
 
         var res = getStore().query(QuerySpec.none());
-        Assertions.assertThat(res)
+        assertThat(res)
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsExactlyInAnyOrder(resources.toArray(new CelExpression[0]));
+    }
+
+    @Test
+    void query_leftOperand() {
+        var resources = range(0, 5)
+                .mapToObj(i -> celExpression("id" + i, "leftOperand" + i))
+                .toList();
+
+        resources.forEach(getStore()::create);
+
+        var res = getStore().query(QuerySpec.Builder.newInstance().filter(Criterion.criterion("leftOperand", "=", "leftOperand3")).build());
+        assertThat(res).hasSize(1)
+                .first().satisfies(celExpression -> {
+                    assertThat(celExpression).usingRecursiveComparison().isEqualTo(resources.get(3));
+                });
     }
 
     @Test
@@ -74,7 +88,7 @@ public abstract class CelExpressionStoreTestBase {
         var query = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "=", "non-existing-id"))
                 .build();
         var res = getStore().query(query);
-        Assertions.assertThat(res).isEmpty();
+        assertThat(res).isEmpty();
     }
 
     @Test
@@ -90,7 +104,7 @@ public abstract class CelExpressionStoreTestBase {
                 .filter(new Criterion("invalidField", "=", "test-value"))
                 .build();
         var res = getStore().query(query);
-        Assertions.assertThat(res).isNotNull().isEmpty();
+        assertThat(res).isNotNull().isEmpty();
     }
 
     @Test
@@ -132,6 +146,10 @@ public abstract class CelExpressionStoreTestBase {
     }
 
     private CelExpression celExpression(String id) {
-        return new CelExpression(id, "leftOperand", "expression", "description");
+        return celExpression(id, "leftOperand");
+    }
+
+    private CelExpression celExpression(String id, String leftOperand) {
+        return new CelExpression(id, leftOperand, "expression", "description");
     }
 }
