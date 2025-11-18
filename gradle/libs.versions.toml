@@ -70,6 +70,7 @@ edc-core-participantcontext-single = { module = "org.eclipse.edc:participant-con
 edc-core-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-core", version.ref = "edc" }
 edc-core-dataplane-signaling-client = { module = "org.eclipse.edc:data-plane-signaling-client", version.ref = "edc" }
 edc-core-dataplane-signaling-transfer = { module = "org.eclipse.edc:transfer-data-plane-signaling", version.ref = "edc" }
+edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
 
 # EDC Lib modules
 edc-lib-api = { module = "org.eclipse.edc:api-lib", version.ref = "edc" }
