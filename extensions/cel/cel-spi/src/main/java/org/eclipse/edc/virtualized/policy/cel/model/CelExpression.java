@@ -14,25 +14,122 @@
 
 package org.eclipse.edc.virtualized.policy.cel.model;
 
-import java.time.Clock;
+import org.eclipse.edc.spi.entity.Entity;
+
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Represents a CEL (Common Expression Language) expression used in policy definitions.
  *
- * @param id          the unique identifier of the CEL expression
- * @param leftOperand the left operand of the expression
- * @param expression  the CEL expression string
- * @param description a description of the expression
- * @param createdAt   the timestamp when the expression was created
- * @param updatedAt   the timestamp when the expression was last updated
  */
-public record CelExpression(String id, Set<String> scopes, String leftOperand, String expression,
-                            String description, Long createdAt, Long updatedAt) {
+public class CelExpression extends Entity {
+
+    public static final String CEL_EXPRESSION_TYPE_TERM = "CelExpression";
+    public static final String CEL_EXPRESSION_TYPE_IRI = EDC_NAMESPACE + CEL_EXPRESSION_TYPE_TERM;
+    public static final String CEL_EXPRESSION_SCOPES_TERM = "scopes";
+    public static final String CEL_EXPRESSION_SCOPES_IRI = EDC_NAMESPACE + CEL_EXPRESSION_SCOPES_TERM;
+    public static final String CEL_EXPRESSION_LEFT_OPERAND_TERM = "leftOperand";
+    public static final String CEL_EXPRESSION_LEFT_OPERAND_IRI = EDC_NAMESPACE + CEL_EXPRESSION_LEFT_OPERAND_TERM;
+    public static final String CEL_EXPRESSION_EXPRESSION_TERM = "expression";
+    public static final String CEL_EXPRESSION_EXPRESSION_IRI = EDC_NAMESPACE + CEL_EXPRESSION_EXPRESSION_TERM;
+    public static final String CEL_EXPRESSION_DESCRIPTION_TERM = "description";
+    public static final String CEL_EXPRESSION_DESCRIPTION_IRI = EDC_NAMESPACE + CEL_EXPRESSION_DESCRIPTION_TERM;
+    public static final String MATCH_ALL_SCOPE = "*.";
+
+    private Set<String> scopes = new HashSet<>();
+    private String leftOperand;
+    private String expression;
+    private String description;
+    private long updatedAt;
 
 
-    public CelExpression(String id, String leftOperand, String expression, String description) {
-        this(id, Set.of("*."), leftOperand, expression, description, Clock.systemUTC().millis(), Clock.systemUTC().millis());
+    private CelExpression() {
     }
 
+    public Set<String> getScopes() {
+        return scopes;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getExpression() {
+        return expression;
+    }
+
+    public String getLeftOperand() {
+        return leftOperand;
+    }
+
+    public long getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public static class Builder extends Entity.Builder<CelExpression, Builder> {
+
+        private Builder() {
+            super(new CelExpression());
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder id(String id) {
+            entity.id = id;
+            return this;
+        }
+
+        @Override
+        public Builder self() {
+            return this;
+        }
+
+        public Builder scopes(Set<String> scopes) {
+            entity.scopes = scopes;
+            return this;
+        }
+
+        public Builder leftOperand(String leftOperand) {
+            entity.leftOperand = leftOperand;
+            return this;
+        }
+
+        public Builder expression(String expression) {
+            entity.expression = expression;
+            return this;
+        }
+
+        public Builder description(String description) {
+            entity.description = description;
+            return this;
+        }
+
+        public Builder updatedAt(Long updatedAt) {
+            entity.updatedAt = updatedAt;
+            return this;
+        }
+
+        public CelExpression build() {
+            Objects.requireNonNull(entity.leftOperand, "CelExpression leftOperand cannot be null");
+            Objects.requireNonNull(entity.expression, "CelExpression expression cannot be null");
+            Objects.requireNonNull(entity.description, "CelExpression description cannot be null");
+
+            if (entity.getUpdatedAt() == 0L) {
+                entity.updatedAt = entity.getCreatedAt();
+            }
+
+            if (entity.scopes.isEmpty()) {
+                entity.scopes.add(MATCH_ALL_SCOPE);
+            }
+
+            return super.build();
+        }
+
+    }
 }

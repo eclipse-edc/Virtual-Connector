@@ -21,6 +21,7 @@ plugins {
 dependencies {
 
     api(project(":spi:v-auth-spi"))
+    api(project(":extensions:common:api:lib:v-management-api-lib"))
     implementation(libs.edc.lib.jersey.providers)
     implementation(libs.edc.lib.mgmtapi)
     implementation(libs.edc.lib.validator)

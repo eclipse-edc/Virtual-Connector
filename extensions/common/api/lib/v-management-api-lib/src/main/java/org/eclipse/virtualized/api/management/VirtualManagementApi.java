@@ -14,17 +14,8 @@
 
 package org.eclipse.virtualized.api.management;
 
-public interface ManagementApi {
+public interface VirtualManagementApi {
 
-    // Transformer scope for management API
-    String MANAGEMENT_API_CONTEXT = "management-api";
-
-    String MANAGEMENT_API_V_4_ALPHA = "v4alpha";
-
-    // JSON-LD scope for management API
-    String MANAGEMENT_SCOPE = "MANAGEMENT_API";
-
-    // JSON-LD scope for management API version 4 alpha
-    String MANAGEMENT_SCOPE_V4 = MANAGEMENT_SCOPE + ":" + MANAGEMENT_API_V_4_ALPHA;
+    String EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2 = "https://w3id.org/edc/virtual-connector/management/v2";
 
 }

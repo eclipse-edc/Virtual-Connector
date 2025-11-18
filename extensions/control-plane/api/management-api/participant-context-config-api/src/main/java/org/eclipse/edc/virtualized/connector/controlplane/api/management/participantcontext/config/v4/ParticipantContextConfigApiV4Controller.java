@@ -27,7 +27,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
-import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -67,7 +66,7 @@ public class ParticipantContextConfigApiV4Controller implements ParticipantConte
                 .build();
 
         configService.save(config)
-                .orElseThrow(exceptionMapper(PolicyDefinition.class, config.getParticipantContextId()));
+                .orElseThrow(exceptionMapper(ParticipantContextConfiguration.class, config.getParticipantContextId()));
 
     }
 

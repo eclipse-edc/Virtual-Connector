@@ -19,10 +19,12 @@ import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
+import static org.eclipse.virtualized.api.management.VirtualManagementApi.EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 
 public class TestFunction {
 
@@ -44,8 +46,14 @@ public class TestFunction {
     }
 
     public static JsonArray jsonLdContext() {
-        return createArrayBuilder()
-                .add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2)
+        return createArrayBuilder(Arrays.stream(jsonLdContextArray()).toList())
                 .build();
+    }
+
+    public static String[] jsonLdContextArray() {
+        return new String[]{
+                EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2,
+                EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2
+        };
     }
 }

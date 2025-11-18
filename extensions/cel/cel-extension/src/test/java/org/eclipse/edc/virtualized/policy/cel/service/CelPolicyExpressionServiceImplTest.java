@@ -134,6 +134,10 @@ public class CelPolicyExpressionServiceImplTest {
     }
 
     private CelExpression celExpression(String id) {
-        return new CelExpression(id, "leftOperand", "expression", "description");
+        return CelExpression.Builder.newInstance().id(id)
+                .leftOperand("leftOperand")
+                .expression("expression")
+                .description("description")
+                .build();
     }
 }

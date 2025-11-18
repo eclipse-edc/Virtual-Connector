@@ -12,18 +12,14 @@
  *
  */
 
-plugins {
-    `java-library`
+package org.eclipse.virtualized.api.management.schema;
+
+public interface VirtualManagementApiJsonSchema {
+
+    String VIRTUAL_EDC_MGMT_V4_SCHEMA_PREFIX = "https://w3id.org/edc/virtual-connector/management/schema/v4";
+
+    interface V4 {
+
+        String CEL_EXPRESSION = VIRTUAL_EDC_MGMT_V4_SCHEMA_PREFIX + "/cel-expression-schema.json";
+    }
 }
-
-dependencies {
-    api(libs.edc.spi.jsonld)
-    api(libs.edc.spi.web)
-    api(libs.edc.spi.contract)
-
-    testImplementation(libs.edc.junit)
-    testImplementation(libs.edc.lib.jsonld)
-    testImplementation(libs.edc.lib.transform)
-}
-
-

@@ -79,7 +79,7 @@ public class CelExpressionEngineImpl implements CelExpressionEngine {
     public Set<String> evaluationScopes(String leftOperand) {
         return fetch(leftOperand)
                 .stream()
-                .flatMap(expr -> expr.scopes().stream())
+                .flatMap(expr -> expr.getScopes().stream())
                 .collect(Collectors.toSet());
     }
 
@@ -136,7 +136,7 @@ public class CelExpressionEngineImpl implements CelExpressionEngine {
 
     private Result<List<CelAbstractSyntaxTree>> fetchAndCompile(String leftOperand) {
         return fetch(leftOperand).stream()
-                .map(expr -> compile(expr.expression()))
+                .map(expr -> compile(expr.getExpression()))
                 .collect(Result.collector());
     }
 

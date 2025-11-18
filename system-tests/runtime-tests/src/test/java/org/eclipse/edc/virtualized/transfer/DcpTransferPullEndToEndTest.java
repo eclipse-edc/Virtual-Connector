@@ -126,7 +126,12 @@ class DcpTransferPullEndToEndTest {
                     """;
 
             var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
-            celPolicyExpressionService.create(new CelExpression("id", leftOperand, expression, "membership expression"))
+            var expr = CelExpression.Builder.newInstance().id("id")
+                    .leftOperand(leftOperand)
+                    .expression(expression)
+                    .description("membership expression")
+                    .build();
+            celPolicyExpressionService.create(expr)
                     .orElseThrow(f -> new RuntimeException("Failed to store CEL expression: " + f.getFailureDetail()));
 
             var policy = Policy.Builder.newInstance()

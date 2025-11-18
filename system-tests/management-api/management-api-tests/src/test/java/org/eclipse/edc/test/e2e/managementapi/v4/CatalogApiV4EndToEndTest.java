@@ -83,7 +83,6 @@ import static org.hamcrest.Matchers.matchesRegex;
 @ApiTest
 public class CatalogApiV4EndToEndTest {
 
-    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
         private static final String PARTICIPANT_CONTEXT_ID = "test-participant";
         /**

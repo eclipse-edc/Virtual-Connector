@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.virtualized.policy.cel.service;
 
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -38,7 +39,7 @@ public class CelPolicyExpressionServiceImpl implements CelPolicyExpressionServic
     @Override
     public ServiceResult<Void> create(CelExpression expression) {
         return tx.execute(() -> {
-            var validationResult = engine.validate(expression.expression());
+            var validationResult = engine.validate(expression.getExpression());
             if (validationResult.failed()) {
                 return validationResult;
             }
@@ -52,9 +53,22 @@ public class CelPolicyExpressionServiceImpl implements CelPolicyExpressionServic
     }
 
     @Override
+    public ServiceResult<CelExpression> findById(String id) {
+        return tx.execute(() -> {
+            var query = QuerySpec.Builder.newInstance().filter(Criterion.criterion("id", "=", id)).build();
+            var results = store.query(query);
+            if (results.isEmpty()) {
+                return ServiceResult.notFound("CelExpression with id " + id + " not found");
+            } else {
+                return ServiceResult.success(results.get(0));
+            }
+        });
+    }
+
+    @Override
     public ServiceResult<Void> update(CelExpression expression) {
         return tx.execute(() -> {
-            var validationResult = engine.validate(expression.expression());
+            var validationResult = engine.validate(expression.getExpression());
             if (validationResult.failed()) {
                 return validationResult;
             }

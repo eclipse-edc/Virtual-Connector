@@ -76,6 +76,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEME
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.PARTICIPANT_CONTEXT_ID;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContext;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContextArray;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
@@ -236,7 +237,7 @@ public class ContractNegotiationApiV4EndToEndTest {
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
-                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body(CONTEXT, contains(jsonLdContextArray()))
                     .body(TYPE, equalTo("ContractNegotiation"))
                     .body(ID, is("cn1"))
                     .body("protocol", equalTo("dataspace-protocol-http"));
@@ -329,7 +330,7 @@ public class ContractNegotiationApiV4EndToEndTest {
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
-                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body(CONTEXT, contains(jsonLdContextArray()))
                     .body(TYPE, equalTo("ContractAgreement"))
                     .body(ID, is("cn1"))
                     .body("assetId", equalTo(agreement.getAssetId()))

@@ -135,7 +135,7 @@ public abstract class CelExpressionStoreTestBase {
         var expr = celExpression("expr-to-delete");
         getStore().create(expr);
 
-        var deleteRes = getStore().delete(expr.id());
+        var deleteRes = getStore().delete(expr.getId());
         assertThat(deleteRes).isSucceeded();
     }
 
@@ -150,6 +150,10 @@ public abstract class CelExpressionStoreTestBase {
     }
 
     private CelExpression celExpression(String id, String leftOperand) {
-        return new CelExpression(id, leftOperand, "expression", "description");
+        return CelExpression.Builder.newInstance().id(id)
+                .leftOperand(leftOperand)
+                .expression("expression")
+                .description("description")
+                .build();
     }
 }

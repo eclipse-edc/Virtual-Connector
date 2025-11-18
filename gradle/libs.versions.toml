@@ -17,8 +17,8 @@ wiremock = "3.13.1"
 bouncyCastle-jdk18on = "1.82"
 jakarta-annotation = "2.1.1"
 swagger = "2.2.40"
-
 cel = "0.11.1"
+jsonschema = "2.0.0"
 
 [libraries]
 # EDC SPI modules
@@ -142,6 +142,7 @@ bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", versi
 bouncyCastle-bcprovJdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
 cel = { module = "dev.cel:cel", version.ref = "cel" }
+jsonschema = { module = "com.networknt:json-schema-validator", version.ref = "jsonschema" }
 
 [bundles]
 dcp = [

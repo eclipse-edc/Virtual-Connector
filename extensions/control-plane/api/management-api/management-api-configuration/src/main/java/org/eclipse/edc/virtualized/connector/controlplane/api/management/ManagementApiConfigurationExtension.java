@@ -30,6 +30,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -46,9 +47,13 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
+import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
+import static java.lang.String.format;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_CONTEXT;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
@@ -60,6 +65,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEME
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
+import static org.eclipse.virtualized.api.management.VirtualManagementApi.EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 
 @Extension(value = ManagementApiConfigurationExtension.NAME)
 public class ManagementApiConfigurationExtension implements ServiceExtension {
@@ -103,6 +109,11 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, MANAGEMENT_SCOPE);
 
         jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V4);
+        jsonLd.registerContext(EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V4);
+
+        getResourceUri("document/v-management-context-v2.jsonld")
+                .onSuccess(uri -> jsonLd.registerCachedDocument(EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2, uri))
+                .onFailure(error -> context.getMonitor().severe(format("Failed to register management api v4 context: %s", error)));
 
         webService.registerResource(ApiContext.MANAGEMENT, new ObjectMapperProvider(typeManager, JSON_LD));
 
@@ -135,6 +146,20 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
             return participantContextService.getParticipantContext(id).orElse(serviceFailure -> null);
         }
         return null;
+    }
+
+    @NotNull
+    private Result<URI> getResourceUri(String name) {
+        var uri = getClass().getClassLoader().getResource(name);
+        if (uri == null) {
+            return Result.failure(format("Cannot find resource %s", name));
+        }
+
+        try {
+            return Result.success(uri.toURI());
+        } catch (URISyntaxException e) {
+            return Result.failure(format("Cannot read resource %s: %s", name, e.getMessage()));
+        }
     }
 
     @Settings

@@ -62,26 +62,35 @@ public class SqlCelExpressionStore extends AbstractSqlStore implements CelExpres
         var description = resultSet.getString(statements.getDescriptionColumn());
         var created = resultSet.getLong(statements.getCreateTimestampColumn());
         var lastModified = resultSet.getLong(statements.getLastModifiedTimestampColumn());
-        return new CelExpression(id, new HashSet<>(scopes), leftOperand, expression, description, created, lastModified);
+
+        return CelExpression.Builder.newInstance()
+                .id(id)
+                .scopes(new HashSet<>(scopes))
+                .leftOperand(leftOperand)
+                .expression(expression)
+                .description(description)
+                .createdAt(created)
+                .updatedAt(lastModified)
+                .build();
     }
 
     @Override
     public StoreResult<Void> create(CelExpression expression) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                if (findByIdInternal(connection, expression.id()) != null) {
-                    return alreadyExists(alreadyExistsErrorMessage(expression.id()));
+                if (findByIdInternal(connection, expression.getId()) != null) {
+                    return alreadyExists(alreadyExistsErrorMessage(expression.getId()));
                 }
 
                 var stmt = statements.getInsertTemplate();
                 queryExecutor.execute(connection, stmt,
-                        expression.id(),
-                        expression.leftOperand(),
-                        expression.expression(),
-                        expression.description(),
-                        toJson(expression.scopes()),
-                        expression.createdAt(),
-                        expression.updatedAt()
+                        expression.getId(),
+                        expression.getLeftOperand(),
+                        expression.getExpression(),
+                        expression.getDescription(),
+                        toJson(expression.getScopes()),
+                        expression.getCreatedAt(),
+                        expression.getUpdatedAt()
                 );
                 return success();
 
@@ -95,19 +104,19 @@ public class SqlCelExpressionStore extends AbstractSqlStore implements CelExpres
     public StoreResult<Void> update(CelExpression expression) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                if (findByIdInternal(connection, expression.id()) != null) {
+                if (findByIdInternal(connection, expression.getId()) != null) {
                     queryExecutor.execute(connection,
                             statements.getUpdateTemplate(),
-                            expression.leftOperand(),
-                            expression.expression(),
-                            expression.description(),
-                            toJson(expression.scopes()),
-                            expression.createdAt(),
-                            expression.updatedAt(),
-                            expression.id());
+                            expression.getLeftOperand(),
+                            expression.getExpression(),
+                            expression.getDescription(),
+                            toJson(expression.getScopes()),
+                            expression.getCreatedAt(),
+                            expression.getUpdatedAt(),
+                            expression.getId());
                     return StoreResult.success();
                 }
-                return StoreResult.notFound(notFoundErrorMessage(expression.id()));
+                return StoreResult.notFound(notFoundErrorMessage(expression.getId()));
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

@@ -35,6 +35,14 @@ public interface CelPolicyExpressionService {
     ServiceResult<Void> create(CelExpression expression);
 
     /**
+     * Finds a CEL expression by its ID.
+     *
+     * @param id the ID of the expression to find
+     * @return a service result containing the found expression or an error
+     */
+    ServiceResult<CelExpression> findById(String id);
+
+    /**
      * Updates an existing CEL expression.
      *
      * @param expression the expression to update

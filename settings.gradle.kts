@@ -70,10 +70,12 @@ include(":extensions:control-plane:api:management-api:contract-negotiation-api")
 include(":extensions:control-plane:api:management-api:transfer-process-api")
 include(":extensions:control-plane:api:management-api:participant-context-api")
 include(":extensions:control-plane:api:management-api:participant-context-config-api")
+include(":extensions:control-plane:api:management-api:cel-api")
 include(":extensions:control-plane:api:management-api:management-api-configuration")
+include(":extensions:control-plane:api:management-api:v-management-api-schema-validator")
 
 // lib
-include(":extensions:common:api:lib:management-api-lib")
+include(":extensions:common:api:lib:v-management-api-lib")
 include(":extensions:common:api:lib:api-authorization-lib")
 include(":extensions:common:api:lib:api-authentication-lib")
 
