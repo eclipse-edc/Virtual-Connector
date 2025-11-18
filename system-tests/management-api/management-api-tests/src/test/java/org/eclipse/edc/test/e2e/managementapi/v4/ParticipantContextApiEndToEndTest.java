@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Metaform Systems, Inc.
+ *  Copyright (c) 2025 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -19,7 +19,6 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import io.restassured.http.ContentType;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
@@ -50,6 +49,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.stream.IntStream.range;
@@ -112,7 +112,7 @@ public class ParticipantContextApiEndToEndTest {
             var token = context.createProvisionerToken(oauthServerSigningKey);
 
             var su = context.baseRequest(token)
-                    .contentType(ContentType.JSON)
+                    .contentType(JSON)
                     .body(body)
                     .post("/v4alpha/participants")
                     .then()
@@ -134,7 +134,7 @@ public class ParticipantContextApiEndToEndTest {
             var token = context.createProvisionerToken(oauthServerSigningKey);
 
             context.baseRequest(token)
-                    .contentType(ContentType.JSON)
+                    .contentType(JSON)
                     .body(body)
                     .post("/v4alpha/participants")
                     .then()
@@ -159,6 +159,7 @@ public class ParticipantContextApiEndToEndTest {
             var token = context.createToken(participantContextId, oauthServerSigningKey);
 
             context.baseRequest(token)
+                    .contentType(JSON)
                     .body(body)
                     .post("/v4alpha/participants")
                     .then()
@@ -215,7 +216,7 @@ public class ParticipantContextApiEndToEndTest {
             var token = context.createProvisionerToken(oauthServerSigningKey);
 
             context.baseRequest(token)
-                    .contentType(ContentType.JSON)
+                    .contentType(JSON)
                     .body(body)
                     .put("/v4alpha/participants/" + participantContextId)
                     .then()
@@ -239,7 +240,7 @@ public class ParticipantContextApiEndToEndTest {
             var token = context.createProvisionerToken(oauthServerSigningKey);
 
             context.baseRequest(token)
-                    .contentType(ContentType.JSON)
+                    .contentType(JSON)
                     .body(body)
                     .put("/v4alpha/participants/1")
                     .then()
@@ -264,6 +265,7 @@ public class ParticipantContextApiEndToEndTest {
             var token = context.createToken(participantContextId, oauthServerSigningKey);
 
             context.baseRequest(token)
+                    .contentType(JSON)
                     .body(body)
                     .put("/v4alpha/participants/1")
                     .then()
@@ -283,7 +285,7 @@ public class ParticipantContextApiEndToEndTest {
 
             var token = context.createProvisionerToken(oauthServerSigningKey);
             context.baseRequest(token)
-                    .contentType(ContentType.JSON)
+                    .contentType(JSON)
                     .get("/v4alpha/participants")
                     .then()
                     .statusCode(200)
@@ -302,7 +304,7 @@ public class ParticipantContextApiEndToEndTest {
 
             var token = context.createProvisionerToken(oauthServerSigningKey);
             context.baseRequest(token)
-                    .contentType(ContentType.JSON)
+                    .contentType(JSON)
                     .get("/v4alpha/participants?offset=2&limit=4")
                     .then()
                     .statusCode(200)
@@ -325,7 +327,7 @@ public class ParticipantContextApiEndToEndTest {
             var token = context.createToken(otherParticipantId, oauthServerSigningKey);
 
             context.baseRequest(token)
-                    .contentType(ContentType.JSON)
+                    .contentType(JSON)
                     .get("/v4alpha/participants")
                     .then()
                     .statusCode(403);
