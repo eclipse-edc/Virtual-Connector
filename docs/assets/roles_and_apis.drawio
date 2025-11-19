@@ -69,7 +69,7 @@
                 <mxCell id="18" value="&lt;font face=&quot;Courier New&quot;&gt;participant&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#1ba1e2;fontColor=default;strokeColor=#006EAF;" vertex="1" parent="1">
                     <mxGeometry x="-740" y="270" width="30" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="19" value="&lt;font face=&quot;Courier New&quot;&gt;tenant-mgr&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#1ba1e2;strokeColor=#006EAF;fontColor=default;" vertex="1" parent="1">
+                <mxCell id="19" value="&lt;font face=&quot;Courier New&quot;&gt;provisioner&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#1ba1e2;strokeColor=#006EAF;fontColor=default;" vertex="1" parent="1">
                     <mxGeometry x="-475" y="425" width="30" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="24" value="&lt;div&gt;&lt;span style=&quot;color: rgb(63, 63, 63); font-family: &amp;quot;Courier New&amp;quot;; background-color: transparent;&quot;&gt;/participants/{id]/...&lt;/span&gt;&lt;/div&gt;" style="shape=hexagon;perimeter=hexagonPerimeter2;whiteSpace=wrap;html=1;fixedSize=1;fillColor=#d5e8d4;strokeColor=#82b366;rotation=0;" vertex="1" parent="1">

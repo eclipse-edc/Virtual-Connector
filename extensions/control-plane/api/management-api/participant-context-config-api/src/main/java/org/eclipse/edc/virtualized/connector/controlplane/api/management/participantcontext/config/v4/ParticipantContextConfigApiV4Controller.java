@@ -53,7 +53,7 @@ public class ParticipantContextConfigApiV4Controller implements ParticipantConte
     }
 
     @PUT
-    @RolesAllowed({ ParticipantPrincipal.ROLE_TENANT_MANAGER })
+    @RolesAllowed({ ParticipantPrincipal.ROLE_PROVISIONER })
     @RequiredScope("management-api:write")
     @Override
     public void setConfigV4(@PathParam("participantContextId") String participantContextId, @SchemaType(PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM) JsonObject request) {
@@ -70,7 +70,7 @@ public class ParticipantContextConfigApiV4Controller implements ParticipantConte
     }
 
     @GET
-    @RolesAllowed({ ParticipantPrincipal.ROLE_TENANT_MANAGER, ParticipantPrincipal.ROLE_ADMIN })
+    @RolesAllowed({ ParticipantPrincipal.ROLE_PROVISIONER, ParticipantPrincipal.ROLE_ADMIN })
     @RequiredScope("management-api:read")
     @Override
     public JsonObject getConfigV4(@PathParam("participantContextId") String participantContextId, @Context SecurityContext securityContext) {

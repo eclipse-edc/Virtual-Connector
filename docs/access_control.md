@@ -67,8 +67,8 @@ Roles are used to differentiate different types of users in the EDC-V ecosystem.
 
 - `admin`: has full access to all resources in all APIs. This should **only** be used by human actors to correct
   errors or fix problems, **never** be used by an automated system!~~
-- `tenant-mgr`: can manage participant contexts, but cannot access resources of an individual participant context.
-  Specifically, an `tenant-mgr` may create participant contexts in the Control Plane and in IdentityHub and may
+- `provisioner`: can manage participant contexts, but cannot access resources of an individual participant context.
+  Specifically, an `provisioner` may create participant contexts in the Control Plane and in IdentityHub and may
   create `Holder` entities in the IssuerService. However, they may not access resources of an individual participant
   context such as Assets, ContractDefinitions, etc. Clients with the `edc-provisioner` role can also create new clients
   in the IdP, for example, in KeyCloak that would require having the `realm-admin` or `manage-clients` role.

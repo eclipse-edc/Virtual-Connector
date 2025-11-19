@@ -10,7 +10,7 @@ dataspace participant (sometimes loosely termed a _tenant_) onboards into a data
 requested from the IssuerService. These steps are typically performed by an automated system, a so-called _tenant
 manager_. This may be a shell script, a CI/CD pipeline, or a dedicated application.
 
-To do that, the tenant manager must communicate with several APIs, creating resources.
+To do that, the provisioning system must communicate with several APIs, creating resources.
 
 In addition to those steps, the newly onboarded participant may want to manage some data of their own, such as data
 sharing or request more Verifiable Credentials or initiate the download of another data offering. Naturally, tenant
@@ -80,22 +80,22 @@ The `admin` role is intended for initial setup and emergency use only.
 
 _For Administration APIs the `admin` role is identified by having the `role=admin` claim in the OAuth2 token._
 
-### Tenant Manager
+### Provisioning System
 
-The Tenant Manager role is tasked with creating and managing dataspace participants (tenants). This includes creating an
-entry in the identity provider's user database, creating participant context entries in the IdentityHub and the
-ControlPlane as well as creating a Holder entry in the IssuerService.
+The Provisioning System role is tasked with creating and managing dataspace participants (tenants). This includes
+creating an entry in the identity provider's user database, creating participant context entries in the IdentityHub and
+the ControlPlane as well as creating a Holder entry in the IssuerService.
 
-Tenant managers may **not** manipulate data owned by a participant, such as assets, policies, or credentials.
+Provisioning Systems may **not** manipulate data owned by a participant, such as assets, policies, or credentials.
 
 Note that some EDC-V deployments may require additional setup, such as entries in the IssuerService database to feed the
 attestation source. This is highly use-case specific and may even require custom APIs that are not shipped with EDC-V,
-but those should be used under the Tenant Manager role. For more information about that, please refer to the
+but those should be used under the Provisioning System role. For more information about that, please refer to the
 [documentation of the credential issuance
 process](https://github.com/eclipse-edc/IdentityHub/blob/main/docs/developer/architecture/issuer/issuance/issuance.process.md).
 
-_For Administration APIs the Tenant Manager role is identified by having the `role=tenant-mgr` claim in the OAuth2
-token. In addition, the tenant manager role requires write access in the identity provider to create new clients._
+_For Administration APIs the Provisioning System role is identified by having the `role=provisioner` claim in the OAuth2
+token. In addition, the provisioning system role requires write access in the identity provider to create new clients._
 
 ### Participant
 
@@ -126,8 +126,9 @@ scheme.
 ### Centralized access control
 
 The single pane of glass approach requires a shared access control scheme between all EDC-V components. On first glance,
-this may seem contradictory to EDC's claimed "Decentralized Claims Protocol" and overall "decentralized" nature, but this decentralization applies to data exchange between dataspace participants, not to the internal operation of
-the EDC-V deployment itself.
+this may seem contradictory to EDC's claimed "Decentralized Claims Protocol" and overall "decentralized" nature, but
+this decentralization applies to data exchange between dataspace participants, not to the internal operation of the
+EDC-V deployment itself.
 
 EDC-V does not mandate the use of one specific identity provider, not does it ship one, instead, it merely requires that
 the identity provider supports a [set of requirements](./access_control.md).
@@ -192,11 +193,11 @@ Administration APIs of EDC-V, using the `participant` role, again, acting on beh
 ## Connector Fabric Manager
 
 As part of the onboarding process of a tenant/participant, the Connector Fabric Manager (CFM) communicates with the
-Administration APIs of EDC-V using the `tenant-mgr` role. It **never** communicates directly with
+Administration APIs of EDC-V using the `provisioner` role. It **never** communicates directly with
 participant-context-specific resource APIs (recognizable by their URL path
 `/participants/{participantContextId}/some-resource`).
 
-The CFM does not interact on behalf of a participant-context, instead it always acts as `role=tenant-mgr`, interacting
+The CFM does not interact on behalf of a participant-context, instead it always acts as `role=provisioner`, interacting
 with those parts of the Adminstration API, that are not participant-context-specific.
 
 ## Operations UI

@@ -21,7 +21,7 @@ import java.util.List;
 public record ParticipantPrincipal(String participantContextId, String role, String scope) implements Principal {
 
     public static final String ROLE_ADMIN = "admin";
-    public static final String ROLE_TENANT_MANAGER = "tenant-mgr";
+    public static final String ROLE_PROVISIONER = "provisioner";
     public static final String ROLE_PARTICIPANT = "participant";
 
     @Override
