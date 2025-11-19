@@ -8,15 +8,15 @@ Each component of EDC-V offers ways to manipulate its data and configuration via
 dataspace participant (sometimes loosely termed a _tenant_) onboards into a dataspace, a few things need to happen: an
 (asymmetric) keypair needs to be generated, a DID document needs to be created, and a VerifiableCredential needs to be
 requested from the IssuerService. These steps are typically performed by an automated system, a so-called _tenant
-manager_. This may be a shell script, a CI/CD pipeline, or a dedicated application.
+manager_. This may be a shell script, a CI/CD pipeline, or a dedicated management plane.
 
 To do that, the provisioning system must communicate with several APIs, creating resources.
 
 In addition to those steps, the newly onboarded participant may want to manage some data of their own, such as data
-sharing or request more Verifiable Credentials or initiate the download of another data offering. Naturally, tenant
+sharing or request more Verifiable Credentials or initiate the download of another data offering. Naturally, isolation
 boundaries must be strictly enforced between participants to avoid data leakage or other security issues.
 
-From that we can see that some API endpoints are intended for _participants_ (~ tenants); others are intended for
+From that we can see that some API endpoints are intended for _participants_ ; others are intended for
 automated systems with elevated access rights, such as provisioners. From that it follows that two types of
 authorization privileges/roles are required: that of a participant and that of a provisioner. Roles are explained in
 detail [in this chapter](#roles-in-edc-v)
@@ -99,7 +99,7 @@ token. In addition, the provisioning system role requires write access in the id
 
 ### Participant
 
-The Participant role represents a single dataspace participant, sometimes loosely termed a "tenant". Each participant is
+The Participant role represents a single dataspace participant. Each participant is
 able to manage their own data, such as assets, policies, contracts, and Verifiable Credentials. Each Administration API
 that relates to a single participant is available under hosted under the `.../participants/{participantId}/...` path.
 
@@ -130,10 +130,10 @@ this may seem contradictory to EDC's claimed "Decentralized Claims Protocol" and
 this decentralization applies to data exchange between dataspace participants, not to the internal operation of the
 EDC-V deployment itself.
 
-EDC-V does not mandate the use of one specific identity provider, not does it ship one, instead, it merely requires that
-the identity provider supports a [set of requirements](./access_control.md).
+EDC-V does not mandate the use of one specific identity provider and does not distribute one.
+Rather, it requires the identity provider to support a [set of requirements](./access_control.md).
 
-Client applications that interact with the Administration APIs must use the _Client Credentials_ grant of OAuth2 to
+Client applications that interact with the Administration APIs must use the _OAuth 2 Client Credentials_ grant to
 obtain an access token. Identity providers are **not** part of EDC-V and must be provided by the deployment operator and
 they must support OAuth2 Client Credentials grant, and must be able to issue tokens with custom claims. They may also
 support the use of refresh tokens, but this is not required as access tokens are typically short-lived.
