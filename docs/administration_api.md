@@ -1,11 +1,11 @@
 # EDC-V Administration APIs
 
-EDC-V is not one single application, instead it consists of multiple services and subsystems. Each of these subsystems
+EDC-V is not a monolith. It consists of multiple services and subsystems. Each of these subsystems
 typically comes with a set of APIs, some of which are intended to be internet-facing, others are for internal use only.
 In this document we will focus on the earlier class of APIs, which are typically for _internal use only_.
 
 Each component of EDC-V offers ways to manipulate its data and configuration via REST APIs. For example, when a new
-dataspace participant (sometimes loosely termed a _tenant_) onboards into a dataspace, a few things need to happen: an
+dataspace participant onboards into a dataspace, a few things need to happen: an
 (asymmetric) keypair needs to be generated, a DID document needs to be created, and a VerifiableCredential needs to be
 requested from the IssuerService. These steps are typically performed by an automated system, a so-called _tenant
 manager_. This may be a shell script, a CI/CD pipeline, or a dedicated management plane.
