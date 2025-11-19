@@ -1,14 +1,14 @@
 # EDC-V Administration APIs
 
-EDC-V is not a monolith. It consists of multiple services and subsystems. Each of these subsystems
-typically comes with a set of APIs, some of which are intended to be internet-facing, others are for internal use only.
-In this document we will focus on the earlier class of APIs, which are typically for _internal use only_.
+EDC-V is not a monolith. It consists of multiple services and subsystems. Each of these subsystems typically comes with
+a set of APIs, some of which are intended to be internet-facing, others are for internal use only. In this document we
+will focus on the earlier class of APIs, which are typically for _internal use only_.
 
 Each component of EDC-V offers ways to manipulate its data and configuration via REST APIs. For example, when a new
-dataspace participant onboards into a dataspace, a few things need to happen: an
-(asymmetric) keypair needs to be generated, a DID document needs to be created, and a VerifiableCredential needs to be
-requested from the IssuerService. These steps are typically performed by an automated system, a so-called _tenant
-manager_. This may be a shell script, a CI/CD pipeline, or a dedicated management plane.
+dataspace participant onboards into a dataspace, a few things need to happen: an (asymmetric) keypair needs to be
+generated, a DID document needs to be created, and a VerifiableCredential needs to be requested from the IssuerService.
+These steps are typically performed by an automated system, a so-called _provisioning system_. This may be a shell
+script, a CI/CD pipeline, or a dedicated management plane.
 
 To do that, the provisioning system must communicate with several APIs, creating resources.
 
@@ -16,10 +16,10 @@ In addition to those steps, the newly onboarded participant may want to manage s
 sharing or request more Verifiable Credentials or initiate the download of another data offering. Naturally, isolation
 boundaries must be strictly enforced between participants to avoid data leakage or other security issues.
 
-From that we can see that some API endpoints are intended for _participants_ ; others are intended for
-automated systems with elevated access rights, such as provisioners. From that it follows that two types of
-authorization privileges/roles are required: that of a participant and that of a provisioner. Roles are explained in
-detail [in this chapter](#roles-in-edc-v)
+From that we can see that some API endpoints are intended for _participants_ ; others are intended for automated systems
+with elevated access rights, such as provisioners. From that it follows that two types of authorization privileges/roles
+are required: that of a participant and that of a provisioner. Roles are explained in detail [in this
+chapter](#roles-in-edc-v)
 
 It is important to note that all Administration APIs are intended for machine clients rather than human actors. Hence,
 only authentication flows are supported that don't require human interaction. All Administration API endpoints assume
@@ -43,7 +43,7 @@ infrastructure components, such as databases, message brokers, secret vaults, or
 The following table summarizes the Administration APIs offered by EDC-V.
 
 | Name                  | exposed by      | purpose                                                                                | content type | authentication | intended client     |
-| --------------------- | --------------- | -------------------------------------------------------------------------------------- | ------------ | -------------- | ------------------- |
+|-----------------------|-----------------|----------------------------------------------------------------------------------------|--------------|----------------|---------------------|
 | Management API        | ControlPlane    | manage assets, policies, contracts etc.                                                | JSON-LD      | OAuth2         | tenant, provisioner |
 | Identity API          | IdentityHub     | manage VerifiableCredentials, key pairs, DID documents, participants                   | JSON         | OAuth2         | tenant, provisioner |
 | Issuer Admin API      | IssuerService   | manage holders, attestations, credential definitions. Manage individual issuer tenants | JSON-LD      | OAuth2         | provisioner         |
@@ -80,11 +80,11 @@ The `admin` role is intended for initial setup and emergency use only.
 
 _For Administration APIs the `admin` role is identified by having the `role=admin` claim in the OAuth2 token._
 
-### Provisioning System
+### Provisioning System (or _provisioner_)
 
-The Provisioning System role is tasked with creating and managing dataspace participants (tenants). This includes
-creating an entry in the identity provider's user database, creating participant context entries in the IdentityHub and
-the ControlPlane as well as creating a Holder entry in the IssuerService.
+The Provisioning System is tasked with creating and managing dataspace participants. This includes creating an entry in
+the identity provider's user database, creating participant context entries in the IdentityHub and the ControlPlane as
+well as creating a Holder entry in the IssuerService.
 
 Provisioning Systems may **not** manipulate data owned by a participant, such as assets, policies, or credentials.
 
@@ -99,29 +99,29 @@ token. In addition, the provisioning system role requires write access in the id
 
 ### Participant
 
-The Participant role represents a single dataspace participant. Each participant is
-able to manage their own data, such as assets, policies, contracts, and Verifiable Credentials. Each Administration API
-that relates to a single participant is available under hosted under the `.../participants/{participantId}/...` path.
+The Participant role represents a single dataspace participant. Each participant is able to manage their own data, such
+as assets, policies, contracts, and Verifiable Credentials. Each Administration API that relates to a single participant
+is available under hosted under the `.../participants/{participantId}/...` path.
 
 Participants have access to _all_ Administration APIs that relate to their tenant, but may **not** access any APIs
 relating to other participants or generic Administration APIs, e.g., to create other participants.
 
 A company that has onboarded onto a dataspace would typically be represented by a single participant. Naturally, such a
 company might mave more than one employee that needs to access the Administration APIs. In most cases, this would have
-to be handled by the user interface (the "client UI") and its identity provider, by creating user identities for each
+to be handled by the user interface (the "End-User UI") and its identity provider, by creating user identities for each
 employee and mapping those onto the service identity. When an employee needs to access the Administration APIs, they
 would request an access token for the service identity, for example using the Authorization Code flow of OAuth2 / OpenID
-Connect. More about this can be found in the [chapter about end-user UI](#client-ui).
+Connect. More about this can be found in the [chapter about end-user UI](#end-user-ui).
 
 _For Administration APIs the `participant` role is identified by having the `role=participant` claim in the OAuth2
 token._
 
 ## Authentication and Authorization
 
-The Administration APIs of EDC-V are intended as _single pane of glass_ for both dataspace participants and tenang
-managers. That means the same access token can be used to interact with several APIs (provided it carries the correct
-[scopes](#scopes)). To achieve that, all EDC-V components use the same OAuth2-based authentication and authorization
-scheme.
+The Administration APIs of EDC-V are intended as _single pane of glass_ for both dataspace participants and
+provisioners. That means the same access token can be used to interact with several APIs (provided it carries the
+correct [scopes](#scopes)). To achieve that, all EDC-V components use the same OAuth2-based authentication and
+authorization scheme.
 
 ### Centralized access control
 
@@ -130,13 +130,13 @@ this may seem contradictory to EDC's claimed "Decentralized Claims Protocol" and
 this decentralization applies to data exchange between dataspace participants, not to the internal operation of the
 EDC-V deployment itself.
 
-EDC-V does not mandate the use of one specific identity provider and does not distribute one.
-Rather, it requires the identity provider to support a [set of requirements](./access_control.md).
+EDC-V does not mandate the use of one specific identity provider and does not distribute one. Rather, it requires the
+identity provider to support a [set of requirements](./access_control.md).
 
-Client applications that interact with the Administration APIs must use the _OAuth 2 Client Credentials_ grant to
-obtain an access token. Identity providers are **not** part of EDC-V and must be provided by the deployment operator and
-they must support OAuth2 Client Credentials grant, and must be able to issue tokens with custom claims. They may also
-support the use of refresh tokens, but this is not required as access tokens are typically short-lived.
+Client applications that interact with the Administration APIs must use the _OAuth 2 Client Credentials_ grant to obtain
+an access token. Identity providers are **not** part of EDC-V and must be provided by the deployment operator and they
+must support OAuth2 Client Credentials grant, and must be able to issue tokens with custom claims. They may also support
+the use of refresh tokens, but this is not required as access tokens are typically short-lived.
 
 ### Scopes
 
@@ -166,45 +166,43 @@ The following diagram shows an overview of all involved components, their roles,
 
 ![API Usage](./assets/roles_and_apis.svg)
 
-## Client UI
+## End-User UI
 
-The Client UI is used by employes of a company who are members of a dataspace. Architecturally, the Client UI
-communicates only with a UI Backend application. This is a common pattern in modern web development. The only component
-exposed to the public internet is the UI Backend, and it is subject to scalability and security requirements of the user
-base.
+The End-User UI is used by employees of a company that is a participant in a dataspace. The End-User UI communicates
+only with a UI Backend application. This is a common pattern in modern web development. The only component exposed to
+the public internet is the UI Backend, and it is subject to scalability and security requirements of the user base.
 
-The Client UI implements use cases that revolve around a single participant. For example, it would display a list of a
-participant context's assets, their ongoing transfers, their contracts, policies etc. It may also implement features to
-update DID Documents, request credentials etc.
+The End-User UI implements use cases that revolve around a single participant. For example, it would display a list of a
+participant's assets, their ongoing transfers, their contracts, policies, etc. It may also implement features to
+update DID Documents, request credentials, etc.
 
-The Client UI and the UI Backend are **not** included in an EDC-V deployment and must be developed by each organisation
-that wants to run a dataspace individually. This UI is likely very specific to each dataspace, therefor the
-authentication mechanisms used between Client UI <-> UI Backend are out-of-scope for this document. However, each
-physical user must be mapped onto a client with `role=participant` in EDC-V's identity provider.
+The End-User UI and the UI Backend are **not** included in an EDC-V deployment and must be developed by each
+organization that wants to run a dataspace individually. This UI and the use cases it models are likely very specific to
+each dataspace, therefore, the authentication mechanisms used between End-User UI ↔ UI Backend are out-of-scope for this
+document. However, each physical user must be mapped onto a client with `role=participant` in EDC-V's identity provider.
 
 ### Communication paths and roles
 
-When it needs to manipulate tenant/participant data, the UI Backend communicates with the Connector Fabric Manager (CFM,
-a software component to create/delete participant contexts), using the CFM's API.
+When it needs to manipulate tenant/participant data, the UI Backend communicates with the provisioning system (a
+software component to create/delete participant contexts), using its API.
 
 In addition, when a user wants to make changes to their data (assets, policies, etc.) the UI Backend communicates with
 Administration APIs of EDC-V, using the `participant` role, again, acting on behalf of the logged-in user.
 
-## Connector Fabric Manager
+## Provisioning System
 
-As part of the onboarding process of a tenant/participant, the Connector Fabric Manager (CFM) communicates with the
-Administration APIs of EDC-V using the `provisioner` role. It **never** communicates directly with
-participant-context-specific resource APIs (recognizable by their URL path
-`/participants/{participantContextId}/some-resource`).
+As part of the onboarding process of a tenant/participant, the Provisioning System communicates with the Administration
+APIs of EDC-V using the `provisioner` role. It **never** communicates directly with participant-context-specific
+resource APIs (recognizable by their URL path `/participants/{participantContextId}/some-resource`).
 
-The CFM does not interact on behalf of a participant-context, instead it always acts as `role=provisioner`, interacting
-with those parts of the Adminstration API, that are not participant-context-specific.
+The Provisioning System does not interact on behalf of a participant-context; instead it always acts as
+`role=provisioner`, interacting with those parts of the Administration API, that are not participant-context-specific.
 
 ## Operations UI
 
-The Operations UI (or ops UI) is intended for dataspace operators, who need to manage the infrastructure, where EDC-V is
+The Operations UI (or ops UI) is intended for dataspace operators, who need to manage the infrastructure where EDC-V is
 deployed. In many cases this will mean deploying, linking and managing multiple Kubernetes clusters ("cells"),
-dynamically scaling individual component workloads, provision additional compute resources etc.
+dynamically scaling individual component workloads, provision additional compute resources, etc.
 
-The ops UI has no contact points with the Administration APIs of EDC-V. The authentication scheme between the Operations
-UI and its backend is out-of-scope for this document.
+The Operations UI has no contact points with the Administration APIs of EDC-V. The authentication scheme between the
+Operations UI and its backend is out-of-scope for this document.
