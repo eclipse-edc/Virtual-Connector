@@ -69,7 +69,7 @@ public class ParticipantContextApiV4Controller implements ParticipantContextApiV
     }
 
     @POST
-    @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER})
+    @RolesAllowed({ ParticipantPrincipal.ROLE_TENANT_MANAGER })
     @RequiredScope("management-api:write")
     @Override
     public JsonObject createParticipantV4(@SchemaType(PARTICIPANT_CONTEXT_TYPE_TERM) JsonObject request) {
@@ -91,7 +91,7 @@ public class ParticipantContextApiV4Controller implements ParticipantContextApiV
 
     @GET
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER, ParticipantPrincipal.ROLE_ADMIN})
+    @RolesAllowed({ ParticipantPrincipal.ROLE_TENANT_MANAGER, ParticipantPrincipal.ROLE_ADMIN })
     @RequiredScope("management-api:read")
     @Override
     public JsonObject getParticipantV4(@PathParam("id") String id, @Context SecurityContext securityContext) {
@@ -105,7 +105,7 @@ public class ParticipantContextApiV4Controller implements ParticipantContextApiV
 
     @PUT
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER})
+    @RolesAllowed({ ParticipantPrincipal.ROLE_TENANT_MANAGER })
     @RequiredScope("management-api:write")
     @Override
     public void updateParticipantV4(@PathParam("id") String id, @SchemaType(PARTICIPANT_CONTEXT_TYPE_TERM) JsonObject request) {
@@ -119,7 +119,7 @@ public class ParticipantContextApiV4Controller implements ParticipantContextApiV
 
     @DELETE
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER})
+    @RolesAllowed({ ParticipantPrincipal.ROLE_TENANT_MANAGER })
     @RequiredScope("management-api:write")
     @Override
     public void deleteParticipantV4(@PathParam("id") String participantContextId) {
@@ -128,7 +128,7 @@ public class ParticipantContextApiV4Controller implements ParticipantContextApiV
     }
 
     @GET
-    @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER, ParticipantPrincipal.ROLE_ADMIN})
+    @RolesAllowed({ ParticipantPrincipal.ROLE_TENANT_MANAGER, ParticipantPrincipal.ROLE_ADMIN })
     @RequiredScope("management-api:read")
     @Override
     public JsonArray getAllParticipantsV4(@DefaultValue("0") @QueryParam("offset") Integer offset,
