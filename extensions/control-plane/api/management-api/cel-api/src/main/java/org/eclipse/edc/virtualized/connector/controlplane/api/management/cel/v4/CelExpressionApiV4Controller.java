@@ -26,8 +26,6 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
@@ -62,7 +60,7 @@ public class CelExpressionApiV4Controller implements CelExpressionApiV4 {
     }
 
     @POST
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN})
+    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER})
     @RequiredScope("management-api:write")
     @Override
     public JsonObject createExpressionV4(@SchemaType(CEL_EXPRESSION_TYPE_TERM) JsonObject expression) {
@@ -84,10 +82,10 @@ public class CelExpressionApiV4Controller implements CelExpressionApiV4 {
 
     @GET
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN})
+    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER})
     @RequiredScope("management-api:read")
     @Override
-    public JsonObject getExpressionV4(@PathParam("id") String id, @Context SecurityContext securityContext) {
+    public JsonObject getExpressionV4(@PathParam("id") String id) {
 
         var expr = service.findById(id)
                 .orElseThrow(exceptionMapper(ParticipantContext.class, id));
@@ -98,10 +96,10 @@ public class CelExpressionApiV4Controller implements CelExpressionApiV4 {
 
     @PUT
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN})
+    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER})
     @RequiredScope("management-api:write")
     @Override
-    public void updateExpressionV4(@PathParam("id") String id, @SchemaType(CEL_EXPRESSION_TYPE_TERM) JsonObject expression, @Context SecurityContext securityContext) {
+    public void updateExpressionV4(@PathParam("id") String id, @SchemaType(CEL_EXPRESSION_TYPE_TERM) JsonObject expression) {
 
         var expr = transformerRegistry.transform(expression, CelExpression.class)
                 .orElseThrow(InvalidRequestException::new);
@@ -114,7 +112,7 @@ public class CelExpressionApiV4Controller implements CelExpressionApiV4 {
 
     @POST
     @Path("request")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN})
+    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER})
     @RequiredScope("management-api:read")
     @Override
     public JsonArray queryExpressionV4(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
@@ -135,10 +133,10 @@ public class CelExpressionApiV4Controller implements CelExpressionApiV4 {
 
     @DELETE
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN})
+    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER})
     @RequiredScope("management-api:write")
     @Override
-    public void deleteExpressionV4(@PathParam("id") String id, @Context SecurityContext securityContext) {
+    public void deleteExpressionV4(@PathParam("id") String id) {
         service.delete(id)
                 .orElseThrow(exceptionMapper(ParticipantContext.class, id));
     }

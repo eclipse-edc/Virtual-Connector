@@ -25,23 +25,23 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.virtualized.api.management.schema.VirtualManagementApiJsonSchema;
 
 @OpenAPIDefinition(info = @Info(title = "Cel Expressions Management API", version = "v4alpha"))
 @Tag(name = "Cel Expressions v4alpha")
 public interface CelExpressionApiV4 {
 
-    @Operation(description = "Set ParticipantContext config.",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT_CONFIG), mediaType = "application/json")),
+    @Operation(description = "Create a Cel Expression.",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT_CONFIG), mediaType = "application/json")),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The Expression was created successfully"),
+                    @ApiResponse(responseCode = "200", description = "The Cel Expression was created successfully"),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
-                    @ApiResponse(responseCode = "409", description = "Can't create the ParticipantContext, because a object with the same ID already exists",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                    @ApiResponse(responseCode = "409", description = "Can't create the Cel expression, because a object with the same ID already exists",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
             }
     )
     JsonObject createExpressionV4(JsonObject expression);
@@ -51,36 +51,36 @@ public interface CelExpressionApiV4 {
                     @ApiResponse(responseCode = "200", description = "The Cel Expression.",
                             content = @Content(schema = @Schema(ref = VirtualManagementApiJsonSchema.V4.CEL_EXPRESSION))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
-                    @ApiResponse(responseCode = "404", description = "A ParticipantContext with the given ID does not exist.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                    @ApiResponse(responseCode = "404", description = "A Cel Expression with the given ID does not exist.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
             }
     )
-    JsonObject getExpressionV4(String id, SecurityContext securityContext);
+    JsonObject getExpressionV4(String id);
 
     @Operation(description = "Update an Expression.",
             responses = {
                     @ApiResponse(responseCode = "204", description = "The Cel Expression was updated successfully.",
                             content = @Content(schema = @Schema(ref = VirtualManagementApiJsonSchema.V4.CEL_EXPRESSION))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
-                    @ApiResponse(responseCode = "404", description = "A ParticipantContext with the given ID does not exist.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                    @ApiResponse(responseCode = "404", description = "A Cel Expression with the given ID does not exist.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
             }
     )
-    void updateExpressionV4(String id, JsonObject expression, SecurityContext securityContext);
+    void updateExpressionV4(String id, JsonObject expression);
 
     @Operation(description = "Returns all cel expressions according to a query",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.QUERY_SPEC))),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.QUERY_SPEC))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The policy definitions matching the query",
+                    @ApiResponse(responseCode = "200", description = "The cel expressions matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = VirtualManagementApiJsonSchema.V4.CEL_EXPRESSION)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR))))}
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))}
     )
     JsonArray queryExpressionV4(JsonObject querySpecJson);
 
@@ -89,13 +89,13 @@ public interface CelExpressionApiV4 {
                     @ApiResponse(responseCode = "204", description = "The Cel Expression was deleted.",
                             content = @Content(schema = @Schema(ref = VirtualManagementApiJsonSchema.V4.CEL_EXPRESSION))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
-                    @ApiResponse(responseCode = "404", description = "A ParticipantContext with the given ID does not exist.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                    @ApiResponse(responseCode = "404", description = "A Cel Expression with the given ID does not exist.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
             }
     )
-    void deleteExpressionV4(String id, SecurityContext securityContext);
+    void deleteExpressionV4(String id);
 
 }
