@@ -83,7 +83,10 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContext;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContextArray;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
+import static org.eclipse.virtualized.api.management.VirtualManagementApi.EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
@@ -198,7 +201,7 @@ public class TransferProcessApiV4EndToEndTest {
         void initiate_whenValidationFails(ManagementEndToEndTestContext context, TransferProcessStore transferProcessStore) {
 
             var requestBody = createObjectBuilder()
-                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "TransferRequest")
                     .build();
 
@@ -261,7 +264,7 @@ public class TransferProcessApiV4EndToEndTest {
                     .statusCode(200)
                     .body(TYPE, is("TransferProcess"))
                     .body(ID, is("tp2"))
-                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2));
+                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2));
         }
 
         @Test
@@ -303,7 +306,7 @@ public class TransferProcessApiV4EndToEndTest {
                     .statusCode(200)
                     .contentType(JSON)
                     .body(TYPE, is("TransferState"))
-                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .body("state", is("COMPLETED"));
         }
 
@@ -497,7 +500,7 @@ public class TransferProcessApiV4EndToEndTest {
             var id = UUID.randomUUID().toString();
             store.save(createTransferProcessBuilder(id).state(STARTED.code()).build());
             var requestBody = createObjectBuilder()
-                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "SuspendTransfer")
                     .add("reason", "any")
                     .build();
@@ -577,9 +580,9 @@ public class TransferProcessApiV4EndToEndTest {
                     .statusCode(200)
                     .body("size()", is(2))
                     .body("[0].@id", anyOf(is(id1), is(id2)))
-                    .body("[0].@context", contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body("[0].@context", contains(jsonLdContextArray()))
                     .body("[1].@id", anyOf(is(id1), is(id2)))
-                    .body("[1].@context", contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2));
+                    .body("[1].@context", contains(jsonLdContextArray()));
 
         }
 

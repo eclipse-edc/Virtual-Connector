@@ -20,7 +20,6 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import io.restassured.http.ContentType;
-import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -64,8 +63,9 @@ import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContext;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContextArray;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
@@ -145,7 +145,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .statusCode(200)
                     .contentType(JSON)
                     .body(ID, is(id))
-                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body(CONTEXT, contains(jsonLdContextArray()))
                     .body("policy.permission[0].constraint[0].leftOperand", is("inForceDate"))
                     .body("policy.permission[0].constraint[0].operator", is("gteq"))
                     .body("policy.permission[0].constraint[0].rightOperand", is("contractAgreement+0s"))
@@ -188,7 +188,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .statusCode(200)
                     .contentType(JSON)
                     .body(ID, is(id))
-                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body(CONTEXT, contains(jsonLdContextArray()))
                     .log().all()
                     .body("policy.permission[0].constraint[0].operator", is("gteq"));
         }
@@ -320,7 +320,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .log().ifError()
                     .statusCode(200)
                     .body(ID, is(stored.getId()))
-                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2));
+                    .body(CONTEXT, contains(jsonLdContextArray()));
         }
 
         @Test
@@ -911,12 +911,6 @@ public class PolicyDefinitionApiV4EndToEndTest {
                                     .add("action", "use")
                             )
                     )
-                    .build();
-        }
-
-        private JsonArray jsonLdContext() {
-            return createArrayBuilder()
-                    .add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2)
                     .build();
         }
 

@@ -37,16 +37,16 @@ public class InMemoryCelExpressionStore implements CelExpressionStore {
 
     @Override
     public StoreResult<Void> create(CelExpression expression) {
-        return expressions.putIfAbsent(expression.id(), expression) == null
+        return expressions.putIfAbsent(expression.getId(), expression) == null
                 ? StoreResult.success()
-                : StoreResult.alreadyExists(alreadyExistsErrorMessage(expression.id()));
+                : StoreResult.alreadyExists(alreadyExistsErrorMessage(expression.getId()));
     }
 
     @Override
     public StoreResult<Void> update(CelExpression expression) {
-        return expressions.replace(expression.id(), expression) != null
+        return expressions.replace(expression.getId(), expression) != null
                 ? StoreResult.success()
-                : StoreResult.notFound(notFoundErrorMessage(expression.id()));
+                : StoreResult.notFound(notFoundErrorMessage(expression.getId()));
     }
 
     @Override

@@ -229,7 +229,11 @@ public class CelExpressionEngineImplTest {
     }
 
     private CelExpression expression(String expr) {
-        return new CelExpression("id", "test", expr, "desc");
+        return CelExpression.Builder.newInstance().id("id")
+                .leftOperand("test")
+                .expression(expr)
+                .description("description")
+                .build();
     }
 
     private @NotNull Map<String, Object> credential() {
