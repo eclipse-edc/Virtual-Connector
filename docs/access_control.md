@@ -1,7 +1,7 @@
 # Access Control in EDC-V
 
-This document is to outline the requirements for access control in all APIs in EDC-V and its associated components IdentityHub,
-IssuerService and the Data Plane.
+This document is to outline the requirements for access control in all APIs in EDC-V and its associated components
+IdentityHub, IssuerService and the Data Plane.
 
 ## Authentication
 
@@ -9,7 +9,7 @@ OAuth2 is used for authentication. Clients are supposed to authenticate with the
 `client_credentials` flow.
 
 EDC-V uses a centralized identity provider (IdP) for all APIs; that means that the same ID and secret are used for all
-resources. 
+resources.
 
 It is **not recommended** to use the same ID for the participant context `participantContextId` and OAuth2 `client_id`.
 
@@ -28,15 +28,15 @@ defined in [RFC 7519](https://tools.ietf.org/html/rfc7519), the following claims
 - `role`: this must contain the role of the client that is requesting access. APIs may choose to authorize solely based
   on the role, or additionally on the scope. For example, `admin` users may not even need scopes, as all scopes are
   granted implicitly.
-- `scope`: contains a space-separated list of scopes that the user is authorized to access, for example
-  `"scope": "management-api:read management-api:write"`. For further information, see chapter [Scopes](#scopes)
+- `scope`: contains a space-separated list of scopes that the user is authorized to access, for example `"scope":
+"management-api:read management-api:write"`. For further information, see chapter [Scopes](#scopes)
 - `participant_context_id`: this is the identifier of the participant context that is used throughout the EDC-V
-  ecosystem to identify a participant. This may be different from the `client_id`. 
-  
+  ecosystem to identify a participant. This may be different from the `client_id`.
+
 ## Scopes
 
-In EDC-V, scopes are used to identify the resource to which a user has access, and the level of access.
-Unfortunately, [RFC-8707](https://datatracker.ietf.org/doc/html/rfc8707) is not yet fully supported by all major IdPs.
+In EDC-V, scopes are used to identify the resource to which a user has access, and the level of access. Unfortunately,
+[RFC-8707](https://datatracker.ietf.org/doc/html/rfc8707) is not yet fully supported by all major IdPs.
 
 Scopes used in EDC-V are:
 
@@ -65,13 +65,13 @@ request:
 
 Roles are used to differentiate different types of users in the EDC-V ecosystem. There are three roles defined in EDC-V:
 
-- `edcv-admin`: has full access to all resources in all APIs. This should **only** be used by human actors to correct
+- `admin`: has full access to all resources in all APIs. This should **only** be used by human actors to correct
   errors or fix problems, **never** be used by an automated system!~~
-- `edcv-provisioner`: can manage participant contexts, but cannot access resources of an individual participant context.
-  Specifically, an `edcv-provisioner` may create participant contexts in the Control Plane and in IdentityHub and may
+- `provisioner`: can manage participant contexts, but cannot access resources of an individual participant context.
+  Specifically, an `provisioner` may create participant contexts in the Control Plane and in IdentityHub and may
   create `Holder` entities in the IssuerService. However, they may not access resources of an individual participant
   context such as Assets, ContractDefinitions, etc. Clients with the `edc-provisioner` role can also create new clients
   in the IdP, for example, in KeyCloak that would require having the `realm-admin` or `manage-clients` role.
-- `edcv-participant`: this is the role that all new clients are assigned. Clients with this role can access their own
+- `participant`: this is the role that all new clients are assigned. Clients with this role can access their own
   resources in the individual APIs, but cannot manipulate administrative resources (i.e. `participantContext` resources)
-  or resources of other participants. 
+  or resources of other participants.

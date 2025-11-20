@@ -13,7 +13,7 @@
  */
 
 
-package org.eclipse.edc.identityhub.api.authorization.filter;
+package org.eclipse.edc.virtualized.api.authorization.filter;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.eclipse.edc.identityhub.api.authorization.filter.Constants.REQUEST_PROPERTY_CLAIMS;
+import static org.eclipse.edc.virtualized.api.authorization.filter.Constants.REQUEST_PROPERTY_CLAIMS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
