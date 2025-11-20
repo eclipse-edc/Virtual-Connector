@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.identityhub.api.authorization.filter;
+package org.eclipse.edc.virtualized.api.authorization.filter;
 
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
@@ -26,7 +26,7 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 
 import java.util.List;
 
-import static org.eclipse.edc.identityhub.api.authorization.filter.Constants.REQUEST_PROPERTY_CLAIMS;
+import static org.eclipse.edc.virtualized.api.authorization.filter.Constants.REQUEST_PROPERTY_CLAIMS;
 
 /**
  * Validates the JWT signature against the IdP's public key and validates basic claims, such as {@code iss} and {@code exp}.

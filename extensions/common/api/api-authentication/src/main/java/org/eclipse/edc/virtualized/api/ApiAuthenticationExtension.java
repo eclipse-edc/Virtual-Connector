@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.virtualized.api;
 
-import org.eclipse.edc.identityhub.api.authorization.filter.JwtValidatorFilter;
-import org.eclipse.edc.identityhub.api.authorization.filter.ServicePrincipalAuthenticationFilter;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
@@ -30,6 +28,8 @@ import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationService;
+import org.eclipse.edc.virtualized.api.authorization.filter.JwtValidatorFilter;
+import org.eclipse.edc.virtualized.api.authorization.filter.ServicePrincipalAuthenticationFilter;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 

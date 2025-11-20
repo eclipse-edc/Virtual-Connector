@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.identityhub.api.authorization.filter;
+package org.eclipse.edc.virtualized.api.authorization.filter;
 
 public interface Constants {
     String REQUEST_PROPERTY_CLAIMS = "claims";
