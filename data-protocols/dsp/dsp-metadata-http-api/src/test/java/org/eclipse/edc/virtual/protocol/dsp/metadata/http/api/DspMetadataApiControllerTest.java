@@ -53,7 +53,8 @@ class DspMetadataApiControllerTest extends RestControllerTestBase {
         var participantContextId = "participantcontextId";
 
         when(participantContextService.getParticipantContext(participantContextId))
-                .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance().participantContextId("participantcontextId").build()));
+                .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance().identity("identity")
+                        .participantContextId("participantcontextId").build()));
         var versions = new ProtocolVersions(List.of(new ProtocolVersion("version", "/1.0", "binding")));
         var output = Json.createObjectBuilder()
                 .add("protocolVersions", Json.createArrayBuilder()

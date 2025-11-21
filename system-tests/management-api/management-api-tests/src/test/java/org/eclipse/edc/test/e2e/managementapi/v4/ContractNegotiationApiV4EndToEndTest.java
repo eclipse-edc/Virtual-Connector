@@ -32,7 +32,6 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -77,6 +76,7 @@ import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.PARTICIPANT
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContext;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContextArray;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.participantContext;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
@@ -171,7 +171,7 @@ public class ContractNegotiationApiV4EndToEndTest {
 
             var otherParticipantId = UUID.randomUUID().toString();
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+            service.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
 
             var token = context.createToken(otherParticipantId, oauthServerSigningKey);
@@ -192,7 +192,7 @@ public class ContractNegotiationApiV4EndToEndTest {
 
             var otherParticipantId = UUID.randomUUID().toString();
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+            service.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
 
             var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
@@ -508,7 +508,7 @@ public class ContractNegotiationApiV4EndToEndTest {
         @Test
         void query_tokenBearerNotEqualResourceOwner(ManagementEndToEndTestContext context, ContractNegotiationStore store, ParticipantContextService srv) {
             var otherParticipantId = UUID.randomUUID().toString();
-            srv.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+            srv.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
             var id = UUID.randomUUID().toString();
             store.save(createContractNegotiationBuilder(id).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());

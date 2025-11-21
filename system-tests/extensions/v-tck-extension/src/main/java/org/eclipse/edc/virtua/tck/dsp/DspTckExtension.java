@@ -31,7 +31,10 @@ public class DspTckExtension implements ServiceExtension {
 
     @Override
     public void prepare() {
-        participantContextService.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId("participantContextId").build())
+        participantContextService.createParticipantContext(ParticipantContext.Builder.newInstance()
+                        .participantContextId("participantContextId")
+                        .identity("participantContextId")
+                        .build())
                 .orElseThrow(f -> new EdcException("Failed to create ParticipantContext"));
     }
 }

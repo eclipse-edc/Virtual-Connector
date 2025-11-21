@@ -14,22 +14,27 @@
 
 package org.eclipse.edc.virtualized.controlplane.participantcontext;
 
-import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.Nullable;
-
-import static org.eclipse.edc.virtualized.controlplane.VirtualCoreServicesExtension.PARTICIPANT_ID;
 
 public class ParticipantContextIdentityResolverImpl implements ParticipantIdentityResolver {
 
-    private final ParticipantContextConfig contextConfig;
+    private final ParticipantContextService participantContextService;
+    private final Monitor monitor;
 
-    public ParticipantContextIdentityResolverImpl(ParticipantContextConfig contextConfig) {
-        this.contextConfig = contextConfig;
+    public ParticipantContextIdentityResolverImpl(ParticipantContextService participantContextService, Monitor monitor) {
+        this.participantContextService = participantContextService;
+        this.monitor = monitor;
     }
 
     @Override
     public @Nullable String getParticipantId(String participantContextId, String protocol) {
-        return contextConfig.getString(participantContextId, PARTICIPANT_ID);
+        return participantContextService.getParticipantContext(participantContextId)
+                .map(ParticipantContext::getIdentity)
+                .getContent();
+
     }
 }

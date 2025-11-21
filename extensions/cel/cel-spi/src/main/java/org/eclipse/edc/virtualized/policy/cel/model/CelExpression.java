@@ -116,10 +116,10 @@ public class CelExpression extends Entity {
         }
 
         public CelExpression build() {
+            super.build();
             Objects.requireNonNull(entity.leftOperand, "CelExpression leftOperand cannot be null");
             Objects.requireNonNull(entity.expression, "CelExpression expression cannot be null");
             Objects.requireNonNull(entity.description, "CelExpression description cannot be null");
-
             if (entity.getUpdatedAt() == 0L) {
                 entity.updatedAt = entity.getCreatedAt();
             }
@@ -127,8 +127,8 @@ public class CelExpression extends Entity {
             if (entity.scopes.isEmpty()) {
                 entity.scopes.add(MATCH_ALL_SCOPE);
             }
+            return entity;
 
-            return super.build();
         }
 
     }
