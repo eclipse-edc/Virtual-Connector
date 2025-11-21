@@ -83,6 +83,7 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
     private ParticipantContext createParticipantContext() {
         return createParticipantContextBuilder()
                 .participantContextId(UUID.randomUUID().toString())
+                .identity(UUID.randomUUID().toString())
                 .properties(Map.of())
                 .build();
     }

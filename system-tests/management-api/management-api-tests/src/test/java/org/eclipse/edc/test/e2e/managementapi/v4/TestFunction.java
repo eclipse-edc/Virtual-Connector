@@ -35,14 +35,27 @@ public class TestFunction {
     }
 
     public static void createParticipant(ParticipantContextService participantContextService, String participantContextId, Map<String, Object> properties) {
-        var pc = ParticipantContext.Builder.newInstance()
-                .participantContextId(participantContextId)
-                .properties(properties)
-                .state(ParticipantContextState.ACTIVATED)
-                .build();
+        var pc = participantContext(participantContextId, properties);
 
         participantContextService.createParticipantContext(pc)
                 .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+    }
+
+    public static ParticipantContext participantContext(String participantContextId) {
+        return participantContext(participantContextId, participantContextId, Map.of());
+    }
+
+    public static ParticipantContext participantContext(String participantContextId, Map<String, Object> properties) {
+        return participantContext(participantContextId, participantContextId, properties);
+    }
+
+    public static ParticipantContext participantContext(String participantContextId, String identity, Map<String, Object> properties) {
+        return ParticipantContext.Builder.newInstance()
+                .participantContextId(participantContextId)
+                .properties(properties)
+                .identity(identity)
+                .state(ParticipantContextState.ACTIVATED)
+                .build();
     }
 
     public static JsonArray jsonLdContext() {

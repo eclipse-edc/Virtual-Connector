@@ -114,7 +114,8 @@ public class VirtualConnector {
                 .contractId(contractAgreementId)
                 .build();
 
-        var transfer = transferProcessService.initiateTransfer(new ParticipantContext(participantContext), transferRequest)
+        var pc = ParticipantContext.Builder.newInstance().participantContextId(participantContext).identity(participantContext).build();
+        var transfer = transferProcessService.initiateTransfer(pc, transferRequest)
                 .getContent();
 
         await().atMost(TIMEOUT).untilAsserted(() -> {
@@ -145,7 +146,9 @@ public class VirtualConnector {
                         .build())
                 .build();
 
-        var negotiation = negotiationService.initiateNegotiation(new ParticipantContext(participantContext), contractRequest);
+        var pc = ParticipantContext.Builder.newInstance().participantContextId(participantContext).identity(participantContext).build();
+
+        var negotiation = negotiationService.initiateNegotiation(pc, contractRequest);
 
         await().atMost(TIMEOUT).untilAsserted(() -> {
             var state = negotiationService.getState(negotiation.getId());
@@ -173,7 +176,8 @@ public class VirtualConnector {
     public String startTransfer(String participantContext, String providerAddress, String providerId, String assetId, String transferType, Policy policy) {
 
         try {
-            var asset = catalogService.requestDataset(new ParticipantContext(participantContext), assetId, providerId, providerAddress, PROTOCOL).get();
+            var pc = ParticipantContext.Builder.newInstance().participantContextId(participantContext).identity(participantContext).build();
+            var asset = catalogService.requestDataset(pc, assetId, providerId, providerAddress, PROTOCOL).get();
             var responseBody = MAPPER.readValue(asset.getContent(), JsonObject.class);
             var offerId = responseBody.getJsonArray("hasPolicy").getJsonObject(0).getString(ID);
 
@@ -211,16 +215,19 @@ public class VirtualConnector {
     }
 
     public void createParticipant(String participantContextId, String participantId, Map<String, String> cfg) {
+
+        // to remove once it's not needed for iam mock
         var configuration = new HashMap<>(cfg);
         configuration.put("edc.participant.id", participantId);
-        contextService.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).build())
+        contextService.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId)
+                        .identity(participantId).build())
                 .orElseThrow(e -> new RuntimeException(e.getFailureDetail()));
 
         var config = ParticipantContextConfiguration.Builder.newInstance()
                 .participantContextId(participantContextId)
                 .entries(configuration)
                 .build();
-        
+
         contextConfigService.save(config)
                 .orElseThrow(e -> new RuntimeException(e.getFailureDetail()));
     }

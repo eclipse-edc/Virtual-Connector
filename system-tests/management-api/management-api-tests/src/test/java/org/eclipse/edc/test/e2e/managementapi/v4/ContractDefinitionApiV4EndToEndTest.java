@@ -19,7 +19,6 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import jakarta.json.JsonArray;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
@@ -29,8 +28,6 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
@@ -66,9 +63,10 @@ import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.createParticipant;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContext;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -716,23 +714,6 @@ public class ContractDefinitionApiV4EndToEndTest {
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .assetsSelectorCriterion(criterion("foo", "=", "bar"))
                     .assetsSelectorCriterion(criterion("bar", "=", "baz"));
-        }
-
-        private JsonArray jsonLdContext() {
-            return createArrayBuilder()
-                    .add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2)
-                    .build();
-        }
-
-        private void createParticipant(ParticipantContextService participantContextService,
-                                       String participantContextId) {
-            var pc = ParticipantContext.Builder.newInstance()
-                    .participantContextId(participantContextId)
-                    .state(ParticipantContextState.ACTIVATED)
-                    .build();
-
-            participantContextService.createParticipantContext(pc)
-                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
         }
     }
 

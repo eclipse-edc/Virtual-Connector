@@ -44,6 +44,7 @@ class ServicePrincipalAuthenticationFilterTest {
         when(participantContextService.getParticipantContext(anyString()))
                 .thenAnswer(i ->
                         ServiceResult.success(ParticipantContext.Builder.newInstance()
+                                .identity(i.getArgument(0))
                                 .participantContextId(i.getArgument(0))
                                 .build()));
     }

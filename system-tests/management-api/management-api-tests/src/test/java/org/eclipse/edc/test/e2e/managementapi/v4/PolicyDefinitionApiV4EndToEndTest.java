@@ -28,8 +28,6 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -64,8 +62,10 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContext;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContextArray;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.participantContext;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
@@ -77,7 +77,6 @@ import static org.hamcrest.Matchers.startsWith;
 
 public class PolicyDefinitionApiV4EndToEndTest {
 
-    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
         private static final String PARTICIPANT_CONTEXT_ID = "test-participant";
@@ -222,7 +221,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .build();
             var id = "other-participant";
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(id).build())
+            service.createParticipantContext(participantContext(id))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + id + " not created."));
 
             var token = context.createToken(id, oauthServerSigningKey);
@@ -467,8 +466,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
         @Test
         void query_tokenBearerNotEqualResourceOwner(ManagementEndToEndTestContext context, PolicyDefinitionStore store, ParticipantContextService srv) {
             var participantId = UUID.randomUUID().toString();
-            srv.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantId).build())
-                    .orElseThrow(f -> new AssertionError("ParticipantContext " + participantId + " not created."));
+            createParticipant(srv, participantId);
 
             var token = context.createToken(participantId, oauthServerSigningKey);
 
@@ -914,15 +912,6 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .build();
         }
 
-        private void createParticipant(ParticipantContextService participantContextService, String participantContextId) {
-            var pc = ParticipantContext.Builder.newInstance()
-                    .participantContextId(participantContextId)
-                    .state(ParticipantContextState.ACTIVATED)
-                    .build();
-
-            participantContextService.createParticipantContext(pc)
-                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
-        }
     }
 
     @Nested
