@@ -33,8 +33,10 @@ import static org.mockito.Mockito.when;
 class DspTransferProcessApiControllerV20251Test extends DspTransferProcessApiControllerBaseTest {
 
     private final ParticipantContextService participantContextService = mock();
-    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
-
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("identity")
+            .build();
 
     void beforeAll() {
         when(participantContextService.getParticipantContext(participantContext.getParticipantContextId()))

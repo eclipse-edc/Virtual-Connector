@@ -34,8 +34,6 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -83,8 +81,10 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContext;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContextArray;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.participantContext;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
 import static org.eclipse.virtualized.api.management.VirtualManagementApi.EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.hamcrest.CoreMatchers.anyOf;
@@ -134,17 +134,6 @@ public class TransferProcessApiV4EndToEndTest {
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
             store.findAll(QuerySpec.max()).forEach(tp -> store.delete(tp.getId()));
-
-        }
-
-        private void createParticipant(ParticipantContextService participantContextService, String participantContextId) {
-            var pc = ParticipantContext.Builder.newInstance()
-                    .participantContextId(participantContextId)
-                    .state(ParticipantContextState.ACTIVATED)
-                    .build();
-
-            participantContextService.createParticipantContext(pc)
-                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
         }
 
@@ -198,7 +187,7 @@ public class TransferProcessApiV4EndToEndTest {
         }
 
         @Test
-        void initiate_whenValidationFails(ManagementEndToEndTestContext context, TransferProcessStore transferProcessStore) {
+        void initiate_whenValidationFails(ManagementEndToEndTestContext context) {
 
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -222,7 +211,7 @@ public class TransferProcessApiV4EndToEndTest {
 
             var otherParticipantId = UUID.randomUUID().toString();
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+            service.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
 
             var token = context.createToken(otherParticipantId, oauthServerSigningKey);
@@ -273,7 +262,7 @@ public class TransferProcessApiV4EndToEndTest {
 
             var otherParticipantId = UUID.randomUUID().toString();
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+            service.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
 
             var token = context.createToken(otherParticipantId, oauthServerSigningKey);
@@ -316,7 +305,7 @@ public class TransferProcessApiV4EndToEndTest {
 
             var otherParticipantId = UUID.randomUUID().toString();
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+            service.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
 
             var token = context.createToken(otherParticipantId, oauthServerSigningKey);
@@ -358,7 +347,7 @@ public class TransferProcessApiV4EndToEndTest {
 
             var otherParticipantId = UUID.randomUUID().toString();
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+            service.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
 
             var token = context.createToken(otherParticipantId, oauthServerSigningKey);
@@ -415,7 +404,7 @@ public class TransferProcessApiV4EndToEndTest {
 
             var otherParticipantId = UUID.randomUUID().toString();
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+            service.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
 
             var token = context.createToken(otherParticipantId, oauthServerSigningKey);
@@ -481,7 +470,7 @@ public class TransferProcessApiV4EndToEndTest {
 
             var otherParticipantId = UUID.randomUUID().toString();
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+            service.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
 
             var token = context.createToken(otherParticipantId, oauthServerSigningKey);
@@ -536,7 +525,7 @@ public class TransferProcessApiV4EndToEndTest {
 
             var otherParticipantId = UUID.randomUUID().toString();
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+            service.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
 
             var token = context.createToken(otherParticipantId, oauthServerSigningKey);
@@ -712,7 +701,7 @@ public class TransferProcessApiV4EndToEndTest {
         @Test
         void query_tokenBearerNotEqualResourceOwner(ManagementEndToEndTestContext context, TransferProcessStore store, ParticipantContextService srv) {
             var otherParticipantId = UUID.randomUUID().toString();
-            srv.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(otherParticipantId).build())
+            srv.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
 
             var id1 = UUID.randomUUID().toString();

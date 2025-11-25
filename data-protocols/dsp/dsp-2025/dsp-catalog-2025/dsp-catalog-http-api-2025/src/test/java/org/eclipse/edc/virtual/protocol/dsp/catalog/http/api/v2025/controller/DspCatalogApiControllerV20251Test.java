@@ -32,7 +32,10 @@ import static org.mockito.Mockito.when;
 public class DspCatalogApiControllerV20251Test extends DspCatalogApiControllerTestBase {
 
     private final ParticipantContextService participantContextService = mock();
-    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("identity")
+            .build();
 
 
     void beforeAll() {

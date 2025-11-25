@@ -29,8 +29,6 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -67,6 +65,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.createParticipant;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.participantContext;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -410,8 +410,7 @@ public class AssetApiV4EndToEndTest {
                                                    ParticipantContextService srv) {
             var otherParticipantId = UUID.randomUUID().toString();
 
-            srv.createParticipantContext(ParticipantContext.Builder.newInstance()
-                            .participantContextId(otherParticipantId).build())
+            srv.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
             var ownAssetId = UUID.randomUUID().toString();
@@ -450,8 +449,7 @@ public class AssetApiV4EndToEndTest {
         void queryAsset_tokenBearerNotEqualResourceOwner(ManagementEndToEndTestContext context,
                                                          AssetIndex assetIndex, ParticipantContextService srv) {
             var participantId = UUID.randomUUID().toString();
-            srv.createParticipantContext(ParticipantContext.Builder.newInstance()
-                            .participantContextId(participantId).build())
+            srv.createParticipantContext(participantContext(participantId))
                     .orElseThrow(f -> new AssertionError(
                             "ParticipantContext " + participantId + " not created."));
 
@@ -662,8 +660,7 @@ public class AssetApiV4EndToEndTest {
                                           ParticipantContextService service) {
             var json = createAssetJson(createAsset().build());
             var id = "other-participant";
-            var pc = service.createParticipantContext(
-                            ParticipantContext.Builder.newInstance().participantContextId(id).build())
+            service.createParticipantContext(participantContext(id))
                     .orElseThrow(f -> new AssertionError(
                             "ParticipantContext " + id + " not created."));
 
@@ -860,17 +857,6 @@ public class AssetApiV4EndToEndTest {
                                     .build()))
                     .build()
                     .toString();
-        }
-
-        private void createParticipant(ParticipantContextService participantContextService,
-                                       String participantContextId) {
-            var pc = ParticipantContext.Builder.newInstance()
-                    .participantContextId(participantContextId)
-                    .state(ParticipantContextState.ACTIVATED)
-                    .build();
-
-            participantContextService.createParticipantContext(pc)
-                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
         }
 
         private DataAddress.Builder createDataAddress() {

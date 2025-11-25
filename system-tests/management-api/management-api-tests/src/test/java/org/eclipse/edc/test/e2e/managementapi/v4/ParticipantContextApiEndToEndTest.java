@@ -24,8 +24,6 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -59,6 +57,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContext;
+import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.participantContext;
 import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -105,6 +104,7 @@ public class ParticipantContextApiEndToEndTest {
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "ParticipantContext")
                     .add(ID, participantContextId)
+                    .add("identity", participantContextId)
                     .add("properties", createObjectBuilder().add("test", "test"))
                     .build()
                     .toString();
@@ -202,13 +202,14 @@ public class ParticipantContextApiEndToEndTest {
         void update(ManagementEndToEndTestContext context, ParticipantContextService service) {
             var participantContextId = "test-user";
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).build());
+            service.createParticipantContext(participantContext(participantContextId));
 
             var props = Map.of("newKey", "newValue");
             var body = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "ParticipantContext")
                     .add(ID, participantContextId)
+                    .add("identity", participantContextId)
                     .add("properties", createObjectBuilder(props))
                     .build()
                     .toString();
@@ -278,9 +279,7 @@ public class ParticipantContextApiEndToEndTest {
 
             range(0, 10).forEach(i -> {
                 var participantContextId = "user" + i;
-                service.createParticipantContext(ParticipantContext.Builder.newInstance()
-                        .state(ParticipantContextState.CREATED)
-                        .participantContextId(participantContextId).build());
+                service.createParticipantContext(participantContext(participantContextId));
             });
 
             var token = context.createProvisionerToken(oauthServerSigningKey);
@@ -297,9 +296,7 @@ public class ParticipantContextApiEndToEndTest {
 
             range(0, 10).forEach(i -> {
                 var participantContextId = "user" + i;
-                service.createParticipantContext(ParticipantContext.Builder.newInstance()
-                        .state(ParticipantContextState.CREATED)
-                        .participantContextId(participantContextId).build());
+                service.createParticipantContext(participantContext(participantContextId));
             });
 
             var token = context.createProvisionerToken(oauthServerSigningKey);
@@ -319,9 +316,7 @@ public class ParticipantContextApiEndToEndTest {
 
             range(0, 10).forEach(i -> {
                 var participantContextId = "user" + i;
-                service.createParticipantContext(ParticipantContext.Builder.newInstance()
-                        .state(ParticipantContextState.CREATED)
-                        .participantContextId(participantContextId).build());
+                service.createParticipantContext(participantContext(participantContextId));
             });
 
             var token = context.createToken(otherParticipantId, oauthServerSigningKey);

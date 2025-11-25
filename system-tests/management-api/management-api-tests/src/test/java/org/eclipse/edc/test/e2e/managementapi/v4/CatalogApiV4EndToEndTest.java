@@ -595,12 +595,13 @@ public class CatalogApiV4EndToEndTest {
             var pc = ParticipantContext.Builder.newInstance()
                     .participantContextId(participantContextId)
                     .state(ParticipantContextState.ACTIVATED)
+                    .identity(participantContextId)
                     .build();
 
             var config = ParticipantContextConfiguration.Builder.newInstance()
                     .participantContextId(participantContextId)
                     .entries(Map.of("edc.mock.region", "eu",
-                            "edc.participant.id", "did:web:" + PARTICIPANT_CONTEXT_ID
+                            "edc.participant.id", "did:web:" + participantContextId
                     ))
                     .build();
 

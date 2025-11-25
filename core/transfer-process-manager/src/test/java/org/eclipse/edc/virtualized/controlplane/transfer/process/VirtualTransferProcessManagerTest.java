@@ -46,6 +46,10 @@ public class VirtualTransferProcessManagerTest {
     private final TransferProcessObservable observable = new MockTransferObservable(listener);
     private final PolicyArchive policyArchive = mock();
     private final VirtualTransferProcessManager transferProcessManager = new VirtualTransferProcessManager(store, observable, policyArchive, Clock.systemUTC(), mock());
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("identity")
+            .build();
 
     @Test
     void initiateConsumerRequest() {
@@ -62,7 +66,7 @@ public class VirtualTransferProcessManagerTest {
 
         var captor = ArgumentCaptor.forClass(TransferProcess.class);
 
-        var result = transferProcessManager.initiateConsumerRequest(new ParticipantContext("participantContextId"), transferRequest);
+        var result = transferProcessManager.initiateConsumerRequest(participantContext, transferRequest);
 
         assertThat(result).isSucceeded().isNotNull();
         verify(store).save(captor.capture());
@@ -86,7 +90,7 @@ public class VirtualTransferProcessManagerTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("test").build())
                 .build();
 
-        var result = transferProcessManager.initiateConsumerRequest(new ParticipantContext("participantContextId"), transferRequest);
+        var result = transferProcessManager.initiateConsumerRequest(participantContext, transferRequest);
 
         assertThat(result).isFailed();
     }
