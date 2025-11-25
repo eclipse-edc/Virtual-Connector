@@ -19,13 +19,12 @@ plugins {
 
 dependencies {
     api(libs.edc.spi.core)
-
     implementation(project(":extensions:common:api:lib:api-authentication-lib"))
     implementation(libs.edc.spi.web)
     implementation(libs.edc.lib.token)
     implementation(libs.edc.lib.common.crypto)
     implementation(libs.edc.lib.keys)
-    implementation(libs.edc.lib.util)
+    implementation(libs.edc.lib.oauth2.authn)
     implementation(libs.jakarta.rsApi)
     implementation(libs.jakarta.annotation)
 

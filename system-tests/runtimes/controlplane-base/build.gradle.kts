@@ -24,6 +24,8 @@ dependencies {
     runtimeOnly(project(":extensions:banner-extension"))
     runtimeOnly(project(":extensions:cel:cel-extension"))
     runtimeOnly(project(":data-protocols:dsp"))
+    runtimeOnly(libs.edc.lib.oauth2.authn)
+    runtimeOnly(libs.edc.lib.oauth2.authz)
     runtimeOnly(libs.edc.core.connector)
     runtimeOnly(libs.edc.core.runtime)
     runtimeOnly(libs.edc.core.token)
