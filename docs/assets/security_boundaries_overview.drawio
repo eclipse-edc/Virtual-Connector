@@ -1,0 +1,31 @@
+<mxfile host="65bd71144e">
+    <diagram id="o2IBo2HY8_4CHwbmCD-t" name="Page-1">
+        <mxGraphModel dx="4089" dy="969" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="850" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="EDC-V Deployment" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=15;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="-50" y="80" width="490" height="680" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="control plane" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;labelPosition=center;verticalLabelPosition=middle;verticalAlign=middle;" vertex="1" parent="1">
+                    <mxGeometry x="-5" y="170" width="295" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="identity-hub" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;labelPosition=center;verticalLabelPosition=middle;verticalAlign=middle;" vertex="1" parent="1">
+                    <mxGeometry x="-5" y="310" width="295" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="issuer service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;labelPosition=center;verticalLabelPosition=middle;verticalAlign=middle;" vertex="1" parent="1">
+                    <mxGeometry x="-5" y="450" width="295" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="16" value="vault" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;labelPosition=center;verticalLabelPosition=middle;verticalAlign=middle;" vertex="1" parent="1">
+                    <mxGeometry x="-5" y="590" width="295" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="part. X" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+                    <mxGeometry x="125" y="140" width="60" height="600" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="part. Y" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+                    <mxGeometry x="205" y="140" width="60" height="600" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
