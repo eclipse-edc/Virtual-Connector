@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferError;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
@@ -85,10 +86,16 @@ public class DspTransferProcessApiController20251 {
     @GET
     @Path("/{id}")
     public Response getTransferProcess(@PathParam("participantContextId") String participantContextId, @PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        var request = GetDspRequest.Builder.newInstance(TransferProcess.class, TransferError.class)
+        var message = TransferProcessRequestMessage.Builder.newInstance()
+                .protocol(protocol)
+                .transferProcessId(id)
+                .build();
+
+        var request = GetDspRequest.Builder.newInstance(TransferProcessRequestMessage.class, TransferProcess.class, TransferError.class)
                 .id(id)
                 .token(token)
-                .serviceCall((ctx, tpId, tr) -> protocolService.findById(ctx, tpId, tr, protocol))
+                .message(message)
+                .serviceCall(protocolService::findById)
                 .protocol(protocol)
                 .errorProvider(TransferError.Builder::newInstance)
                 .participantContextProvider(participantContextSupplier(participantContextId))

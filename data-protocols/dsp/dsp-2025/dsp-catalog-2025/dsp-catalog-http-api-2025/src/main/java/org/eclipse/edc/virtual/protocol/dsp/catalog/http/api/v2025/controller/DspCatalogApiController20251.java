@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogError;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
@@ -102,10 +103,16 @@ public class DspCatalogApiController20251 {
     @GET
     @Path(DATASET_REQUEST + "/{id}")
     public Response getDataset(@PathParam("participantContextId") String participantContextId, @PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        var request = GetDspRequest.Builder.newInstance(Dataset.class, CatalogError.class)
+        var message = DatasetRequestMessage.Builder.newInstance()
+                .datasetId(id)
+                .protocol(protocol)
+                .build();
+
+        var request = GetDspRequest.Builder.newInstance(DatasetRequestMessage.class, Dataset.class, CatalogError.class)
                 .token(token)
+                .message(message)
                 .id(id)
-                .serviceCall((ctx, datasetId, tokenRepresentation) -> service.getDataset(ctx, datasetId, tokenRepresentation, protocol))
+                .serviceCall(service::getDataset)
                 .errorProvider(CatalogError.Builder::newInstance)
                 .participantContextProvider(participantContextSupplier(participantContextId))
                 .protocol(protocol)

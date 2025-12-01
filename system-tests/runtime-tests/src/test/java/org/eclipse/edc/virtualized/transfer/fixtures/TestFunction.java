@@ -113,12 +113,13 @@ public class TestFunction {
         });
     }
 
-    public static CreateParticipantContextResponse setupParticipant(IdentityHub identityHub, VirtualConnector connector, String issuerDid, String holderId) {
+    public static CreateParticipantContextResponse setupParticipant(IdentityHub identityHub, VirtualConnector connector,
+                                                                    String issuerDid, String participantContextId, String participantDid) {
 
-        var response = identityHub.createParticipant(holderId, holderId, holderId + "#key");
+        var response = identityHub.createParticipant(participantDid, participantDid, participantDid + "#key");
 
         var vault = connector.getService(Vault.class);
-        vault.storeSecret(holderId + "-alias", response.clientSecret());
+        vault.storeSecret(participantContextId, participantDid + "-alias", response.clientSecret());
 
         var revocationRegistry = connector.getService(RevocationServiceRegistry.class);
 
