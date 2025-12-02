@@ -23,6 +23,4 @@ dependencies {
     api(project(":spi:v-auth-spi"))
     implementation(libs.edc.lib.oauth2.authz)
     implementation(libs.jakarta.annotation)
-
-    implementation(project(":extensions:common:api:lib:api-authorization-lib"))
 }
