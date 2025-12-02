@@ -17,6 +17,8 @@ package org.eclipse.edc.virtual.connector.controlplane.api.management.catalog;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.controlplane.transform.edc.catalog.to.JsonObjectToCatalogRequestTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.catalog.to.JsonObjectToDatasetRequestTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -26,8 +28,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.virtual.connector.controlplane.api.management.catalog.transform.JsonObjectToCatalogRequestTransformer;
-import org.eclipse.edc.virtual.connector.controlplane.api.management.catalog.transform.JsonObjectToDatasetRequestTransformer;
 import org.eclipse.edc.virtual.connector.controlplane.api.management.catalog.v4.CatalogApiV4Controller;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
@@ -76,7 +76,7 @@ public class CatalogApiExtension implements ServiceExtension {
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
 
         // authorization service does need an additional lookup function - catalogs are not a persisted entity
-        
+
         webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV4Controller(service, managementApiTransformerRegistry, authorizationService, participantContextService));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }

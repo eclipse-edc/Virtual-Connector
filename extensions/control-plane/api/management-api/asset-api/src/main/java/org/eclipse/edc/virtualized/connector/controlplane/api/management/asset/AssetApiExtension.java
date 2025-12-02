@@ -30,16 +30,12 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.virtualized.connector.controlplane.api.management.asset.v4.AssetApiV4Controller;
-import org.eclipse.edc.virtualized.connector.controlplane.api.management.asset.validation.AssetValidator;
-import org.eclipse.edc.virtualized.connector.controlplane.api.management.asset.validation.DataAddressValidator;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
-import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE;
 
 @Extension(value = AssetApiExtension.NAME)
 public class AssetApiExtension implements ServiceExtension {
@@ -74,9 +70,6 @@ public class AssetApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
-
-        validatorRegistry.register(EDC_ASSET_TYPE, AssetValidator.instance());
-        validatorRegistry.register(EDC_DATA_ADDRESS_TYPE, DataAddressValidator.instance());
 
         var managementTypeTransformerRegistry = transformerRegistry.forContext("management-api");
 
