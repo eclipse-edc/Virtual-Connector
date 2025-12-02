@@ -25,11 +25,13 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
+import org.eclipse.edc.token.rules.IssuerEqualsValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationService;
-import org.eclipse.edc.virtualized.api.authorization.filter.JwtValidatorFilter;
-import org.eclipse.edc.virtualized.api.authorization.filter.ServicePrincipalAuthenticationFilter;
+import org.eclipse.edc.virtualized.api.authentication.JwksResolver;
+import org.eclipse.edc.virtualized.api.authentication.filter.JwtValidatorFilter;
+import org.eclipse.edc.virtualized.api.authentication.filter.ServicePrincipalAuthenticationFilter;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
