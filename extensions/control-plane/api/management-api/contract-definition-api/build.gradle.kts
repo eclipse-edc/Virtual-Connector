@@ -36,6 +36,7 @@ dependencies {
     implementation(libs.edc.lib.jersey.providers)
     implementation(libs.edc.lib.mgmtapi)
     implementation(libs.edc.lib.validator)
+    implementation(libs.edc.lib.controlplane.transform)
 
     testImplementation(testFixtures(libs.edc.core.jersey))
     testImplementation(libs.restAssured)
