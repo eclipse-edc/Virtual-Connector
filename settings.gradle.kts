@@ -77,8 +77,6 @@ include(":extensions:control-plane:api:management-api:v-management-api-schema-va
 
 // lib
 include(":extensions:common:api:lib:v-management-api-lib")
-include(":extensions:common:api:lib:api-authorization-lib")
-include(":extensions:common:api:lib:api-authentication-lib")
 
 include(":system-tests:system-test-fixtures")
 include(":system-tests:runtimes:controlplane-base")

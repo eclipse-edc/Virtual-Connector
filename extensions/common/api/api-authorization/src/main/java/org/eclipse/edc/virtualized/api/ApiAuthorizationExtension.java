@@ -15,9 +15,9 @@
 package org.eclipse.edc.virtualized.api;
 
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.identityhub.api.authorization.filter.RoleBasedAccessFeature;
-import org.eclipse.edc.identityhub.api.authorization.filter.ScopeBasedAccessFeature;
-import org.eclipse.edc.identityhub.api.authorization.service.AuthorizationServiceImpl;
+import org.eclipse.edc.api.authorization.filter.RoleBasedAccessFeature;
+import org.eclipse.edc.api.authorization.filter.ScopeBasedAccessFeature;
+import org.eclipse.edc.api.authorization.service.AuthorizationServiceImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
