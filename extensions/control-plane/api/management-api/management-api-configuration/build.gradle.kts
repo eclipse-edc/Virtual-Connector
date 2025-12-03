@@ -24,6 +24,7 @@ dependencies {
     api(project(":extensions:common:api:lib:v-management-api-lib"))
     implementation(libs.edc.lib.jersey.providers)
     implementation(libs.edc.lib.mgmtapi)
+    implementation(libs.edc.lib.api)
     implementation(libs.edc.lib.validator)
     implementation(libs.edc.lib.transform)
     implementation(libs.edc.lib.controlplane.transform)

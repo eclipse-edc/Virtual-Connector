@@ -46,6 +46,11 @@ import org.eclipse.edc.virtualized.policy.cel.store.CelExpressionStore;
 
 import java.util.List;
 
+import static org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext.CATALOG_SCOPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext.NEGOTIATION_SCOPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext.TRANSFER_SCOPE;
+import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext.POLICY_MONITOR_SCOPE;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.virtualized.policy.cel.VirtualizedCelPolicyExtension.NAME;
 
 @Extension(NAME)
@@ -80,7 +85,7 @@ public class VirtualizedCelPolicyExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
 
         ruleBindingRegistry.dynamicBind(policyExpressionEngine()::evaluationScopes);
-        
+
         List.of(Permission.class, Duty.class, Prohibition.class).forEach(c -> {
             bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), new TransferProcessContextMapper(new AgreementContextMapper(), new ParticipantAgentContextMapper<>())), c, TransferProcessPolicyContext.class);
             bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), new ParticipantAgentContextMapper<>()), c, ContractNegotiationPolicyContext.class);
@@ -88,6 +93,9 @@ public class VirtualizedCelPolicyExtension implements ServiceExtension {
             bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), new PolicyMonitorContextMapper(new AgreementContextMapper())), c, PolicyMonitorContext.class);
         });
 
+        List.of(CATALOG_SCOPE, TRANSFER_SCOPE, NEGOTIATION_SCOPE, POLICY_MONITOR_SCOPE).forEach(scope -> {
+            ruleBindingRegistry.bind(ODRL_SCHEMA + "use", scope);
+        });
 
     }
 
