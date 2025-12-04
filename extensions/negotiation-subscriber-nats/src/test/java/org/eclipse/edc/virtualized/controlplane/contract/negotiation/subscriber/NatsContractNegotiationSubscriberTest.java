@@ -80,7 +80,7 @@ public class NatsContractNegotiationSubscriberTest {
     void beforeEach() {
         NATS_EXTENSION.createStream(STREAM_NAME, "negotiations.>");
         NATS_EXTENSION.createConsumer(STREAM_NAME, CONSUMER_NAME, "negotiations.>");
-        var config = new NatsSubscriberConfig(NATS_EXTENSION.getNatsUrl(), CONSUMER_NAME, "negotiations.>");
+        var config = new NatsSubscriberConfig(NATS_EXTENSION.getNatsUrl(), CONSUMER_NAME, false, STREAM_NAME, "negotiations.>");
         subscriber = new NatsContractNegotiationSubscriber(config, stateMachineService, ObjectMapper::new, mock());
 
     }

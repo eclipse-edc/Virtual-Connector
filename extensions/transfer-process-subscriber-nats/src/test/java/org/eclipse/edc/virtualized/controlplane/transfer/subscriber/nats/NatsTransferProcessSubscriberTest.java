@@ -94,7 +94,7 @@ public class NatsTransferProcessSubscriberTest {
     void beforeEach() {
         NATS_EXTENSION.createStream(STREAM_NAME, "transfers.>");
         NATS_EXTENSION.createConsumer(STREAM_NAME, CONSUMER_NAME, "transfers.>");
-        var config = new NatsSubscriberConfig(NATS_EXTENSION.getNatsUrl(), CONSUMER_NAME, "transfers.>");
+        var config = new NatsSubscriberConfig(NATS_EXTENSION.getNatsUrl(), CONSUMER_NAME, false, STREAM_NAME, "transfers.>");
         subscriber = new NatsTransferProcessSubscriber(config, stateMachineService, ObjectMapper::new, mock());
 
     }

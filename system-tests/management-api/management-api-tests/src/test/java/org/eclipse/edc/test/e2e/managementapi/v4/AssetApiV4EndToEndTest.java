@@ -928,11 +928,8 @@ public class AssetApiV4EndToEndTest {
         @RegisterExtension
         static final BeforeAllCallback SETUP = context -> {
             POSTGRES_EXTENSION.createDatabase(Runtimes.ControlPlane.NAME.toLowerCase());
-            NATS_EXTENSION.createStream("state_machine", "negotiations.>", "transfers.>");
-            NATS_EXTENSION.createConsumer("state_machine", "cn-subscriber", "negotiations.>");
-            NATS_EXTENSION.createConsumer("state_machine", "tp-subscriber", "transfers.>");
         };
-  
+
         @Order(2)
         @RegisterExtension
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
@@ -943,6 +940,7 @@ public class AssetApiV4EndToEndTest {
                 .configurationProvider(Runtimes.ControlPlane::config)
                 .configurationProvider(() -> POSTGRES_EXTENSION
                         .configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
+                .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(Postgres::runtimeConfiguration)
                 .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url",
                         "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
@@ -959,10 +957,6 @@ public class AssetApiV4EndToEndTest {
                     put("edc.postgres.cdc.password", POSTGRES_EXTENSION.getPassword());
                     put("edc.postgres.cdc.slot",
                             "edc_cdc_slot_" + Runtimes.ControlPlane.NAME.toLowerCase());
-                    put("edc.nats.cn.subscriber.url", NATS_EXTENSION.getNatsUrl());
-                    put("edc.nats.cn.publisher.url", NATS_EXTENSION.getNatsUrl());
-                    put("edc.nats.tp.subscriber.url", NATS_EXTENSION.getNatsUrl());
-                    put("edc.nats.tp.publisher.url", NATS_EXTENSION.getNatsUrl());
                 }
             });
         }

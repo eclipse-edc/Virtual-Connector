@@ -19,6 +19,7 @@ plugins {
 
 dependencies {
     api(libs.edc.spi.core)
+    implementation(libs.nats.client)
 
     testFixturesImplementation(libs.nats.client)
     testFixturesImplementation(libs.testcontainers.junit)

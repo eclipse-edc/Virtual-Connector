@@ -65,15 +65,13 @@ public class PostgresVirtualCompatibilityDockerTest {
             .modules(":system-tests:runtimes:tck:tck-controlplane-postgres")
             .configurationProvider(PostgresVirtualCompatibilityDockerTest::runtimeConfiguration)
             .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONNECTOR.toLowerCase()))
+            .configurationProvider(NATS_EXTENSION::configFor)
             .build();
 
     @Order(1)
     @RegisterExtension
     static final BeforeAllCallback SETUP = context -> {
         POSTGRESQL_EXTENSION.createDatabase(CONNECTOR.toLowerCase());
-        NATS_EXTENSION.createStream("state_machine", "negotiations.>", "transfers.>");
-        NATS_EXTENSION.createConsumer("state_machine", "cn-subscriber", "negotiations.>");
-        NATS_EXTENSION.createConsumer("state_machine", "tp-subscriber", "transfers.>");
     };
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC4");
 
@@ -102,10 +100,6 @@ public class PostgresVirtualCompatibilityDockerTest {
                 put("edc.postgres.cdc.user", POSTGRESQL_EXTENSION.getUsername());
                 put("edc.postgres.cdc.password", POSTGRESQL_EXTENSION.getPassword());
                 put("edc.postgres.cdc.slot", "edc_cdc_slot_" + CONNECTOR.toLowerCase());
-                put("edc.nats.cn.subscriber.url", NATS_EXTENSION.getNatsUrl());
-                put("edc.nats.cn.publisher.url", NATS_EXTENSION.getNatsUrl());
-                put("edc.nats.tp.subscriber.url", NATS_EXTENSION.getNatsUrl());
-                put("edc.nats.tp.publisher.url", NATS_EXTENSION.getNatsUrl());
                 put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
                 put("edc.iam.oauth2.issuer", "test-issuer");
             }
