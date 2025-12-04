@@ -241,14 +241,7 @@ public class ParticipantContextConfigApiEndToEndTest {
             NATS_EXTENSION.createConsumer("state_machine", "cn-subscriber", "negotiations.>");
             NATS_EXTENSION.createConsumer("state_machine", "tp-subscriber", "transfers.>");
         };
-
-        @Order(3)
-        @RegisterExtension
-        static final BeforeAllCallback SEED = context -> {
-            POSTGRES_EXTENSION.execute(Runtimes.ControlPlane.NAME.toLowerCase(), "ALTER TABLE edc_contract_negotiation REPLICA IDENTITY FULL;");
-            POSTGRES_EXTENSION.execute(Runtimes.ControlPlane.NAME.toLowerCase(), "ALTER TABLE edc_transfer_process REPLICA IDENTITY FULL;");
-        };
-
+        
         @Order(2)
         @RegisterExtension
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()

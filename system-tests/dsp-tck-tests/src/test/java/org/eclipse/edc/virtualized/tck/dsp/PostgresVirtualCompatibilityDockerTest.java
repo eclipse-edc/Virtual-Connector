@@ -119,8 +119,6 @@ public class PostgresVirtualCompatibilityDockerTest {
     @Timeout(300)
     @Test
     void assertDspCompatibility() {
-        POSTGRESQL_EXTENSION.execute(CONNECTOR.toLowerCase(), "ALTER TABLE edc_contract_negotiation REPLICA IDENTITY FULL;");
-        POSTGRESQL_EXTENSION.execute(CONNECTOR.toLowerCase(), "ALTER TABLE edc_transfer_process REPLICA IDENTITY FULL;");
 
         // pipe the docker container's log to this console at the INFO level
         var monitor = new ConsoleMonitor(">>> TCK Runtime (Docker)", ConsoleMonitor.Level.INFO, true);

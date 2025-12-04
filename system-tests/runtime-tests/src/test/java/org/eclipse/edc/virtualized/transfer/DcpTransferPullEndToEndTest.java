@@ -245,14 +245,7 @@ class DcpTransferPullEndToEndTest {
                 .paramProvider(Participants.class, context -> participants(IDENTITY_HUB_ENDPOINTS))
                 .build()
                 .registerSystemExtension(ServiceExtension.class, new DcpPatchExtension());
-
-        @Order(4)
-        @RegisterExtension
-        static final BeforeAllCallback SEED = context -> {
-            POSTGRESQL_EXTENSION.execute(Runtimes.ControlPlane.NAME.toLowerCase(), "ALTER TABLE edc_contract_negotiation REPLICA IDENTITY FULL;");
-            POSTGRESQL_EXTENSION.execute(Runtimes.ControlPlane.NAME.toLowerCase(), "ALTER TABLE edc_transfer_process REPLICA IDENTITY FULL;");
-        };
-
+        
         private static Config runtimeConfiguration() {
             return ConfigFactory.fromMap(new HashMap<>() {
                 {

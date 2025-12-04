@@ -21,6 +21,7 @@ dependencies {
     api(libs.edc.spi.contract)
     api(libs.edc.spi.transfer)
     api(libs.edc.spi.transaction.datasource)
+    api(libs.edc.core.sql.bootstrapper)
     api(project(":spi:v-core-spi"))
     implementation(libs.postgres)
     testImplementation(libs.edc.junit)
