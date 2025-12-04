@@ -27,7 +27,7 @@ import java.util.Map;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.EDC_MGMT_V4_SCHEMA_PREFIX;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.virtual.connector.api.management.schema.ManagementApiSchemaValidatorExtension.NAME;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_TERM;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_TERM;
 import static org.eclipse.virtualized.api.management.schema.VirtualManagementApiJsonSchema.V4.CEL_EXPRESSION;
 import static org.eclipse.virtualized.api.management.schema.VirtualManagementApiJsonSchema.VIRTUAL_EDC_MGMT_V4_SCHEMA_PREFIX;
 

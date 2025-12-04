@@ -11,5 +11,5 @@
 #       Metaform Systems, Inc. - initial API and implementation
 #
 #
-org.eclipse.edc.virtualized.policy.cel.VirtualizedCelPolicyExtension
-org.eclipse.edc.virtualized.policy.cel.VirtualizedCelPolicyDefaultServicesExtension
+org.eclipse.edc.virtual.policy.cel.VirtualizedCelPolicyExtension
+org.eclipse.edc.virtual.policy.cel.VirtualizedCelPolicyDefaultServicesExtension

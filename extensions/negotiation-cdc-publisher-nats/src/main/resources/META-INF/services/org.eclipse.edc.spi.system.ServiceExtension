@@ -11,4 +11,4 @@
 #       Metaform Systems, Inc. - initial API and implementation
 #
 #
-org.eclipse.edc.virtualized.controlplane.contract.negotiation.cdc.publisher.nats.ContractNegotiationCdcPublisherExtension
+org.eclipse.edc.virtual.controlplane.contract.negotiation.cdc.publisher.nats.ContractNegotiationCdcPublisherExtension

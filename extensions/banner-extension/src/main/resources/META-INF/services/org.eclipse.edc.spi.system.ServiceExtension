@@ -11,4 +11,4 @@
 #       Metaform Systems, Inc. - initial API and implementation
 #
 #
-org.eclipse.edc.virtualized.EdcVirtualizedExtension
+org.eclipse.edc.virtual.EdcVirtualizedExtension

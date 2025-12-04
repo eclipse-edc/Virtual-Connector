@@ -27,7 +27,7 @@ import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtual.connector.store.sql.cel.schema.postgres.PostgresDialectStatementsConfig;
-import org.eclipse.edc.virtualized.policy.cel.store.CelExpressionStore;
+import org.eclipse.edc.virtual.policy.cel.store.CelExpressionStore;
 
 import static org.eclipse.edc.virtual.connector.store.sql.cel.SqlCelExpressionStoreExtension.NAME;
 

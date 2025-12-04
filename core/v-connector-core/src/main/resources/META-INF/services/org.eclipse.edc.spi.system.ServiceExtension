@@ -11,4 +11,4 @@
 #       Metaform Systems, Inc. - initial API and implementation
 #
 #
-org.eclipse.edc.virtualized.controlplane.VirtualCoreServicesExtension
+org.eclipse.edc.virtual.controlplane.VirtualCoreServicesExtension

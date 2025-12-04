@@ -33,7 +33,7 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
-import org.eclipse.edc.virtualized.nats.testfixtures.NatsEndToEndExtension;
+import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -58,7 +58,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContext;
-import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
+import static org.eclipse.edc.virtual.test.system.fixtures.DockerImages.createPgContainer;
 import static org.hamcrest.Matchers.equalTo;
 
 public class ParticipantContextConfigApiEndToEndTest {
