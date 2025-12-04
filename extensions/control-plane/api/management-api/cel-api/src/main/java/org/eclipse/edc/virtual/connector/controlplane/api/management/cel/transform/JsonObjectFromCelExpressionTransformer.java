@@ -19,16 +19,16 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.eclipse.edc.virtualized.policy.cel.model.CelExpression;
+import org.eclipse.edc.virtual.policy.cel.model.CelExpression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_DESCRIPTION_IRI;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPRESSION_IRI;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_SCOPES_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_DESCRIPTION_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPRESSION_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_SCOPES_IRI;
 
 public class JsonObjectFromCelExpressionTransformer extends AbstractJsonLdTransformer<CelExpression, JsonObject> {
 

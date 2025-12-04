@@ -43,7 +43,7 @@ import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
-import org.eclipse.edc.virtualized.nats.testfixtures.NatsEndToEndExtension;
+import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -85,7 +85,7 @@ import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.createParti
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContext;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContextArray;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.participantContext;
-import static org.eclipse.edc.virtualized.test.system.fixtures.DockerImages.createPgContainer;
+import static org.eclipse.edc.virtual.test.system.fixtures.DockerImages.createPgContainer;
 import static org.eclipse.virtualized.api.management.VirtualManagementApi.EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.Matchers.contains;

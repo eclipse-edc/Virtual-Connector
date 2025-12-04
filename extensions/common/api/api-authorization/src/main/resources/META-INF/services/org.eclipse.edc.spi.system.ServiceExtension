@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.virtualized.api.ApiAuthorizationExtension
+org.eclipse.edc.virtual.api.ApiAuthorizationExtension

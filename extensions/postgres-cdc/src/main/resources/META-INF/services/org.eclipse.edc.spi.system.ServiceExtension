@@ -11,5 +11,5 @@
 #       Metaform Systems, Inc. - initial API and implementation
 #
 #
-org.eclipse.edc.virtualized.controlplane.store.cdc.PostgresChangeDataCaptureExtension
-org.eclipse.edc.virtualized.controlplane.store.cdc.PostgresChangeDataCaptureDefaultExtension
+org.eclipse.edc.virtual.controlplane.store.cdc.PostgresChangeDataCaptureExtension
+org.eclipse.edc.virtual.controlplane.store.cdc.PostgresChangeDataCaptureDefaultExtension

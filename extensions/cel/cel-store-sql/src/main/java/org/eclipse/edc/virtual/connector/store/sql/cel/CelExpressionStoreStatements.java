@@ -17,7 +17,7 @@ package org.eclipse.edc.virtual.connector.store.sql.cel;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.statement.SqlStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
-import org.eclipse.edc.virtualized.policy.cel.model.CelExpression;
+import org.eclipse.edc.virtual.policy.cel.model.CelExpression;
 
 /**
  * Defines SQL-statements and column names for use with a SQL-based {@link CelExpression}

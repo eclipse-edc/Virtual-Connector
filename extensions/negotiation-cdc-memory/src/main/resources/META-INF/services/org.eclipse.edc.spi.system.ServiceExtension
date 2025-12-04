@@ -11,5 +11,5 @@
 #       Metaform Systems, Inc. - initial API and implementation
 #
 #
-org.eclipse.edc.virtualized.controlplane.contract.negotiation.loopback.memory.ContractNegotiationLoopbackMemoryExtension
-org.eclipse.edc.virtualized.controlplane.contract.negotiation.ContractNegotiationMemoryCdcExtension
+org.eclipse.edc.virtual.controlplane.contract.negotiation.loopback.memory.ContractNegotiationLoopbackMemoryExtension
+org.eclipse.edc.virtual.controlplane.contract.negotiation.ContractNegotiationMemoryCdcExtension

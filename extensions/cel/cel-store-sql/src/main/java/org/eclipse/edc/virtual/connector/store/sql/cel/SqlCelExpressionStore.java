@@ -22,8 +22,8 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.virtualized.policy.cel.model.CelExpression;
-import org.eclipse.edc.virtualized.policy.cel.store.CelExpressionStore;
+import org.eclipse.edc.virtual.policy.cel.model.CelExpression;
+import org.eclipse.edc.virtual.policy.cel.store.CelExpressionStore;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

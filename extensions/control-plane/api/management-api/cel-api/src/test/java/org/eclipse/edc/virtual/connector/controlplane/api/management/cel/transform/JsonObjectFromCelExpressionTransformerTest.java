@@ -16,7 +16,7 @@ package org.eclipse.edc.virtual.connector.controlplane.api.management.cel.transf
 
 import jakarta.json.Json;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.eclipse.edc.virtualized.policy.cel.model.CelExpression;
+import org.eclipse.edc.virtual.policy.cel.model.CelExpression;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,12 +25,12 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_DESCRIPTION_IRI;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPRESSION_IRI;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_SCOPES_IRI;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_IRI;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.MATCH_ALL_SCOPE;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_DESCRIPTION_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPRESSION_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_SCOPES_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.MATCH_ALL_SCOPE;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectFromCelExpressionTransformerTest {

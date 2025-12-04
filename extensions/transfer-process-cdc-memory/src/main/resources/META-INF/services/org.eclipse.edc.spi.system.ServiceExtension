@@ -11,5 +11,5 @@
 #       Metaform Systems, Inc. - initial API and implementation
 #
 #
-org.eclipse.edc.virtualized.controlplane.transfer.TransferProcessMemoryCdcExtension
-org.eclipse.edc.virtualized.controlplane.transfer.loopback.memory.TransferProcessLoopbackMemoryExtension
+org.eclipse.edc.virtual.controlplane.transfer.TransferProcessMemoryCdcExtension
+org.eclipse.edc.virtual.controlplane.transfer.loopback.memory.TransferProcessLoopbackMemoryExtension

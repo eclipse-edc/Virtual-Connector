@@ -27,7 +27,7 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.virtual.connector.controlplane.api.management.cel.transform.JsonObjectFromCelExpressionTransformer;
 import org.eclipse.edc.virtual.connector.controlplane.api.management.cel.transform.JsonObjectToCelExpressionTransformer;
 import org.eclipse.edc.virtual.connector.controlplane.api.management.cel.v4.CelExpressionApiV4Controller;
-import org.eclipse.edc.virtualized.policy.cel.service.CelPolicyExpressionService;
+import org.eclipse.edc.virtual.policy.cel.service.CelPolicyExpressionService;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;

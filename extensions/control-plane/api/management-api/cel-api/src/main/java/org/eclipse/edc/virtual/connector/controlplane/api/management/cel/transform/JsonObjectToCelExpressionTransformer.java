@@ -17,7 +17,7 @@ package org.eclipse.edc.virtual.connector.controlplane.api.management.cel.transf
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.eclipse.edc.virtualized.policy.cel.model.CelExpression;
+import org.eclipse.edc.virtual.policy.cel.model.CelExpression;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,10 +25,10 @@ import java.util.HashSet;
 import java.util.UUID;
 
 import static java.util.Optional.ofNullable;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_DESCRIPTION_IRI;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPRESSION_IRI;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
-import static org.eclipse.edc.virtualized.policy.cel.model.CelExpression.CEL_EXPRESSION_SCOPES_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_DESCRIPTION_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPRESSION_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
+import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_SCOPES_IRI;
 
 public class JsonObjectToCelExpressionTransformer extends AbstractJsonLdTransformer<JsonObject, CelExpression> {
 
