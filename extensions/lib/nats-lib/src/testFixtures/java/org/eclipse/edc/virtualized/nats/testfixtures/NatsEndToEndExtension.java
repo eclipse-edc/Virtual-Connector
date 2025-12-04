@@ -20,7 +20,9 @@ import io.nats.client.JetStream;
 import io.nats.client.JetStreamManagement;
 import io.nats.client.Nats;
 import io.nats.client.api.StorageType;
-import io.nats.client.api.StreamConfiguration;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.virtual.nats.NatsFunctions;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -63,18 +65,9 @@ public class NatsEndToEndExtension implements BeforeAllCallback, AfterAllCallbac
         js = conn.jetStream();
     }
 
-    
+
     public void createStream(String streamName, String... subject) {
-        var streamConfig = StreamConfiguration.builder()
-                .name(streamName)
-                .subjects(subject)
-                .storageType(StorageType.Memory)
-                .build();
-        try {
-            jsm.addStream(streamConfig);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        NatsFunctions.createStream(jsm, streamName, StorageType.Memory, subject);
     }
 
     public void deleteStream(String streamName) {
@@ -90,15 +83,7 @@ public class NatsEndToEndExtension implements BeforeAllCallback, AfterAllCallbac
     }
 
     public void createConsumer(String streamName, String consumerName, String filterSubject) {
-        try {
-            jsm.addOrUpdateConsumer(streamName, io.nats.client.api.ConsumerConfiguration.builder()
-                    .durable(consumerName)
-                    .name(consumerName)
-                    .filterSubject(filterSubject)
-                    .build());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        NatsFunctions.createConsumer(jsm, streamName, consumerName, filterSubject);
     }
 
     public void publish(String subject, byte[] message) {
@@ -134,6 +119,18 @@ public class NatsEndToEndExtension implements BeforeAllCallback, AfterAllCallbac
 
     public String getNatsUrl() {
         return "nats://" + nats.getHost() + ":" + nats.getMappedPort(4222);
+    }
+
+    public Config configFor() {
+        Map<String, String> settings = Map.of(
+                "edc.nats.cn.subscriber.url", getNatsUrl(),
+                "edc.nats.cn.subscriber.autocreate", "true",
+                "edc.nats.cn.publisher.url", getNatsUrl(),
+                "edc.nats.tp.subscriber.url", getNatsUrl(),
+                "edc.nats.tp.subscriber.autocreate", "true",
+                "edc.nats.tp.publisher.url", getNatsUrl()
+        );
+        return ConfigFactory.fromMap(settings);
     }
 
     @Override

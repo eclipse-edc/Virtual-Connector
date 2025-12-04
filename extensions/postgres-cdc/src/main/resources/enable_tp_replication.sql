@@ -12,17 +12,5 @@
  *
  */
 
-plugins {
-    `java-library`
-    `java-test-fixtures`
-}
-
-dependencies {
-    api(libs.edc.spi.core)
-    implementation(libs.nats.client)
-
-    testFixturesImplementation(libs.nats.client)
-    testFixturesImplementation(libs.testcontainers.junit)
-
-}
-
+-- enable full replication, otherwise
+ALTER TABLE edc_transfer_process REPLICA IDENTITY FULL;

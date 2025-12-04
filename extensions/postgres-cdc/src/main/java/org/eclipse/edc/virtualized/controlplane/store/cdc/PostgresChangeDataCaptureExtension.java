@@ -22,6 +22,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
+import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.virtualized.controlplane.contract.spi.negotiation.ContractNegotiationChangeListener;
 import org.eclipse.edc.virtualized.controlplane.store.cdc.listener.PostgresReplicationListener;
 import org.eclipse.edc.virtualized.controlplane.store.cdc.listener.ReplicationConsumer;
@@ -31,6 +33,12 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 public class PostgresChangeDataCaptureExtension implements ServiceExtension {
 
+
+    @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.contractnegotiation.datasource")
+    private String contractNegotiationDataSource;
+
+    @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.transferprocess.datasource")
+    private String transferProcessDataSource;
 
     @Configuration
     private PostgresCdcConfig config;
@@ -49,8 +57,15 @@ public class PostgresChangeDataCaptureExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private SqlSchemaBootstrapper sqlSchemaBootstrapper;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
+
+        sqlSchemaBootstrapper.addStatementFromResource(contractNegotiationDataSource, "enable_cn_replication.sql");
+        sqlSchemaBootstrapper.addStatementFromResource(transferProcessDataSource, "enable_tp_replication.sql");
+        
         var consumer = new ReplicationConsumer(contractNegotiationChangeListener, transferProcessChangeListener, () -> typeManager.getMapper(JSON_LD));
         replicationListener = new PostgresReplicationListener(config, consumer, () -> typeManager.getMapper(JSON_LD), monitor);
     }

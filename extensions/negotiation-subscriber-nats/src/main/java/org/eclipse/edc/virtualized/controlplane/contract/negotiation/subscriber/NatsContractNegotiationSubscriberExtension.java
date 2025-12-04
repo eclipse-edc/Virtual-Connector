@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.virtualized.controlplane.contract.negotiation.subscriber;
 
+import io.nats.client.Nats;
+import io.nats.client.api.StorageType;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -25,6 +27,8 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.virtualized.controlplane.contract.spi.negotiation.ContractNegotiationStateMachineService;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
+import static org.eclipse.edc.virtual.nats.NatsFunctions.createConsumer;
+import static org.eclipse.edc.virtual.nats.NatsFunctions.createStream;
 
 public class NatsContractNegotiationSubscriberExtension implements ServiceExtension {
 
@@ -49,6 +53,20 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
     }
 
     @Override
+    public void prepare() {
+        if (natsSubscriberConfig.autoCreate()) {
+            try (var conn = Nats.connect(natsSubscriberConfig.url())) {
+                conn.jetStream();
+                var jsm = conn.jetStreamManagement();
+                createStream(jsm, natsSubscriberConfig.stream(), StorageType.Memory, natsSubscriberConfig.subject());
+                createConsumer(jsm, natsSubscriberConfig.stream(), natsSubscriberConfig.name(), natsSubscriberConfig.subject());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Override
     public void start() {
         if (subscriber != null) {
             subscriber.start();
@@ -68,6 +86,10 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
             String url,
             @Setting(key = "edc.nats.cn.subscriber.name", description = "The name of the consumer for contract negotiation events", defaultValue = "cn-subscriber")
             String name,
+            @Setting(key = "edc.nats.cn.subscriber.autocreate", description = "When true, it will automatically create the stream and the consumer if not present", defaultValue = "false")
+            Boolean autoCreate,
+            @Setting(key = "edc.nats.cn.subscriber.stream", description = "The stream name where to attach the consumer", defaultValue = "cn-stream")
+            String stream,
             @Setting(key = "edc.nats.cn.subscriber.subject", description = "The subject of the consumer for contract negotiation events", defaultValue = "negotiations.>")
             String subject
     ) {

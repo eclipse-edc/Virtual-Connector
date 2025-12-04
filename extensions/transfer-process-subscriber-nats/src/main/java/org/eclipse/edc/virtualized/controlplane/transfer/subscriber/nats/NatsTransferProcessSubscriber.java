@@ -122,6 +122,7 @@ public class NatsTransferProcessSubscriber {
             connection = Nats.connect(config.url());
             var js = connection.jetStream();
             var pullOptions = PullSubscribeOptions.builder()
+                    .stream(config.stream())
                     .durable(config.name())
                     .build();
 

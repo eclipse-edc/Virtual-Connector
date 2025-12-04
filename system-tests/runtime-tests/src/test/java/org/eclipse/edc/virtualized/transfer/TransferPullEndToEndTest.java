@@ -79,9 +79,6 @@ class TransferPullEndToEndTest {
         @RegisterExtension
         static final BeforeAllCallback SETUP = context -> {
             POSTGRESQL_EXTENSION.createDatabase(Runtimes.ControlPlane.NAME.toLowerCase());
-            NATS_EXTENSION.createStream("state_machine", "negotiations.>", "transfers.>");
-            NATS_EXTENSION.createConsumer("state_machine", "cn-subscriber", "negotiations.>");
-            NATS_EXTENSION.createConsumer("state_machine", "tp-subscriber", "transfers.>");
         };
         @Order(2)
         @RegisterExtension
@@ -91,16 +88,11 @@ class TransferPullEndToEndTest {
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
+                .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(Postgres::runtimeConfiguration)
                 .paramProvider(VirtualConnector.class, VirtualConnector::forContext)
                 .paramProvider(Participants.class, context -> participants())
                 .build();
-        @Order(3)
-        @RegisterExtension
-        static final BeforeAllCallback SEED = context -> {
-            POSTGRESQL_EXTENSION.execute(Runtimes.ControlPlane.NAME.toLowerCase(), "ALTER TABLE edc_contract_negotiation REPLICA IDENTITY FULL;");
-            POSTGRESQL_EXTENSION.execute(Runtimes.ControlPlane.NAME.toLowerCase(), "ALTER TABLE edc_transfer_process REPLICA IDENTITY FULL;");
-        };
 
         private static Config runtimeConfiguration() {
             return ConfigFactory.fromMap(new HashMap<>() {
@@ -109,10 +101,6 @@ class TransferPullEndToEndTest {
                     put("edc.postgres.cdc.user", POSTGRESQL_EXTENSION.getUsername());
                     put("edc.postgres.cdc.password", POSTGRESQL_EXTENSION.getPassword());
                     put("edc.postgres.cdc.slot", "edc_cdc_slot_" + Runtimes.ControlPlane.NAME.toLowerCase());
-                    put("edc.nats.cn.subscriber.url", NATS_EXTENSION.getNatsUrl());
-                    put("edc.nats.cn.publisher.url", NATS_EXTENSION.getNatsUrl());
-                    put("edc.nats.tp.subscriber.url", NATS_EXTENSION.getNatsUrl());
-                    put("edc.nats.tp.publisher.url", NATS_EXTENSION.getNatsUrl());
                 }
             });
         }

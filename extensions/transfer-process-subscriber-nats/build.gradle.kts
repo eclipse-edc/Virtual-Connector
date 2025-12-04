@@ -21,6 +21,7 @@ dependencies {
     api(libs.edc.spi.transfer)
     api(project(":spi:v-core-spi"))
     implementation(libs.nats.client)
+    implementation(project(":extensions:lib:nats-lib"))
     testImplementation(libs.awaitility)
     testImplementation(libs.edc.junit)
     testImplementation(testFixtures(libs.edc.spi.contract))
