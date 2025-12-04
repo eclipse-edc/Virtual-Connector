@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.virtualized.connector.controlplane.api.management.participantcontext.config.ParticipantContextConfigManagementApiExtension
+org.eclipse.edc.virtual.connector.controlplane.api.management.participantcontext.config.ParticipantContextConfigManagementApiExtension
