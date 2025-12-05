@@ -17,6 +17,7 @@ package org.eclipse.edc.virtual.transfer.fixtures;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
@@ -40,10 +41,13 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 
+import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -127,28 +131,40 @@ public class VirtualConnector {
 
     }
 
-    private String startContractNegotiation(String participantContext, String assetId, String offerId, String providerAddress, String providerId) {
-        return startContractNegotiation(participantContext, assetId, offerId, Policy.Builder.newInstance().build(), providerAddress, providerId);
+    public String initContractNegotiation(String participantContext, String assetId, Policy policy, String providerAddress, String providerId) {
+
+        try {
+            var offerId = fetchOfferId(participantContext, assetId, providerAddress, providerId);
+
+            return initContractNegotiation(participantContext, assetId, offerId, policy, providerAddress, providerId).getId();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private String startContractNegotiation(String participantContext, String assetId, String offerId, Policy policy, String providerAddress, String providerId) {
-        var newPolicy = policy.toBuilder()
-                .assigner(providerId)
-                .target(assetId)
-                .build();
-        var contractRequest = ContractRequest.Builder.newInstance()
-                .protocol(PROTOCOL)
-                .counterPartyAddress(providerAddress)
-                .contractOffer(ContractOffer.Builder.newInstance()
-                        .id(offerId)
-                        .assetId(assetId)
-                        .policy(newPolicy)
-                        .build())
-                .build();
-
+    private String fetchOfferId(String participantContext, String assetId, String providerAddress, String providerId) throws InterruptedException, ExecutionException, IOException {
         var pc = ParticipantContext.Builder.newInstance().participantContextId(participantContext).identity(participantContext).build();
+        var asset = catalogService.requestDataset(pc, assetId, providerId, providerAddress, PROTOCOL).get();
+        var responseBody = MAPPER.readValue(asset.getContent(), JsonObject.class);
+        return responseBody.getJsonArray("hasPolicy").getJsonObject(0).getString(ID);
+    }
 
-        var negotiation = negotiationService.initiateNegotiation(pc, contractRequest);
+    public void waitForContractNegotiationState(String negotiationId, String state) {
+        await().atMost(TIMEOUT).untilAsserted(() -> {
+            var currentState = negotiationService.getState(negotiationId);
+            assertThat(currentState).isEqualTo(state);
+        });
+    }
+
+    public String getNegotiationError(String negotiationId) {
+        var contractNegotiation = negotiationService.findbyId(negotiationId);
+        return Optional.of(contractNegotiation).map(ContractNegotiation::getErrorDetail)
+                .orElse(null);
+    }
+
+    public String startContractNegotiation(String participantContext, String assetId, String offerId, Policy policy, String providerAddress, String providerId) {
+        var negotiation = initContractNegotiation(participantContext, assetId, offerId, policy, providerAddress, providerId);
 
         await().atMost(TIMEOUT).untilAsserted(() -> {
             var state = negotiationService.getState(negotiation.getId());
@@ -168,21 +184,35 @@ public class VirtualConnector {
 
     }
 
+    private ContractNegotiation initContractNegotiation(String participantContext, String assetId, String offerId, Policy policy, String providerAddress, String providerId) {
+        var newPolicy = policy.toBuilder()
+                .assigner(providerId)
+                .target(assetId)
+                .build();
+        var contractRequest = ContractRequest.Builder.newInstance()
+                .protocol(PROTOCOL)
+                .counterPartyAddress(providerAddress)
+                .contractOffer(ContractOffer.Builder.newInstance()
+                        .id(offerId)
+                        .assetId(assetId)
+                        .policy(newPolicy)
+                        .build())
+                .build();
+
+        var pc = ParticipantContext.Builder.newInstance().participantContextId(participantContext).identity(participantContext).build();
+
+        return negotiationService.initiateNegotiation(pc, contractRequest);
+    }
+
     public String startTransfer(String participantContext, String providerAddress, String providerId, String assetId, String transferType) {
         return startTransfer(participantContext, providerAddress, providerId, assetId, transferType, Policy.Builder.newInstance().build());
 
     }
 
     public String startTransfer(String participantContext, String providerAddress, String providerId, String assetId, String transferType, Policy policy) {
-
         try {
-            var pc = ParticipantContext.Builder.newInstance().participantContextId(participantContext).identity(participantContext).build();
-            var asset = catalogService.requestDataset(pc, assetId, providerId, providerAddress, PROTOCOL).get();
-            var responseBody = MAPPER.readValue(asset.getContent(), JsonObject.class);
-            var offerId = responseBody.getJsonArray("hasPolicy").getJsonObject(0).getString(ID);
-
+            var offerId = fetchOfferId(participantContext, assetId, providerAddress, providerId);
             var agreementId = startContractNegotiation(participantContext, assetId, offerId, policy, providerAddress, providerId);
-
             return startTransferProcess(participantContext, agreementId, providerAddress, transferType);
 
         } catch (Exception e) {

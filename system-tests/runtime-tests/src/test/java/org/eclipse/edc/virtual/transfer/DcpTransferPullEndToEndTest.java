@@ -15,6 +15,7 @@
 package org.eclipse.edc.virtual.transfer;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.identityhub.tests.fixtures.DefaultRuntimes;
@@ -31,13 +32,11 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.virtual.Runtimes;
-import org.eclipse.edc.virtual.extensions.DcpPatchExtension;
 import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
 import org.eclipse.edc.virtual.policy.cel.model.CelExpression;
 import org.eclipse.edc.virtual.policy.cel.service.CelPolicyExpressionService;
@@ -52,6 +51,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -126,7 +126,7 @@ class DcpTransferPullEndToEndTest {
                     """;
 
             var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
-            var expr = CelExpression.Builder.newInstance().id("id")
+            var expr = CelExpression.Builder.newInstance().id(UUID.randomUUID().toString())
                     .leftOperand(leftOperand)
                     .expression(expression)
                     .description("membership expression")
@@ -157,6 +157,47 @@ class DcpTransferPullEndToEndTest {
 
             assertThat(consumerTransfer.getParticipantContextId()).isEqualTo(participants.consumer().contextId());
             assertThat(providerTransfer.getParticipantContextId()).isEqualTo(participants.provider().contextId());
+
+        }
+
+        @Test
+        void negotiation_fails_withMissingCredential(VirtualConnector env, Participants participants,
+                                                     CelPolicyExpressionService celPolicyExpressionService) {
+
+            var leftOperand = "https://w3id.org/example/credentials/DataAccessCredential";
+            var expression = """
+                    ctx.agent.claims.vc
+                    .exists(c, c.type.exists(t, t == 'DataAccessCredential'))
+                    """;
+
+            var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
+            var expr = CelExpression.Builder.newInstance().id(UUID.randomUUID().toString())
+                    .leftOperand(leftOperand)
+                    .expression(expression)
+                    .scopes(Set.of("contract.negotiation"))
+                    .description("data credential expression")
+                    .build();
+            celPolicyExpressionService.create(expr)
+                    .orElseThrow(f -> new RuntimeException("Failed to store CEL expression: " + f.getFailureDetail()));
+
+            var policy = Policy.Builder.newInstance()
+                    .permission(Permission.Builder
+                            .newInstance()
+                            .action(Action.Builder.newInstance().type(ODRL_SCHEMA + "use").build())
+                            .constraint(AtomicConstraint.Builder.newInstance()
+                                    .leftExpression(new LiteralExpression(leftOperand))
+                                    .operator(Operator.EQ)
+                                    .rightExpression(new LiteralExpression("active"))
+                                    .build())
+                            .build())
+                    .build();
+            var assetId = setup(env, participants.provider(), policy);
+            var negotiationId = env.initContractNegotiation(participants.consumer().contextId(), assetId, policy, providerAddress, participants.provider().id());
+
+            env.waitForContractNegotiationState(negotiationId, ContractNegotiationStates.TERMINATED.name());
+            var error = env.getNegotiationError(negotiationId);
+
+            assertThat(error).isNotNull().contains("Unauthorized");
 
         }
 
@@ -241,8 +282,7 @@ class DcpTransferPullEndToEndTest {
                 .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.did.web.use.https", "false")))
                 .paramProvider(VirtualConnector.class, VirtualConnector::forContext)
                 .paramProvider(Participants.class, context -> participants(IDENTITY_HUB_ENDPOINTS))
-                .build()
-                .registerSystemExtension(ServiceExtension.class, new DcpPatchExtension());
+                .build();
 
         private static Config runtimeConfiguration() {
             return ConfigFactory.fromMap(new HashMap<>() {
@@ -251,6 +291,13 @@ class DcpTransferPullEndToEndTest {
                     put("edc.postgres.cdc.user", POSTGRESQL_EXTENSION.getUsername());
                     put("edc.postgres.cdc.password", POSTGRESQL_EXTENSION.getPassword());
                     put("edc.postgres.cdc.slot", "edc_cdc_slot_" + Runtimes.ControlPlane.NAME.toLowerCase());
+                    put("edc.iam.dcp.scopes.membership.id", "membership-scope");
+                    put("edc.iam.dcp.scopes.membership.type", "DEFAULT");
+                    put("edc.iam.dcp.scopes.membership.value", "org.eclipse.edc.vc.type:MembershipCredential:read");
+                    put("edc.iam.dcp.scopes.data-access.id", "data-access-scope");
+                    put("edc.iam.dcp.scopes.data-access.type", "POLICY");
+                    put("edc.iam.dcp.scopes.data-access.value", "org.eclipse.edc.vc.type:DataAccessCredential:read");
+                    put("edc.iam.dcp.scopes.data-access.prefix-mapping", "https://w3id.org/example/credentials/DataAccessCredential");
                 }
             });
         }

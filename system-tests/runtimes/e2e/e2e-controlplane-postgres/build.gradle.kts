@@ -24,6 +24,8 @@ dependencies {
         exclude("org.eclipse.edc", "decentralized-claims-sts-remote-client")
         exclude("org.eclipse.edc", "decentralized-claims-issuers-configuration")
         exclude("org.eclipse.edc", "vault-hashicorp")
+        exclude("org.eclipse.edc.virtualized", "dcp-scope-core")
+        exclude(module = "dcp-scope-core")
     }
     implementation(project(":extensions:postgres-cdc"))
     implementation(project(":extensions:negotiation-cdc-publisher-nats"))

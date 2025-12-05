@@ -1,0 +1,117 @@
+/*
+ *  Copyright (c) 2025 Metaform Systems, Inc.
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Metaform Systems, Inc. - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.virtual.controlplane.iam.decentralizedclaims.scope.core;
+
+import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractor;
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
+import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.spi.iam.RequestContext;
+import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.virtual.controlplane.iam.decentralizedclaims.scope.spi.DcpScope;
+import org.eclipse.edc.virtual.controlplane.iam.decentralizedclaims.scope.spi.DcpScopeRegistry;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+class DynamicScopeExtractorTest {
+
+    private final DcpScopeRegistry registry = mock();
+    private final RequestPolicyContext context = mock();
+
+    @Test
+    void extractScope_shouldFail_whenRegistryFails() {
+
+        when(registry.getScopeMapping()).thenReturn(ServiceResult.unexpected("registry-error"));
+
+        var extractor = new DynamicScopeExtractor(registry);
+
+        Set<String> scopes = extractor.extractScopes("any", Operator.EQ, null, context);
+
+        assertTrue(scopes.isEmpty());
+        verify(context).reportProblem(contains("Failed to get scope mapping"));
+    }
+
+    @Test
+    void extractScopes() {
+        // scopes: wildcard (should match), matching profile (should match), non-matching profile (excluded), wrong prefix (excluded)
+        var wildcard = DcpScope.Builder.newInstance()
+                .id("w")
+                .value("val-wild")
+                .type(DcpScope.DcpScopeType.POLICY)
+                .prefixMapping("pre:")
+                .profile(DcpScope.WILDCARD)
+                .build();
+
+        var matching = DcpScope.Builder.newInstance()
+                .id("m")
+                .value("val-match")
+                .type(DcpScope.DcpScopeType.POLICY)
+                .prefixMapping("pre:")
+                .profile("proto")
+                .build();
+
+        var nonMatchingProfile = DcpScope.Builder.newInstance()
+                .id("n1")
+                .value("val-non-profile")
+                .type(DcpScope.DcpScopeType.POLICY)
+                .prefixMapping("pre:")
+                .profile("other")
+                .build();
+
+        var wrongPrefix = DcpScope.Builder.newInstance()
+                .id("n2")
+                .value("val-wrong-prefix")
+                .type(DcpScope.DcpScopeType.POLICY)
+                .prefixMapping("other:")
+                .profile("proto")
+                .build();
+        var msg = mock(RemoteMessage.class);
+        when(msg.getProtocol()).thenReturn("proto");
+
+        var ctx = RequestContext.Builder.newInstance()
+                .direction(RequestContext.Direction.Egress)
+                .message(msg)
+                .build();
+
+        when(registry.getScopeMapping()).thenReturn(ServiceResult.success(List.of(wildcard, matching, nonMatchingProfile, wrongPrefix)));
+
+        when(context.requestContext()).thenReturn(ctx);
+
+        var extractor = new DynamicScopeExtractor(registry);
+
+        var result = extractor.extractScopes("pre:resource", Operator.EQ, null, context);
+
+        assertThat(result).containsOnly("val-wild", "val-match");
+    }
+
+    @Test
+    void extractScopes_empty() {
+        when(registry.getScopeMapping()).thenReturn(ServiceResult.success(List.of()));
+
+        ScopeExtractor extractor = new DynamicScopeExtractor(registry);
+
+        Set<String> result = extractor.extractScopes(12345, Operator.EQ, null, context);
+        assertTrue(result.isEmpty());
+    }
+}

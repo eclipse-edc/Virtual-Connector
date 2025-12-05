@@ -17,6 +17,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":extensions:iam:decentralized-claims:dcp-scope-core"))
     implementation(project(":system-tests:runtimes:controlplane-postgres")) {
         exclude("org.eclipse.edc", "vault-hashicorp")
     }
@@ -28,6 +29,7 @@ dependencies {
     implementation(project(":extensions:negotiation-subscriber-nats"))
     implementation(project(":extensions:transfer-process-cdc-publisher-nats"))
     implementation(project(":extensions:transfer-process-subscriber-nats"))
+
     runtimeOnly(libs.parsson)
 }
 
