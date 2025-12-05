@@ -28,6 +28,7 @@ pluginManagement {
 // spi
 include(":spi:v-auth-spi")
 include(":spi:v-core-spi")
+include(":spi:iam:decentralized-claims:dcp-scope-spi")
 
 // core
 include(":core:v-connector-core")
@@ -60,6 +61,7 @@ include(":extensions:transfer-process-subscriber-nats")
 include(":extensions:lib:nats-lib")
 include(":extensions:common:api:api-authentication")
 include(":extensions:common:api:api-authorization")
+include(":extensions:iam:decentralized-claims:dcp-scope-core")
 
 // APIs
 include(":extensions:control-plane:api:management-api:asset-api")

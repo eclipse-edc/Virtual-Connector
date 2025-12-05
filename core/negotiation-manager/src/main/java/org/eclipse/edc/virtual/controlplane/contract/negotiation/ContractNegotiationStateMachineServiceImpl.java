@@ -147,7 +147,17 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
                 return StatusResult.success();
             }
 
-            return handler.function.apply(negotiation);
+            var result = handler.function.apply(negotiation);
+            if (result.fatalError()) {
+                monitor.severe("Processing contract negotiation with id '%s' in state '%s' failed: %s"
+                        .formatted(negotiationId, expectedState, result.getFailureDetail()));
+                transitionToTerminated(negotiation, "Fatal error during processing: %s".formatted(result.getFailureDetail()));
+                return StatusResult.success();
+            } else {
+                return result;
+
+            }
+
         });
 
     }
