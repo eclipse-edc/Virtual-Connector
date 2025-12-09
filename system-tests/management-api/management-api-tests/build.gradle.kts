@@ -42,6 +42,8 @@ dependencies {
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.postgres)
     testImplementation(testFixtures(project(":extensions:lib:nats-lib")))
+    testImplementation(testFixtures(libs.edc.lib.oauth2.authn))
+
     testImplementation(project(":system-tests:system-test-fixtures"))
 
     testRuntimeOnly(libs.bouncyCastle.bcprovJdk18on)

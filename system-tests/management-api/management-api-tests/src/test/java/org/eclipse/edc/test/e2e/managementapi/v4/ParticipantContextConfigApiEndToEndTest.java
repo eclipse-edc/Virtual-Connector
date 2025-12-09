@@ -14,12 +14,9 @@
 
 package org.eclipse.edc.test.e2e.managementapi.v4;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import io.restassured.http.ContentType;
+import org.eclipse.edc.api.authentication.OauthServer;
+import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
@@ -35,7 +32,6 @@ import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
 import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -44,13 +40,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
@@ -63,31 +53,8 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class ParticipantContextConfigApiEndToEndTest {
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
-
-        @Order(0)
-        @RegisterExtension
-        static WireMockExtension mockJwksServer = WireMockExtension.newInstance()
-                .options(wireMockConfig().dynamicPort())
-                .build();
-
-        static ECKey oauthServerSigningKey;
-
-        @BeforeEach
-        void setup() throws JOSEException {
-            oauthServerSigningKey = new ECKeyGenerator(Curve.P_256).keyID(UUID.randomUUID().toString()).generate();
-
-            var jwks = createObjectBuilder()
-                    .add("keys", createArrayBuilder().add(createObjectBuilder(oauthServerSigningKey.toPublicJWK().toJSONObject())))
-                    .build()
-                    .toString();
-
-            mockJwksServer.stubFor(any(urlPathEqualTo("/.well-known/jwks"))
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(jwks)));
-        }
 
         @AfterEach
         void tearDown(ParticipantContextService pcService) {
@@ -97,7 +64,7 @@ public class ParticipantContextConfigApiEndToEndTest {
         }
 
         @Test
-        void set(ManagementEndToEndTestContext context, ParticipantContextConfigService service) {
+        void set(ManagementEndToEndTestContext context, OauthServer authServer, ParticipantContextConfigService service) {
             var participantContextId = "test-user";
 
             var entries = Map.of("key1", "value1", "key2", "value2");
@@ -109,7 +76,7 @@ public class ParticipantContextConfigApiEndToEndTest {
                     .build()
                     .toString();
 
-            var token = context.createProvisionerToken(oauthServerSigningKey);
+            var token = authServer.createProvisionerToken();
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -126,7 +93,7 @@ public class ParticipantContextConfigApiEndToEndTest {
         }
 
         @Test
-        void set_validationFails(ManagementEndToEndTestContext context) {
+        void set_validationFails(ManagementEndToEndTestContext context, OauthServer authServer) {
             var participantContextId = "test-user";
 
             var body = createObjectBuilder()
@@ -136,7 +103,7 @@ public class ParticipantContextConfigApiEndToEndTest {
                     .build()
                     .toString();
 
-            var token = context.createProvisionerToken(oauthServerSigningKey);
+            var token = authServer.createProvisionerToken();
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -149,7 +116,7 @@ public class ParticipantContextConfigApiEndToEndTest {
         }
 
         @Test
-        void set_notAuthorized(ManagementEndToEndTestContext context, ParticipantContextService srv) {
+        void set_notAuthorized(ManagementEndToEndTestContext context, OauthServer authServer, ParticipantContextService srv) {
             var participantContextId = "test-user";
             createParticipant(srv, participantContextId);
 
@@ -161,7 +128,7 @@ public class ParticipantContextConfigApiEndToEndTest {
                     .build()
                     .toString();
 
-            var token = context.createToken(participantContextId, oauthServerSigningKey);
+            var token = authServer.createToken(participantContextId);
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -173,14 +140,14 @@ public class ParticipantContextConfigApiEndToEndTest {
         }
 
         @Test
-        void get(ManagementEndToEndTestContext context, ParticipantContextConfigService srv) {
+        void get(ManagementEndToEndTestContext context, OauthServer authServer, ParticipantContextConfigService srv) {
             var participantContextId = "test-user";
             var entries = Map.of("key1", "value1", "key2", "value2");
 
             srv.save(ParticipantContextConfiguration.Builder.newInstance().participantContextId(participantContextId)
                     .entries(entries)
                     .build());
-            var token = context.createAdminToken(oauthServerSigningKey);
+            var token = authServer.createAdminToken();
 
             var su = context.baseRequest(token)
                     .get("/v4alpha/participants/" + participantContextId + "/config")
@@ -191,11 +158,11 @@ public class ParticipantContextConfigApiEndToEndTest {
         }
 
         @Test
-        void get_notAuthorized(ManagementEndToEndTestContext context, ParticipantContextService srv) {
+        void get_notAuthorized(ManagementEndToEndTestContext context, OauthServer authServer, ParticipantContextService srv) {
             var participantContextId = "test-user";
             createParticipant(srv, participantContextId);
 
-            var token = context.createToken(participantContextId, oauthServerSigningKey);
+            var token = authServer.createToken(participantContextId);
 
             context.baseRequest(token)
                     .get("/v4alpha/participants/" + participantContextId + "/config")
@@ -210,6 +177,11 @@ public class ParticipantContextConfigApiEndToEndTest {
     @EndToEndTest
     class InMemory extends Tests {
 
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
+        @Order(1)
         @RegisterExtension
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
@@ -217,13 +189,17 @@ public class ParticipantContextConfigApiEndToEndTest {
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .build();
     }
 
     @Nested
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
+
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
 
         @RegisterExtension
         @Order(0)
@@ -250,7 +226,7 @@ public class ParticipantContextConfigApiEndToEndTest {
                 .configurationProvider(() -> POSTGRES_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(Postgres::runtimeConfiguration)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
 
