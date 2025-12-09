@@ -24,7 +24,7 @@ updates:
       interval: "weekly" # default = monday
     open-pull-requests-limit: 5
     labels:
-      - "dependabot"
+      - "dependencies"
       - "github_actions"
 
   # maintain dependencies for Gradle
@@ -34,7 +34,7 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 5
     labels:
-      - "dependabot"
+      - "dependencies"
       - "java"
     ignore:
       - dependency-name: "org.eclipse.edc:edc-versions"
@@ -44,7 +44,7 @@ updates:
     target-branch: main
     directory: "./runtimes/controlplane/src/main/docker/"
     labels:
-      - "dependabot"
+      - "dependencies"
       - "docker"
     schedule:
       interval: "weekly"
@@ -54,7 +54,7 @@ updates:
     target-branch: main
     directory: "./runtimes/dataplane/src/main/docker/"
     labels:
-      - "dependabot"
+      - "dependencies"
       - "docker"
     schedule:
       interval: "weekly"
