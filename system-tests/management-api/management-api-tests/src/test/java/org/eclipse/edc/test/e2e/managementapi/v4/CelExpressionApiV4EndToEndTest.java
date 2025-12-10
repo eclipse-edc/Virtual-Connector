@@ -14,12 +14,10 @@
 
 package org.eclipse.edc.test.e2e.managementapi.v4;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.assertj.core.api.Assertions;
+import org.eclipse.edc.api.authentication.OauthServer;
+import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
@@ -49,12 +47,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.restassured.http.ContentType.JSON;
-import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -74,16 +67,11 @@ import static org.hamcrest.Matchers.is;
 public class CelExpressionApiV4EndToEndTest {
 
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
         private static final String PARTICIPANT_CONTEXT_ID = "test-participant";
-        @Order(0)
-        @RegisterExtension
-        static WireMockExtension mockJwksServer = WireMockExtension.newInstance()
-                .options(wireMockConfig().dynamicPort())
-                .build();
         private String adminToken;
-        private ECKey oauthServerSigningKey;
 
         private CelExpression expression(String leftOperand, String expr) {
             return CelExpression.Builder.newInstance().id(UUID.randomUUID().toString())
@@ -94,25 +82,10 @@ public class CelExpressionApiV4EndToEndTest {
         }
 
         @BeforeEach
-        void setup(ManagementEndToEndTestContext context, ParticipantContextService participantContextService) throws JOSEException {
+        void setup(OauthServer authServer, ParticipantContextService participantContextService) throws JOSEException {
             createParticipant(participantContextService, PARTICIPANT_CONTEXT_ID);
 
-            // stub JWKS endpoint at /jwks/ returning 200 OK with a simple JWKS
-            oauthServerSigningKey = new ECKeyGenerator(Curve.P_256).keyID(UUID.randomUUID().toString()).generate();
-            adminToken = context.createAdminToken(oauthServerSigningKey);
-
-            // create JWKS with the participant's key
-            var jwks = createObjectBuilder()
-                    .add("keys", createArrayBuilder().add(createObjectBuilder(oauthServerSigningKey.toPublicJWK().toJSONObject())))
-                    .build()
-                    .toString();
-
-            // use wiremock to host a JWKS endpoint
-            mockJwksServer.stubFor(any(urlPathEqualTo("/.well-known/jwks"))
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(jwks)));
+            adminToken = authServer.createAdminToken();
         }
 
         @AfterEach
@@ -168,7 +141,7 @@ public class CelExpressionApiV4EndToEndTest {
         }
 
         @Test
-        void create_NotAdmin(ManagementEndToEndTestContext context, ParticipantContextService service) {
+        void create_NotAdmin(ManagementEndToEndTestContext context, OauthServer authServer) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "CelExpression")
@@ -176,7 +149,7 @@ public class CelExpressionApiV4EndToEndTest {
                     .add("expression", "ctx.agent.id == 'agent-123'")
                     .build();
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:write"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:write"));
 
             context.baseRequest(token)
                     .body(requestBody.toString())
@@ -189,7 +162,7 @@ public class CelExpressionApiV4EndToEndTest {
         }
 
         @Test
-        void get(ManagementEndToEndTestContext context, CelExpressionStore store, ParticipantContextService srv) {
+        void get(ManagementEndToEndTestContext context, CelExpressionStore store) {
             var expr = expression("leftOperand", "ctx.agent.id == 'agent-123'");
             store.create(expr)
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
@@ -210,13 +183,13 @@ public class CelExpressionApiV4EndToEndTest {
 
 
         @Test
-        void get_NotAdmin(ManagementEndToEndTestContext context, CelExpressionStore store) {
+        void get_NotAdmin(ManagementEndToEndTestContext context, CelExpressionStore store, OauthServer authServer) {
 
             var expr = expression("leftOperand", "ctx.agent.id == 'agent-123'");
             store.create(expr)
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -263,7 +236,7 @@ public class CelExpressionApiV4EndToEndTest {
         }
 
         @Test
-        void query_NotAdmin(ManagementEndToEndTestContext context, CelExpressionStore store) {
+        void query_NotAdmin(ManagementEndToEndTestContext context, CelExpressionStore store, OauthServer authServer) {
             var expr = expression("leftOperand", "ctx.agent.id == 'agent-123'");
             store.create(expr)
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
@@ -272,7 +245,7 @@ public class CelExpressionApiV4EndToEndTest {
                     criterion("id", "=", expr.getId())
             );
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
 
             context.baseRequest(token)
                     .body(matchingQuery.toString())
@@ -331,14 +304,14 @@ public class CelExpressionApiV4EndToEndTest {
         }
 
         @Test
-        void update_NotAdmin(ManagementEndToEndTestContext context) {
+        void update_NotAdmin(ManagementEndToEndTestContext context, OauthServer authServer) {
 
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "CelExpression")
                     .build();
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:write"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:write"));
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -372,9 +345,9 @@ public class CelExpressionApiV4EndToEndTest {
 
 
         @Test
-        void delete_NotAdmin(ManagementEndToEndTestContext context) {
+        void delete_NotAdmin(ManagementEndToEndTestContext context, OauthServer authServer) {
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:write"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:write"));
 
             context.baseRequest(token)
                     .delete("/v4alpha/celexpressions/id")
@@ -388,6 +361,11 @@ public class CelExpressionApiV4EndToEndTest {
     @EndToEndTest
     class InMemory extends Tests {
 
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
+        @Order(1)
         @RegisterExtension
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
@@ -395,13 +373,17 @@ public class CelExpressionApiV4EndToEndTest {
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .build();
     }
 
     @Nested
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
+
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
 
         @RegisterExtension
         @Order(0)
@@ -428,7 +410,7 @@ public class CelExpressionApiV4EndToEndTest {
                 .configurationProvider(() -> POSTGRES_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(Postgres::runtimeConfiguration)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
 

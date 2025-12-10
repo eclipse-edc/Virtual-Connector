@@ -14,11 +14,9 @@
 
 package org.eclipse.edc.test.e2e.managementapi.v4;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import org.eclipse.edc.api.authentication.OauthServer;
+import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
@@ -61,10 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -83,44 +77,23 @@ import static org.hamcrest.Matchers.matchesRegex;
 @ApiTest
 public class CatalogApiV4EndToEndTest {
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
         private static final String PARTICIPANT_CONTEXT_ID = "test-participant";
         /**
          * This means that all Catalog requests will ultimately loop back to this runtime's own DSP API
          */
         public static final String COUNTER_PARTY_ID = PARTICIPANT_CONTEXT_ID;
-        @Order(0)
-        @RegisterExtension
-        static WireMockExtension mockJwksServer = WireMockExtension.newInstance()
-                .options(wireMockConfig().dynamicPort())
-                .build();
+
         private String participantTokenJwt;
-        private ECKey oauthServerSigningKey;
 
         @BeforeEach
-        void setup(ManagementEndToEndTestContext context, ParticipantContextService participantContextService, ParticipantContextConfigStore configStore)
+        void setup(OauthServer authServer, ParticipantContextService participantContextService, ParticipantContextConfigStore configStore)
                 throws JOSEException {
 
             createParticipant(participantContextService, configStore, PARTICIPANT_CONTEXT_ID);
 
-
-            // stub JWKS endpoint at /jwks/ returning 200 OK with a simple JWKS
-            oauthServerSigningKey = new ECKeyGenerator(Curve.P_256).keyID(UUID.randomUUID().toString()).generate();
-            participantTokenJwt = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey);
-
-            // create JWKS with the participant's key
-            var jwks = createObjectBuilder()
-                    .add("keys", createArrayBuilder().add(createObjectBuilder(
-                            oauthServerSigningKey.toPublicJWK().toJSONObject())))
-                    .build()
-                    .toString();
-
-            // use wiremock to host a JWKS endpoint
-            mockJwksServer.stubFor(any(urlPathEqualTo("/.well-known/jwks"))
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(jwks)));
+            participantTokenJwt = authServer.createToken(PARTICIPANT_CONTEXT_ID);
         }
 
         @AfterEach
@@ -134,7 +107,9 @@ public class CatalogApiV4EndToEndTest {
         }
 
         @Test
-        void requestCatalog_tokenBearerNotOwner(ManagementEndToEndTestContext context, ParticipantContextService srv, ParticipantContextConfigStore store) {
+        void requestCatalog_tokenBearerNotOwner(ManagementEndToEndTestContext context,
+                                                OauthServer authServer,
+                                                ParticipantContextService srv, ParticipantContextConfigStore store) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
@@ -146,7 +121,7 @@ public class CatalogApiV4EndToEndTest {
 
             var otherParticipant = "other-participant";
             createParticipant(srv, store, otherParticipant);
-            var token = context.createToken(otherParticipant, oauthServerSigningKey);
+            var token = authServer.createToken(otherParticipant);
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -159,7 +134,7 @@ public class CatalogApiV4EndToEndTest {
         }
 
         @Test
-        void requestCatalog_tokenBearerIsAdmin(ManagementEndToEndTestContext context) {
+        void requestCatalog_tokenBearerIsAdmin(ManagementEndToEndTestContext context, OauthServer authServer) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
@@ -169,7 +144,7 @@ public class CatalogApiV4EndToEndTest {
                     .build()
                     .toString();
 
-            context.baseRequest(context.createAdminToken(oauthServerSigningKey))
+            context.baseRequest(authServer.createAdminToken())
                     .contentType(JSON)
                     .body(requestBody)
                     .post("/v4alpha/participants/%s/catalog/request".formatted(PARTICIPANT_CONTEXT_ID))
@@ -181,7 +156,7 @@ public class CatalogApiV4EndToEndTest {
         }
 
         @Test
-        void requestCatalog_tokenLacksScope(ManagementEndToEndTestContext context) {
+        void requestCatalog_tokenLacksScope(ManagementEndToEndTestContext context, OauthServer authServer) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
@@ -191,7 +166,7 @@ public class CatalogApiV4EndToEndTest {
                     .build()
                     .toString();
 
-            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:fizzbuzz"));
+            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:fizzbuzz"));
 
             context.baseRequest(offendingToken)
                     .contentType(JSON)
@@ -204,7 +179,7 @@ public class CatalogApiV4EndToEndTest {
         }
 
         @Test
-        void requestCatalog_tokenHasWrongRole(ManagementEndToEndTestContext context) {
+        void requestCatalog_tokenHasWrongRole(ManagementEndToEndTestContext context, OauthServer authServer) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
@@ -214,7 +189,7 @@ public class CatalogApiV4EndToEndTest {
                     .build()
                     .toString();
 
-            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("role", "some-role"));
+            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "some-role"));
 
             context.baseRequest(offendingToken)
                     .contentType(JSON)
@@ -445,7 +420,9 @@ public class CatalogApiV4EndToEndTest {
         }
 
         @Test
-        void getDataset_tokenBearerNotOwner(ManagementEndToEndTestContext context, ParticipantContextService srv, ParticipantContextConfigStore store) {
+        void getDataset_tokenBearerNotOwner(ManagementEndToEndTestContext context,
+                                            OauthServer authServer,
+                                            ParticipantContextService srv, ParticipantContextConfigStore store) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
@@ -459,7 +436,7 @@ public class CatalogApiV4EndToEndTest {
 
             var otherParticipant = "other-participant";
             createParticipant(srv, store, otherParticipant);
-            var token = context.createToken(otherParticipant, oauthServerSigningKey);
+            var token = authServer.createToken(otherParticipant);
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -474,7 +451,7 @@ public class CatalogApiV4EndToEndTest {
         @Test
         void getDataset_tokenBearerIsAdmin(ManagementEndToEndTestContext context, DataPlaneInstanceStore dataPlaneInstanceStore,
                                            PolicyDefinitionStore policyDefinitionStore, ContractDefinitionStore contractDefinitionStore,
-                                           AssetIndex assetIndex) {
+                                           AssetIndex assetIndex, OauthServer authServer) {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
                     .allowedSourceType("test-type").allowedTransferType("any-PULL").build();
             dataPlaneInstanceStore.save(dataPlaneInstance);
@@ -491,7 +468,7 @@ public class CatalogApiV4EndToEndTest {
                     .build()
                     .toString();
 
-            context.baseRequest(context.createAdminToken(oauthServerSigningKey))
+            context.baseRequest(authServer.createAdminToken())
                     .contentType(JSON)
                     .body(requestBody)
                     .post("/v4alpha/participants/%s/catalog/dataset/request".formatted(PARTICIPANT_CONTEXT_ID))
@@ -505,7 +482,7 @@ public class CatalogApiV4EndToEndTest {
         }
 
         @Test
-        void getDataset_tokenLacksScope(ManagementEndToEndTestContext context) {
+        void getDataset_tokenLacksScope(ManagementEndToEndTestContext context, OauthServer authServer) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
@@ -516,7 +493,7 @@ public class CatalogApiV4EndToEndTest {
                     .build()
                     .toString();
 
-            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:fizzbuzz"));
+            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:fizzbuzz"));
 
             context.baseRequest(offendingToken)
                     .contentType(JSON)
@@ -529,7 +506,7 @@ public class CatalogApiV4EndToEndTest {
         }
 
         @Test
-        void getDataset_tokenHasWrongRole(ManagementEndToEndTestContext context) {
+        void getDataset_tokenHasWrongRole(ManagementEndToEndTestContext context, OauthServer authServer) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
@@ -540,7 +517,7 @@ public class CatalogApiV4EndToEndTest {
                     .build()
                     .toString();
 
-            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("role", "some-role"));
+            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "some-role"));
 
             context.baseRequest(offendingToken)
                     .contentType(JSON)
@@ -616,6 +593,10 @@ public class CatalogApiV4EndToEndTest {
     @EndToEndTest
     class InMemory extends Tests {
 
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
         @Order(1)
         @RegisterExtension
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
@@ -623,8 +604,7 @@ public class CatalogApiV4EndToEndTest {
                 .modules(Runtimes.ControlPlane.MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url",
-                        "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .paramProvider(ManagementEndToEndTestContext.class,
                         ManagementEndToEndTestContext::forContext)
                 .build();
@@ -633,6 +613,10 @@ public class CatalogApiV4EndToEndTest {
     @Nested
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
+
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
 
         @RegisterExtension
         @Order(0)
@@ -660,12 +644,9 @@ public class CatalogApiV4EndToEndTest {
                 .configurationProvider(() -> POSTGRES_EXTENSION
                         .configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(NATS_EXTENSION::configFor)
-                .configurationProvider(
-                        CatalogApiV4EndToEndTest.Postgres::runtimeConfiguration)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url",
-                        "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
-                .paramProvider(ManagementEndToEndTestContext.class,
-                        ManagementEndToEndTestContext::forContext)
+                .configurationProvider(CatalogApiV4EndToEndTest.Postgres::runtimeConfiguration)
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
 
         private static Config runtimeConfiguration() {

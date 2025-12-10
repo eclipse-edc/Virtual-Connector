@@ -14,14 +14,12 @@
 
 package org.eclipse.edc.test.e2e.managementapi.v4;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import io.restassured.http.ContentType;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObjectBuilder;
+import org.eclipse.edc.api.authentication.OauthServer;
+import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -50,10 +48,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -78,40 +72,20 @@ import static org.hamcrest.Matchers.notNullValue;
  */
 public class AssetApiV4EndToEndTest {
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
         private static final String PARTICIPANT_CONTEXT_ID = "test-participant";
-        @Order(0)
-        @RegisterExtension
-        static WireMockExtension mockJwksServer = WireMockExtension.newInstance()
-                .options(wireMockConfig().dynamicPort())
-                .build();
+
         private String participantTokenJwt;
-        private ECKey oauthServerSigningKey;
 
         @BeforeEach
-        void setup(ManagementEndToEndTestContext context, ParticipantContextService participantContextService)
+        void setup(OauthServer authServer, ParticipantContextService participantContextService)
                 throws JOSEException {
             createParticipant(participantContextService, PARTICIPANT_CONTEXT_ID);
 
-            // stub JWKS endpoint at /jwks/ returning 200 OK with a simple JWKS
-            oauthServerSigningKey = new ECKeyGenerator(Curve.P_256).keyID(UUID.randomUUID().toString())
-                    .generate();
-            participantTokenJwt = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey);
+            participantTokenJwt = authServer.createToken(PARTICIPANT_CONTEXT_ID);
 
-            // create JWKS with the participant's key
-            var jwks = createObjectBuilder()
-                    .add("keys", createArrayBuilder().add(createObjectBuilder(
-                            oauthServerSigningKey.toPublicJWK().toJSONObject())))
-                    .build()
-                    .toString();
-
-            // use wiremock to host a JWKS endpoint
-            mockJwksServer.stubFor(any(urlPathEqualTo("/.well-known/jwks"))
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(jwks)));
         }
 
         @AfterEach
@@ -174,6 +148,7 @@ public class AssetApiV4EndToEndTest {
 
         @Test
         void updateAsset_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context,
+                                                       OauthServer authServer,
                                                        AssetIndex assetIndex, ParticipantContextService srv) {
             var asset = createAsset().build();
             assetIndex.create(asset);
@@ -182,7 +157,7 @@ public class AssetApiV4EndToEndTest {
 
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
-            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+            var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -196,14 +171,13 @@ public class AssetApiV4EndToEndTest {
 
         @Test
         void updateAsset_tokenLacksRequiredScope(ManagementEndToEndTestContext context, AssetIndex assetIndex,
-                                                 ParticipantContextService srv) {
+                                                 OauthServer authServer) {
             var asset = createAsset().build();
             assetIndex.create(asset);
 
             var assetJson = createAssetJson(asset);
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey,
-                    Map.of("scope", "management-api:read"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -216,13 +190,15 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void updateAsset_tokenBearerIsAdmin(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+        void updateAsset_tokenBearerIsAdmin(ManagementEndToEndTestContext context,
+                                            OauthServer authServer,
+                                            AssetIndex assetIndex) {
             var asset = createAsset().build();
             assetIndex.create(asset);
 
             var assetJson = createAssetJson(asset);
 
-            var adminToken = context.createAdminToken(oauthServerSigningKey);
+            var adminToken = authServer.createAdminToken();
 
             context.baseRequest(adminToken)
                     .contentType(ContentType.JSON)
@@ -374,6 +350,7 @@ public class AssetApiV4EndToEndTest {
 
         @Test
         void queryAsset_tokenBearerIsAdmin_shouldReturnAllAssets(ManagementEndToEndTestContext context,
+                                                                 OauthServer authServer,
                                                                  AssetIndex assetIndex) {
             IntStream.range(0, 10)
                     .forEach(i -> {
@@ -390,7 +367,7 @@ public class AssetApiV4EndToEndTest {
 
                     });
 
-            var token = context.createAdminToken(oauthServerSigningKey);
+            var token = authServer.createAdminToken();
 
             var result = context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -447,13 +424,14 @@ public class AssetApiV4EndToEndTest {
 
         @Test
         void queryAsset_tokenBearerNotEqualResourceOwner(ManagementEndToEndTestContext context,
+                                                         OauthServer authServer,
                                                          AssetIndex assetIndex, ParticipantContextService srv) {
             var participantId = UUID.randomUUID().toString();
             srv.createParticipantContext(participantContext(participantId))
                     .orElseThrow(f -> new AssertionError(
                             "ParticipantContext " + participantId + " not created."));
 
-            var token = context.createToken(participantId, oauthServerSigningKey);
+            var token = authServer.createToken(participantId);
 
             var id = UUID.randomUUID().toString();
             assetIndex.create(Asset.Builder.newInstance()
@@ -657,6 +635,7 @@ public class AssetApiV4EndToEndTest {
 
         @Test
         void createAsset_tokenBearerWrong(ManagementEndToEndTestContext context,
+                                          OauthServer authServer,
                                           ParticipantContextService service) {
             var json = createAssetJson(createAsset().build());
             var id = "other-participant";
@@ -664,7 +643,7 @@ public class AssetApiV4EndToEndTest {
                     .orElseThrow(f -> new AssertionError(
                             "ParticipantContext " + id + " not created."));
 
-            var token = context.createToken(id, oauthServerSigningKey);
+            var token = authServer.createToken(id);
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -678,10 +657,10 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void createAsset_tokenLacksWriteScope(ManagementEndToEndTestContext context) {
+        void createAsset_tokenLacksWriteScope(ManagementEndToEndTestContext context, OauthServer authServer) {
             var json = createAssetJson(createAsset().build());
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey,
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID,
                     Map.of("scope", "management-api:read"));
 
             context.baseRequest(token)
@@ -695,10 +674,10 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void createAsset_tokenBearerIsAdmin(ManagementEndToEndTestContext context) {
+        void createAsset_tokenBearerIsAdmin(ManagementEndToEndTestContext context, OauthServer authServer) {
             var json = createAssetJson(createAsset().build());
 
-            var token = context.createAdminToken(oauthServerSigningKey);
+            var token = authServer.createAdminToken();
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -710,10 +689,10 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void createAsset_tokenBearerIsAdmin_participantNotFound(ManagementEndToEndTestContext context) {
+        void createAsset_tokenBearerIsAdmin_participantNotFound(ManagementEndToEndTestContext context, OauthServer authServer) {
             var json = createAssetJson(createAsset().build());
 
-            var token = context.createAdminToken(oauthServerSigningKey);
+            var token = authServer.createAdminToken();
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -769,6 +748,7 @@ public class AssetApiV4EndToEndTest {
 
         @Test
         void findById_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context,
+                                                    OauthServer authServer,
                                                     AssetIndex assetIndex, ParticipantContextService srv) {
             var id = UUID.randomUUID().toString();
             var asset = createAsset().id(id)
@@ -778,7 +758,7 @@ public class AssetApiV4EndToEndTest {
 
             var participantContextId = UUID.randomUUID().toString();
             createParticipant(srv, participantContextId);
-            var token = context.createToken(participantContextId, oauthServerSigningKey);
+            var token = authServer.createToken(participantContextId);
 
             var body = context.baseRequest(token)
                     .header("Authorization", "Bearer " + token)
@@ -792,14 +772,14 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void findById_tokenBearerIsAdmin(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+        void findById_tokenBearerIsAdmin(ManagementEndToEndTestContext context, OauthServer authServer, AssetIndex assetIndex) {
             var id = UUID.randomUUID().toString();
             var asset = createAsset().id(id)
                     .dataAddress(createDataAddress().type("addressType").build())
                     .build();
             assetIndex.create(asset);
 
-            var adminToken = context.createAdminToken(oauthServerSigningKey);
+            var adminToken = authServer.createAdminToken();
             var body = context.baseRequest(adminToken)
                     .get("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
                     .then()
@@ -826,6 +806,7 @@ public class AssetApiV4EndToEndTest {
 
         @Test
         void findById_tokenBearerIsAdmin_wrongOwner(ManagementEndToEndTestContext context,
+                                                    OauthServer authServer,
                                                     AssetIndex assetIndex) {
             var id = UUID.randomUUID().toString();
             var asset = createAsset().id(id)
@@ -833,7 +814,7 @@ public class AssetApiV4EndToEndTest {
                     .build();
             assetIndex.create(asset);
 
-            var adminToken = context.createAdminToken(oauthServerSigningKey);
+            var adminToken = authServer.createAdminToken();
             context.baseRequest(adminToken)
                     .get("/v4alpha/participants/some-other-owner/assets/" + id)
                     .then()
@@ -897,6 +878,10 @@ public class AssetApiV4EndToEndTest {
     @EndToEndTest
     class InMemory extends Tests {
 
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
         @Order(1)
         @RegisterExtension
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
@@ -904,10 +889,8 @@ public class AssetApiV4EndToEndTest {
                 .modules(Runtimes.ControlPlane.MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url",
-                        "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
-                .paramProvider(ManagementEndToEndTestContext.class,
-                        ManagementEndToEndTestContext::forContext)
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
     }
 
@@ -915,20 +898,23 @@ public class AssetApiV4EndToEndTest {
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
 
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
         @RegisterExtension
         @Order(0)
         static final PostgresqlEndToEndExtension POSTGRES_EXTENSION = new PostgresqlEndToEndExtension(
                 createPgContainer());
-
         @Order(0)
         @RegisterExtension
         static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
-
         @Order(1)
         @RegisterExtension
         static final BeforeAllCallback SETUP = context -> {
             POSTGRES_EXTENSION.createDatabase(Runtimes.ControlPlane.NAME.toLowerCase());
         };
+
 
         @Order(2)
         @RegisterExtension
@@ -938,14 +924,11 @@ public class AssetApiV4EndToEndTest {
                 .modules(Runtimes.ControlPlane.PG_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
-                .configurationProvider(() -> POSTGRES_EXTENSION
-                        .configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
+                .configurationProvider(() -> POSTGRES_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(Postgres::runtimeConfiguration)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url",
-                        "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
-                .paramProvider(ManagementEndToEndTestContext.class,
-                        ManagementEndToEndTestContext::forContext)
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
 
         private static Config runtimeConfiguration() {

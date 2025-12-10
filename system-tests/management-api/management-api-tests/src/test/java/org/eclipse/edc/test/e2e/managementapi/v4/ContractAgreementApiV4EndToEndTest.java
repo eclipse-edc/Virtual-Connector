@@ -14,11 +14,9 @@
 
 package org.eclipse.edc.test.e2e.managementapi.v4;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import org.eclipse.edc.api.authentication.OauthServer;
+import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -51,13 +49,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.restassured.http.ContentType.JSON;
-import static jakarta.json.Json.createArrayBuilder;
-import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
@@ -77,38 +69,16 @@ import static org.hamcrest.Matchers.notNullValue;
 
 public class ContractAgreementApiV4EndToEndTest {
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
-        @Order(0)
-        @RegisterExtension
-        static WireMockExtension mockJwksServer = WireMockExtension.newInstance()
-                .options(wireMockConfig().dynamicPort())
-                .build();
-
         private String participantTokenJwt;
-        private ECKey oauthServerSigningKey;
-
 
         @BeforeEach
-        void setup(ManagementEndToEndTestContext context, ParticipantContextService participantContextService) throws JOSEException {
+        void setup(OauthServer authServer, ParticipantContextService participantContextService) throws JOSEException {
             createParticipant(participantContextService, PARTICIPANT_CONTEXT_ID);
 
-            // stub JWKS endpoint at /jwks/ returning 200 OK with a simple JWKS
-            oauthServerSigningKey = new ECKeyGenerator(Curve.P_256).keyID(UUID.randomUUID().toString()).generate();
-            participantTokenJwt = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey);
-
-            // create JWKS with the participant's key
-            var jwks = createObjectBuilder()
-                    .add("keys", createArrayBuilder().add(createObjectBuilder(oauthServerSigningKey.toPublicJWK().toJSONObject())))
-                    .build()
-                    .toString();
-
-            // use wiremock to host a JWKS endpoint
-            mockJwksServer.stubFor(any(urlPathEqualTo("/.well-known/jwks"))
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(jwks)));
+            participantTokenJwt = authServer.createToken(PARTICIPANT_CONTEXT_ID);
         }
 
         @AfterEach
@@ -142,14 +112,16 @@ public class ContractAgreementApiV4EndToEndTest {
         }
 
         @Test
-        void getById_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, ContractNegotiationStore store, ParticipantContextService srv) {
+        void getById_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context,
+                                                   OauthServer authServer,
+                                                   ContractNegotiationStore store, ParticipantContextService srv) {
             var agreement = createContractAgreement("agreement-id");
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
 
-            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+            var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -159,11 +131,11 @@ public class ContractAgreementApiV4EndToEndTest {
         }
 
         @Test
-        void getById_tokenLacksRequiredScope(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+        void getById_tokenLacksRequiredScope(ManagementEndToEndTestContext context, OauthServer authServer, ContractNegotiationStore store) {
             var agreement = createContractAgreement("agreement-id");
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:missing"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:missing"));
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -192,14 +164,16 @@ public class ContractAgreementApiV4EndToEndTest {
         }
 
         @Test
-        void getNegotiationByAgreementId_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, ContractNegotiationStore store, ParticipantContextService srv) {
+        void getNegotiationByAgreementId_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context,
+                                                                       OauthServer authServer,
+                                                                       ContractNegotiationStore store, ParticipantContextService srv) {
             var agreement = createContractAgreement("agreement-id");
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
 
-            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+            var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -209,11 +183,13 @@ public class ContractAgreementApiV4EndToEndTest {
         }
 
         @Test
-        void getNegotiationByAgreementId_tokenLacksRequiredScope(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+        void getNegotiationByAgreementId_tokenLacksRequiredScope(ManagementEndToEndTestContext context,
+                                                                 OauthServer authServer,
+                                                                 ContractNegotiationStore store) {
             var agreement = createContractAgreement("agreement-id");
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:missing"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:missing"));
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -246,11 +222,11 @@ public class ContractAgreementApiV4EndToEndTest {
         }
 
         @Test
-        void query_tokenBearerIsAdmin_shouldReturnAll(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+        void query_tokenBearerIsAdmin_shouldReturnAll(ManagementEndToEndTestContext context, OauthServer authServer, ContractNegotiationStore store) {
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
             store.save(createContractNegotiationBuilder("cn2").contractAgreement(createContractAgreement("cn2")).build());
 
-            var token = context.createAdminToken(oauthServerSigningKey);
+            var token = authServer.createAdminToken();
 
             var jsonPath = context.baseRequest(token)
                     .contentType(JSON)
@@ -271,7 +247,7 @@ public class ContractAgreementApiV4EndToEndTest {
         }
 
         @Test
-        void query_shouldLimitToResourceOwner(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+        void query_shouldLimitToResourceOwner(ManagementEndToEndTestContext context, OauthServer authServer, ContractNegotiationStore store) {
             var otherParticipantId = UUID.randomUUID().toString();
 
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
@@ -279,7 +255,7 @@ public class ContractAgreementApiV4EndToEndTest {
                     .participantContextId(otherParticipantId)
                     .contractAgreement(createContractAgreementBuilder("cn2").participantContextId(otherParticipantId).build()).build());
 
-            var token = context.createAdminToken(oauthServerSigningKey);
+            var token = authServer.createAdminToken();
 
             var jsonPath = context.baseRequest(token)
                     .contentType(JSON)
@@ -297,14 +273,16 @@ public class ContractAgreementApiV4EndToEndTest {
         }
 
         @Test
-        void query_tokenBearerNotEqualResourceOwner(ManagementEndToEndTestContext context, ContractNegotiationStore store, ParticipantContextService srv) {
+        void query_tokenBearerNotEqualResourceOwner(ManagementEndToEndTestContext context,
+                                                    OauthServer authServer,
+                                                    ContractNegotiationStore store, ParticipantContextService srv) {
             var otherParticipantId = UUID.randomUUID().toString();
             srv.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
 
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
 
-            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+            var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -357,6 +335,11 @@ public class ContractAgreementApiV4EndToEndTest {
     @EndToEndTest
     class InMemory extends Tests {
 
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
+        @Order(1)
         @RegisterExtension
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
@@ -364,13 +347,17 @@ public class ContractAgreementApiV4EndToEndTest {
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .build();
     }
 
     @Nested
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
+
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
 
         @RegisterExtension
         @Order(0)
@@ -397,7 +384,7 @@ public class ContractAgreementApiV4EndToEndTest {
                 .configurationProvider(() -> POSTGRES_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(Postgres::runtimeConfiguration)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
 

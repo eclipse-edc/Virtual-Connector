@@ -14,12 +14,10 @@
 
 package org.eclipse.edc.test.e2e.managementapi.v4;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import jakarta.json.JsonObjectBuilder;
+import org.eclipse.edc.api.authentication.OauthServer;
+import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.junit.annotations.ApiTest;
@@ -51,10 +49,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -78,39 +72,19 @@ import static org.hamcrest.Matchers.matchesRegex;
 @ApiTest
 public class ContractDefinitionApiV4EndToEndTest {
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
         private static final String PARTICIPANT_CONTEXT_ID = "test-participant";
-        @Order(0)
-        @RegisterExtension
-        static WireMockExtension mockJwksServer = WireMockExtension.newInstance()
-                .options(wireMockConfig().dynamicPort())
-                .build();
+
         private String participantTokenJwt;
-        private ECKey oauthServerSigningKey;
 
         @BeforeEach
-        void setup(ManagementEndToEndTestContext context, ParticipantContextService participantContextService)
+        void setup(OauthServer authServer, ParticipantContextService participantContextService)
                 throws JOSEException {
             createParticipant(participantContextService, PARTICIPANT_CONTEXT_ID);
 
-            // stub JWKS endpoint at /jwks/ returning 200 OK with a simple JWKS
-            oauthServerSigningKey = new ECKeyGenerator(Curve.P_256).keyID(UUID.randomUUID().toString())
-                    .generate();
-            participantTokenJwt = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey);
+            participantTokenJwt = authServer.createToken(PARTICIPANT_CONTEXT_ID);
 
-            // create JWKS with the participant's key
-            var jwks = createObjectBuilder()
-                    .add("keys", createArrayBuilder().add(createObjectBuilder(
-                            oauthServerSigningKey.toPublicJWK().toJSONObject())))
-                    .build()
-                    .toString();
-
-            // use wiremock to host a JWKS endpoint
-            mockJwksServer.stubFor(any(urlPathEqualTo("/.well-known/jwks"))
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(jwks)));
         }
 
         @AfterEach
@@ -141,7 +115,7 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void create_tokenBearerNotOwner(ManagementEndToEndTestContext context, ContractDefinitionStore store, ParticipantContextService srv) {
+        void create_tokenBearerNotOwner(ManagementEndToEndTestContext context, OauthServer authServer, ParticipantContextService srv) {
             var id = UUID.randomUUID().toString();
             var requestJson = createDefinitionBuilder(id)
                     .build()
@@ -150,7 +124,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             // create a second participant who will make the request
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
-            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+            var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -181,13 +155,13 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void create_tokenBearerIsAdmin(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+        void create_tokenBearerIsAdmin(ManagementEndToEndTestContext context, OauthServer authServer, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             var requestJson = createDefinitionBuilder(id)
                     .build()
                     .toString();
 
-            context.baseRequest(context.createAdminToken(oauthServerSigningKey))
+            context.baseRequest(authServer.createAdminToken())
                     .contentType(JSON)
                     .body(requestJson)
                     .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
@@ -201,14 +175,14 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void create_tokenLacksRequiredScope(ManagementEndToEndTestContext context) {
+        void create_tokenLacksRequiredScope(ManagementEndToEndTestContext context, OauthServer authServer) {
 
             var id = UUID.randomUUID().toString();
             var requestJson = createDefinitionBuilder(id)
                     .build()
                     .toString();
 
-            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
             context.baseRequest(offendingToken)
                     .contentType(JSON)
                     .body(requestJson)
@@ -219,14 +193,14 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void create_tokenHasWrongRole(ManagementEndToEndTestContext context) {
+        void create_tokenHasWrongRole(ManagementEndToEndTestContext context, OauthServer authServer) {
 
             var id = UUID.randomUUID().toString();
             var requestJson = createDefinitionBuilder(id)
                     .build()
                     .toString();
 
-            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("role", "barbaz"));
+            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "barbaz"));
             context.baseRequest(offendingToken)
                     .contentType(JSON)
                     .body(requestJson)
@@ -341,11 +315,11 @@ public class ContractDefinitionApiV4EndToEndTest {
 
 
         @Test
-        void query_tokenBearerIsAdmin(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+        void query_tokenBearerIsAdmin(ManagementEndToEndTestContext context, OauthServer authServer, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             store.save(createContractDefinition(id).build());
 
-            var body = context.baseRequest(context.createAdminToken(oauthServerSigningKey))
+            var body = context.baseRequest(authServer.createAdminToken())
                     .contentType(JSON)
                     .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
                     .then()
@@ -384,12 +358,13 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void query_tokenBearerNotResourceOwner(ManagementEndToEndTestContext context, ContractDefinitionStore store, ParticipantContextService srv) {
+        void query_tokenBearerNotResourceOwner(ManagementEndToEndTestContext context, OauthServer authServer,
+                                               ContractDefinitionStore store, ParticipantContextService srv) {
             var id = UUID.randomUUID().toString();
             store.save(createContractDefinition(id).build());
 
             createParticipant(srv, "another-participant");
-            var token = context.createToken("another-participant", oauthServerSigningKey);
+            var token = authServer.createToken("another-participant");
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -400,11 +375,12 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void query_tokenLacksScope(ManagementEndToEndTestContext context, ContractDefinitionStore store, ParticipantContextService service) {
+        void query_tokenLacksScope(ManagementEndToEndTestContext context, OauthServer authServer,
+                                   ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             store.save(createContractDefinition(id).build());
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:bizzbuzz"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:bizzbuzz"));
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -415,11 +391,11 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void query_tokenHasWrongRole(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+        void query_tokenHasWrongRole(ManagementEndToEndTestContext context, OauthServer authServer, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             store.save(createContractDefinition(id).build());
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("role", "some-role"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "some-role"));
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -446,7 +422,8 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void delete_tokenBearerNotOwner(ManagementEndToEndTestContext context, ContractDefinitionStore store, ParticipantContextService srv) {
+        void delete_tokenBearerNotOwner(ManagementEndToEndTestContext context, OauthServer authServer,
+                                        ContractDefinitionStore store, ParticipantContextService srv) {
             var id = UUID.randomUUID().toString();
             var entity = createContractDefinition(id)
                     .build();
@@ -455,7 +432,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             // create a second participant who will make the request
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
-            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+            var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
                     .delete("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
@@ -488,12 +465,12 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void delete_tokenBearerIsAdmin(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+        void delete_tokenBearerIsAdmin(ManagementEndToEndTestContext context, OauthServer authServer, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             var entity = createContractDefinition(id).build();
             store.save(entity);
 
-            var adminToken = context.createAdminToken(oauthServerSigningKey);
+            var adminToken = authServer.createAdminToken();
             context.baseRequest(adminToken)
                     .delete("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
                     .then()
@@ -505,12 +482,12 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void delete_tokenLacksRequiredScopes(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+        void delete_tokenLacksRequiredScopes(ManagementEndToEndTestContext context, OauthServer authServer, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             var entity = createContractDefinition(id).build();
             store.save(entity);
 
-            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:foobar"));
+            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:foobar"));
 
             context.baseRequest(offendingToken)
                     .delete("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
@@ -519,12 +496,12 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void delete_tokenHasWrongRole(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+        void delete_tokenHasWrongRole(ManagementEndToEndTestContext context, OauthServer authServer, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             var entity = createContractDefinition(id).build();
             store.save(entity);
 
-            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("role", "barbaz"));
+            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "barbaz"));
 
             context.baseRequest(offendingToken)
                     .delete("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
@@ -571,7 +548,7 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void update_tokenBearerNotOwner(ManagementEndToEndTestContext context, ContractDefinitionStore store, ParticipantContextService srv) {
+        void update_tokenBearerNotOwner(ManagementEndToEndTestContext context, OauthServer authServer, ContractDefinitionStore store, ParticipantContextService srv) {
 
             var id = UUID.randomUUID().toString();
             var entity = createContractDefinition(id).build();
@@ -580,7 +557,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             // create a second participant who will make the request
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
-            var offendingToken = context.createToken(otherParticipantId, oauthServerSigningKey);
+            var offendingToken = authServer.createToken(otherParticipantId);
 
 
             var updated = createDefinitionBuilder(id)
@@ -627,7 +604,7 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void update_tokenBearerIsAdmin(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+        void update_tokenBearerIsAdmin(ManagementEndToEndTestContext context, OauthServer authServer, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             var entity = createContractDefinition(id).build();
             store.save(entity);
@@ -637,7 +614,7 @@ public class ContractDefinitionApiV4EndToEndTest {
                     .build()
                     .toString();
 
-            context.baseRequest(context.createAdminToken(oauthServerSigningKey))
+            context.baseRequest(authServer.createAdminToken())
                     .contentType(JSON)
                     .body(updated)
                     .put("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
@@ -646,7 +623,7 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void update_tokenHasWrongRole(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+        void update_tokenHasWrongRole(ManagementEndToEndTestContext context, OauthServer authServer, ContractDefinitionStore store) {
 
             var id = UUID.randomUUID().toString();
             var entity = createContractDefinition(id).build();
@@ -657,7 +634,7 @@ public class ContractDefinitionApiV4EndToEndTest {
                     .build()
                     .toString();
 
-            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("role", "barbaz"));
+            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "barbaz"));
             context.baseRequest(offendingToken)
                     .contentType(JSON)
                     .body(updated)
@@ -667,7 +644,7 @@ public class ContractDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void update_tokenLacksRequiredScopes(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
+        void update_tokenLacksRequiredScopes(ManagementEndToEndTestContext context, OauthServer authServer, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             var entity = createContractDefinition(id).build();
             store.save(entity);
@@ -677,7 +654,7 @@ public class ContractDefinitionApiV4EndToEndTest {
                     .build()
                     .toString();
 
-            var offendingToken = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
             context.baseRequest(offendingToken)
                     .contentType(JSON)
                     .body(updated)
@@ -721,6 +698,10 @@ public class ContractDefinitionApiV4EndToEndTest {
     @EndToEndTest
     class InMemory extends Tests {
 
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
         @Order(1)
         @RegisterExtension
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
@@ -728,16 +709,18 @@ public class ContractDefinitionApiV4EndToEndTest {
                 .modules(Runtimes.ControlPlane.MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url",
-                        "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
-                .paramProvider(ManagementEndToEndTestContext.class,
-                        ManagementEndToEndTestContext::forContext)
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
     }
 
     @Nested
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
+
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
 
         @RegisterExtension
         @Order(0)
@@ -762,15 +745,11 @@ public class ContractDefinitionApiV4EndToEndTest {
                 .modules(Runtimes.ControlPlane.PG_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
-                .configurationProvider(() -> POSTGRES_EXTENSION
-                        .configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
+                .configurationProvider(() -> POSTGRES_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(NATS_EXTENSION::configFor)
-                .configurationProvider(
-                        ContractDefinitionApiV4EndToEndTest.Postgres::runtimeConfiguration)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url",
-                        "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
-                .paramProvider(ManagementEndToEndTestContext.class,
-                        ManagementEndToEndTestContext::forContext)
+                .configurationProvider(ContractDefinitionApiV4EndToEndTest.Postgres::runtimeConfiguration)
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
 
         private static Config runtimeConfiguration() {

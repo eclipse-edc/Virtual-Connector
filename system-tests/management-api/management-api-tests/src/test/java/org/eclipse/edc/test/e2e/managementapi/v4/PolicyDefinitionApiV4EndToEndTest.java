@@ -14,13 +14,11 @@
 
 package org.eclipse.edc.test.e2e.managementapi.v4;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import io.restassured.http.ContentType;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.api.authentication.OauthServer;
+import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -49,10 +47,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -77,38 +71,18 @@ import static org.hamcrest.Matchers.startsWith;
 
 public class PolicyDefinitionApiV4EndToEndTest {
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
         private static final String PARTICIPANT_CONTEXT_ID = "test-participant";
 
-        @Order(0)
-        @RegisterExtension
-        static WireMockExtension mockJwksServer = WireMockExtension.newInstance()
-                .options(wireMockConfig().dynamicPort())
-                .build();
         private String participantTokenJwt;
-        private ECKey oauthServerSigningKey;
 
         @BeforeEach
-        void setup(ManagementEndToEndTestContext context, ParticipantContextService participantContextService) throws JOSEException {
+        void setup(OauthServer authServer, ParticipantContextService participantContextService) throws JOSEException {
             createParticipant(participantContextService, PARTICIPANT_CONTEXT_ID);
 
-            // stub JWKS endpoint at /jwks/ returning 200 OK with a simple JWKS
-            oauthServerSigningKey = new ECKeyGenerator(Curve.P_256).keyID(UUID.randomUUID().toString()).generate();
-            participantTokenJwt = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey);
-
-            // create JWKS with the participant's key
-            var jwks = createObjectBuilder()
-                    .add("keys", createArrayBuilder().add(createObjectBuilder(oauthServerSigningKey.toPublicJWK().toJSONObject())))
-                    .build()
-                    .toString();
-
-            // use wiremock to host a JWKS endpoint
-            mockJwksServer.stubFor(any(urlPathEqualTo("/.well-known/jwks"))
-                    .willReturn(aResponse()
-                            .withStatus(200)
-                            .withHeader("Content-Type", "application/json")
-                            .withBody(jwks)));
+            participantTokenJwt = authServer.createToken(PARTICIPANT_CONTEXT_ID);
         }
 
         @AfterEach
@@ -210,7 +184,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void create_tokenBearerWrong(ManagementEndToEndTestContext context, ParticipantContextService service) {
+        void create_tokenBearerWrong(ManagementEndToEndTestContext context, OauthServer authServer, ParticipantContextService service) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "PolicyDefinition")
@@ -224,7 +198,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
             service.createParticipantContext(participantContext(id))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + id + " not created."));
 
-            var token = context.createToken(id, oauthServerSigningKey);
+            var token = authServer.createToken(id);
 
             context.baseRequest(token)
                     .body(requestBody.toString())
@@ -238,7 +212,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void create_tokenLacksWriteScope(ManagementEndToEndTestContext context, ParticipantContextService service) {
+        void create_tokenLacksWriteScope(ManagementEndToEndTestContext context, OauthServer authServer) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "PolicyDefinition")
@@ -248,7 +222,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                             .build())
                     .build();
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
 
             context.baseRequest(token)
                     .body(requestBody.toString())
@@ -261,7 +235,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void create_tokenBearerIsAdmin(ManagementEndToEndTestContext context) {
+        void create_tokenBearerIsAdmin(ManagementEndToEndTestContext context, OauthServer authServer) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "PolicyDefinition")
@@ -270,7 +244,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                             .add("newKey", "newValue")
                             .build())
                     .build();
-            var token = context.createAdminToken(oauthServerSigningKey);
+            var token = authServer.createAdminToken();
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -282,7 +256,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void create_tokenBearerIsAdmin_participantNotFound(ManagementEndToEndTestContext context) {
+        void create_tokenBearerIsAdmin_participantNotFound(ManagementEndToEndTestContext context, OauthServer authServer) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "PolicyDefinition")
@@ -291,7 +265,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                             .add("newKey", "newValue")
                             .build())
                     .build();
-            var token = context.createAdminToken(oauthServerSigningKey);
+            var token = authServer.createAdminToken();
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -303,7 +277,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void get(ManagementEndToEndTestContext context, PolicyDefinitionStore store, ParticipantContextService srv) {
+        void get(ManagementEndToEndTestContext context, PolicyDefinitionStore store) {
 
             var policy = PolicyDefinition.Builder.newInstance()
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
@@ -323,7 +297,8 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void get_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, PolicyDefinitionStore store, ParticipantContextService srv) {
+        void get_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, OauthServer authServer,
+                                               PolicyDefinitionStore store, ParticipantContextService srv) {
 
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
@@ -334,7 +309,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .build();
             var stored = store.create(policy)
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
-            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+            var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -345,7 +320,8 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void get_tokenLacksRequiredScope(ManagementEndToEndTestContext context, PolicyDefinitionStore store, ParticipantContextService srv) {
+        void get_tokenLacksRequiredScope(ManagementEndToEndTestContext context, OauthServer authServer,
+                                         PolicyDefinitionStore store, ParticipantContextService srv) {
 
             var policy = PolicyDefinition.Builder.newInstance()
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
@@ -353,7 +329,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .build();
             var stored = store.create(policy)
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:missing"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:missing"));
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -414,7 +390,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void query_tokenBearerIsAdmin_shouldReturnAll(ManagementEndToEndTestContext context, PolicyDefinitionStore store) {
+        void query_tokenBearerIsAdmin_shouldReturnAll(ManagementEndToEndTestContext context, OauthServer authServer, PolicyDefinitionStore store) {
             IntStream.range(0, 10)
                     .forEach(i -> {
                         store.create(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build())
@@ -423,7 +399,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
 
                     });
 
-            var token = context.createAdminToken(oauthServerSigningKey);
+            var token = authServer.createAdminToken();
 
             var result = context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -438,7 +414,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void query_shouldLimitToResourceOwner(ManagementEndToEndTestContext context, PolicyDefinitionStore store) {
+        void query_shouldLimitToResourceOwner(ManagementEndToEndTestContext context, OauthServer authServer, PolicyDefinitionStore store) {
             var otherParticipantId = UUID.randomUUID().toString();
 
             var ownPolicy = store.create(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build())
@@ -449,7 +425,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                             .participantContextId(otherParticipantId).build())
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
-            var token = context.createAdminToken(oauthServerSigningKey);
+            var token = authServer.createAdminToken();
 
             var result = context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -464,11 +440,12 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void query_tokenBearerNotEqualResourceOwner(ManagementEndToEndTestContext context, PolicyDefinitionStore store, ParticipantContextService srv) {
+        void query_tokenBearerNotEqualResourceOwner(ManagementEndToEndTestContext context, OauthServer authServer,
+                                                    PolicyDefinitionStore store, ParticipantContextService srv) {
             var participantId = UUID.randomUUID().toString();
             createParticipant(srv, participantId);
 
-            var token = context.createToken(participantId, oauthServerSigningKey);
+            var token = authServer.createToken(participantId);
 
             store.create(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build())
                             .participantContextId(PARTICIPANT_CONTEXT_ID).build())
@@ -584,7 +561,8 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void update_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, PolicyDefinitionStore store, ParticipantContextService srv) {
+        void update_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, OauthServer authServer,
+                                                  PolicyDefinitionStore store, ParticipantContextService srv) {
 
             var policy = PolicyDefinition.Builder.newInstance()
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
@@ -600,7 +578,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .build();
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
-            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+            var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -616,7 +594,8 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void update_tokenLacksRequiredScope(ManagementEndToEndTestContext context, PolicyDefinitionStore store, ParticipantContextService srv) {
+        void update_tokenLacksRequiredScope(ManagementEndToEndTestContext context, OauthServer authServer,
+                                            PolicyDefinitionStore store, ParticipantContextService srv) {
 
             var policy = PolicyDefinition.Builder.newInstance()
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
@@ -631,7 +610,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .add("policy", sampleOdrlPolicy())
                     .build();
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -706,7 +685,8 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void delete_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, PolicyDefinitionStore store, ParticipantContextService srv) {
+        void delete_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, OauthServer authServer,
+                                                  PolicyDefinitionStore store, ParticipantContextService srv) {
 
             var policy = PolicyDefinition.Builder.newInstance()
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
@@ -717,7 +697,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
 
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
-            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+            var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
                     .delete("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
@@ -726,7 +706,8 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void delete_tokenLacksRequiredScope(ManagementEndToEndTestContext context, PolicyDefinitionStore store, ParticipantContextService srv) {
+        void delete_tokenLacksRequiredScope(ManagementEndToEndTestContext context, OauthServer authServer,
+                                            PolicyDefinitionStore store, ParticipantContextService srv) {
 
             var policy = PolicyDefinition.Builder.newInstance()
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
@@ -736,7 +717,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:read"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
 
             context.baseRequest(token)
                     .delete("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
@@ -812,7 +793,8 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void evaluationPlan_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, PolicyDefinitionStore store, ParticipantContextService srv) {
+        void evaluationPlan_tokenBearerDoesNotOwnResource(ManagementEndToEndTestContext context, OauthServer authServer,
+                                                          PolicyDefinitionStore store, ParticipantContextService srv) {
 
             var planBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -829,7 +811,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
 
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
-            var token = context.createToken(otherParticipantId, oauthServerSigningKey);
+            var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -841,7 +823,8 @@ public class PolicyDefinitionApiV4EndToEndTest {
         }
 
         @Test
-        void evaluationPlan_tokenLacksRequiredScope(ManagementEndToEndTestContext context, PolicyDefinitionStore store, ParticipantContextService srv) {
+        void evaluationPlan_tokenLacksRequiredScope(ManagementEndToEndTestContext context, OauthServer authServer,
+                                                    PolicyDefinitionStore store) {
             var planBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "PolicyEvaluationPlanRequest")
@@ -856,7 +839,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
 
-            var token = context.createToken(PARTICIPANT_CONTEXT_ID, oauthServerSigningKey, Map.of("scope", "management-api:missing"));
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:missing"));
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -918,6 +901,11 @@ public class PolicyDefinitionApiV4EndToEndTest {
     @EndToEndTest
     class InMemory extends Tests {
 
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
+        @Order(1)
         @RegisterExtension
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
@@ -925,13 +913,17 @@ public class PolicyDefinitionApiV4EndToEndTest {
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .build();
     }
 
     @Nested
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
+
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
 
         @RegisterExtension
         @Order(0)
@@ -958,7 +950,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                 .configurationProvider(() -> POSTGRES_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(Postgres::runtimeConfiguration)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.oauth2.jwks.url", "http://localhost:" + mockJwksServer.getPort() + "/.well-known/jwks")))
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
 
