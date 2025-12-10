@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.virtual.transfer;
 
+import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
@@ -25,6 +26,7 @@ import org.eclipse.edc.virtual.Runtimes;
 import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
 import org.eclipse.edc.virtual.transfer.fixtures.Participants;
 import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnector;
+import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnectorClient;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -53,13 +55,19 @@ class TransferPullEndToEndTest {
     @EndToEndTest
     class InMemory extends TransferPullEndToEndTestBase {
 
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
         @RegisterExtension
         static final RuntimeExtension CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
                 .modules(Runtimes.ControlPlane.MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .paramProvider(VirtualConnector.class, VirtualConnector::forContext)
+                .paramProvider(VirtualConnectorClient.class, (ctx) -> VirtualConnectorClient.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
                 .paramProvider(Participants.class, context -> participants())
                 .build();
 
@@ -68,6 +76,10 @@ class TransferPullEndToEndTest {
     @Nested
     @PostgresqlIntegrationTest
     class Postgres extends TransferPullEndToEndTestBase {
+
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
 
         @Order(0)
         @RegisterExtension
@@ -90,7 +102,9 @@ class TransferPullEndToEndTest {
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(Postgres::runtimeConfiguration)
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .paramProvider(VirtualConnector.class, VirtualConnector::forContext)
+                .paramProvider(VirtualConnectorClient.class, (ctx) -> VirtualConnectorClient.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
                 .paramProvider(Participants.class, context -> participants())
                 .build();
 

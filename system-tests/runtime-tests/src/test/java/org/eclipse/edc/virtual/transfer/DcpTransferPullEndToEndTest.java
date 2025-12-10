@@ -14,10 +14,8 @@
 
 package org.eclipse.edc.virtual.transfer;
 
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
-import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.identityhub.tests.fixtures.DefaultRuntimes;
 import org.eclipse.edc.identityhub.tests.fixtures.credentialservice.IdentityHub;
 import org.eclipse.edc.identityhub.tests.fixtures.credentialservice.IdentityHubApiClient;
@@ -26,22 +24,21 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.utils.Endpoints;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.policy.model.Operator;
-import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.virtual.Runtimes;
 import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
-import org.eclipse.edc.virtual.policy.cel.model.CelExpression;
-import org.eclipse.edc.virtual.policy.cel.service.CelPolicyExpressionService;
 import org.eclipse.edc.virtual.transfer.fixtures.Participants;
 import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnector;
+import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnectorClient;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.AssetDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.AtomicConstraintDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.CelExpressionDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.DataAddressDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.PermissionDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.PolicyDefinitionDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.PolicyDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
@@ -50,12 +47,11 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.virtual.test.system.fixtures.DockerImages.createPgContainer;
 import static org.eclipse.edc.virtual.transfer.fixtures.TestFunction.setupHolder;
 import static org.eclipse.edc.virtual.transfer.fixtures.TestFunction.setupIssuer;
@@ -115,9 +111,9 @@ class DcpTransferPullEndToEndTest {
 
 
         @Test
-        void httpPull_dataTransfer_withMembershipExpression(VirtualConnector env, Participants participants,
-                                                            TransferProcessService transferService,
-                                                            CelPolicyExpressionService celPolicyExpressionService) {
+        void httpPull_dataTransfer_withMembershipExpression(VirtualConnector env,
+                                                            VirtualConnectorClient connectorClient,
+                                                            Participants participants) {
 
             var leftOperand = "https://w3id.org/example/credentials/MembershipCredential";
             var expression = """
@@ -125,44 +121,28 @@ class DcpTransferPullEndToEndTest {
                     .exists(c, c.type.exists(t, t == 'MembershipCredential'))
                     """;
 
+            var expr = new CelExpressionDto(leftOperand, expression, "membership expression");
+            connectorClient.expressions().createExpression(expr);
+
             var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
-            var expr = CelExpression.Builder.newInstance().id(UUID.randomUUID().toString())
-                    .leftOperand(leftOperand)
-                    .expression(expression)
-                    .description("membership expression")
-                    .build();
-            celPolicyExpressionService.create(expr)
-                    .orElseThrow(f -> new RuntimeException("Failed to store CEL expression: " + f.getFailureDetail()));
 
-            var policy = Policy.Builder.newInstance()
-                    .permission(Permission.Builder
-                            .newInstance()
-                            .action(Action.Builder.newInstance().type(ODRL_SCHEMA + "use").build())
-                            .constraint(AtomicConstraint.Builder.newInstance()
-                                    .leftExpression(new LiteralExpression(leftOperand))
-                                    .operator(Operator.EQ)
-                                    .rightExpression(new LiteralExpression("active"))
-                                    .build())
-                            .build())
-                    .build();
-            var assetId = setup(env, participants.provider(), policy);
-            var transferProcessId = env.startTransfer(participants.consumer().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL", policy);
+            var constraint = new AtomicConstraintDto(leftOperand, "eq", "active");
+            var permission = new PermissionDto(constraint);
+            var policy = new PolicyDto(List.of(permission));
 
-            var consumerTransfer = transferService.findById(transferProcessId);
-            assertThat(consumerTransfer).isNotNull();
+            var assetId = setup(connectorClient, participants.provider(), policy);
+            var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
 
-            var providerTransfer = transferService.findById(consumerTransfer.getCorrelationId());
+            var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
+            var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
 
-            assertThat(providerTransfer).isNotNull();
-
-            assertThat(consumerTransfer.getParticipantContextId()).isEqualTo(participants.consumer().contextId());
-            assertThat(providerTransfer.getParticipantContextId()).isEqualTo(participants.provider().contextId());
+            assertThat(consumerTransfer.getState()).isEqualTo(providerTransfer.getState());
 
         }
 
         @Test
-        void negotiation_fails_withMissingCredential(VirtualConnector env, Participants participants,
-                                                     CelPolicyExpressionService celPolicyExpressionService) {
+        void negotiation_fails_withMissingCredential(VirtualConnector env, VirtualConnectorClient connectorClient,
+                                                     Participants participants) {
 
             var leftOperand = "https://w3id.org/example/credentials/DataAccessCredential";
             var expression = """
@@ -170,60 +150,40 @@ class DcpTransferPullEndToEndTest {
                     .exists(c, c.type.exists(t, t == 'DataAccessCredential'))
                     """;
 
+            var expr = new CelExpressionDto(leftOperand, expression, Set.of("contract.negotiation"), "data credential expression");
+            connectorClient.expressions().createExpression(expr);
+
             var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
-            var expr = CelExpression.Builder.newInstance().id(UUID.randomUUID().toString())
-                    .leftOperand(leftOperand)
-                    .expression(expression)
-                    .scopes(Set.of("contract.negotiation"))
-                    .description("data credential expression")
-                    .build();
-            celPolicyExpressionService.create(expr)
-                    .orElseThrow(f -> new RuntimeException("Failed to store CEL expression: " + f.getFailureDetail()));
 
-            var policy = Policy.Builder.newInstance()
-                    .permission(Permission.Builder
-                            .newInstance()
-                            .action(Action.Builder.newInstance().type(ODRL_SCHEMA + "use").build())
-                            .constraint(AtomicConstraint.Builder.newInstance()
-                                    .leftExpression(new LiteralExpression(leftOperand))
-                                    .operator(Operator.EQ)
-                                    .rightExpression(new LiteralExpression("active"))
-                                    .build())
-                            .build())
-                    .build();
-            var assetId = setup(env, participants.provider(), policy);
-            var negotiationId = env.initContractNegotiation(participants.consumer().contextId(), assetId, policy, providerAddress, participants.provider().id());
+            var constraint = new AtomicConstraintDto(leftOperand, "eq", "active");
+            var permission = new PermissionDto(constraint);
+            var policy = new PolicyDto(List.of(permission));
 
-            env.waitForContractNegotiationState(negotiationId, ContractNegotiationStates.TERMINATED.name());
-            var error = env.getNegotiationError(negotiationId);
+            var assetId = setup(connectorClient, participants.provider(), policy);
+            var negotiationId = connectorClient.initContractNegotiation(participants.consumer().contextId(), assetId, providerAddress, participants.provider().id());
+
+            connectorClient.waitForContractNegotiationState(participants.consumer().contextId(), negotiationId, ContractNegotiationStates.TERMINATED.name());
+            var error = connectorClient.getNegotiationError(participants.consumer().contextId(), negotiationId);
 
             assertThat(error).isNotNull().contains("Unauthorized");
 
         }
 
-        private String setup(VirtualConnector env, Participants.Participant provider, Policy policy) {
+        private String setup(VirtualConnectorClient connectorClient, Participants.Participant provider, PolicyDto policy) {
+            var asset = new AssetDto(new DataAddressDto("HttpData"));
+            var policyDef = new PolicyDefinitionDto(policy);
 
-            var asset = Asset.Builder.newInstance()
-                    .id(UUID.randomUUID().toString())
-                    .dataAddress(DataAddress.Builder.newInstance().type("HttpData").build())
-                    .participantContextId(provider.contextId())
-                    .build();
-
-            var policyDefinition = PolicyDefinition.Builder.newInstance()
-                    .id(UUID.randomUUID().toString())
-                    .policy(policy)
-                    .participantContextId(provider.contextId())
-                    .build();
-
-            env.setupResources(provider.contextId(), asset, policyDefinition, policyDefinition);
-
-            return asset.getId();
+            return connectorClient.setupResources(provider.contextId(), asset, policyDef, policyDef);
         }
     }
 
     @Nested
     @PostgresqlIntegrationTest
     class Postgres extends DcpTransferPullEndToEndTestBase {
+
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
 
         @Order(0)
         @RegisterExtension
@@ -249,6 +209,7 @@ class DcpTransferPullEndToEndTest {
                 .modules(Runtimes.Issuer.MODULES)
                 .endpoints(DefaultRuntimes.Issuer.ENDPOINTS.build())
                 .configurationProvider(DefaultRuntimes.Issuer::config)
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(Runtimes.Issuer.NAME.toLowerCase()))
                 .paramProvider(IssuerService.class, IssuerService::forContext)
                 .build();
@@ -279,8 +240,10 @@ class DcpTransferPullEndToEndTest {
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(Postgres::runtimeConfiguration)
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.did.web.use.https", "false")))
                 .paramProvider(VirtualConnector.class, VirtualConnector::forContext)
+                .paramProvider(VirtualConnectorClient.class, (ctx) -> VirtualConnectorClient.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
                 .paramProvider(Participants.class, context -> participants(IDENTITY_HUB_ENDPOINTS))
                 .build();
 

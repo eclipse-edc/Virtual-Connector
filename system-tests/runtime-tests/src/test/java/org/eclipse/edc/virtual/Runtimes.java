@@ -44,7 +44,8 @@ public interface Runtimes {
 
         Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
                 .endpoint("control", () -> URI.create("http://localhost:" + getFreePort() + "/control"))
-                .endpoint("protocol", () -> URI.create("http://localhost:" + getFreePort() + "/protocol"));
+                .endpoint("protocol", () -> URI.create("http://localhost:" + getFreePort() + "/protocol"))
+                .endpoint("management", () -> URI.create("http://localhost:" + getFreePort() + "/management"));
 
         static Config config() {
             return ConfigFactory.fromMap(new HashMap<>() {
