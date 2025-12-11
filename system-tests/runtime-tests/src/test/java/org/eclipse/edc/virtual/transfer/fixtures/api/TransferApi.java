@@ -1,0 +1,92 @@
+/*
+ *  Copyright (c) 2025 Metaform Systems, Inc.
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Metaform Systems, Inc. - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.virtual.transfer.fixtures.api;
+
+import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnectorClient;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.TransferProcessDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.TransferRequestDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.WithContext;
+
+import static io.restassured.http.ContentType.JSON;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+
+/**
+ * API client for transfer-related operations.
+ */
+public class TransferApi {
+    private final VirtualConnectorClient connector;
+
+    public TransferApi(VirtualConnectorClient connector) {
+        this.connector = connector;
+    }
+
+    /**
+     * Initiates a transfer process in the specified participant context.
+     *
+     * @param participantContextId the participant context ID
+     * @param transferRequest      the transfer request
+     * @return the ID of the initiated transfer process
+     */
+    public String initTransfer(String participantContextId, TransferRequestDto transferRequest) {
+        return connector.baseManagementRequest(participantContextId)
+                .contentType(JSON)
+                .body(new WithContext<>(transferRequest))
+                .when()
+                .post("/v4alpha/participants/%s/transferprocesses".formatted(participantContextId))
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .contentType(JSON)
+                .extract().jsonPath().getString(ID);
+    }
+
+    /**
+     * Retrieves the state of a transfer process in the specified participant context.
+     *
+     * @param participantContextId the participant context ID
+     * @param transferId           the transfer process ID
+     * @return the state of the transfer process
+     */
+    public String getState(String participantContextId, String transferId) {
+        return connector.baseManagementRequest(participantContextId)
+                .contentType(JSON)
+                .when()
+                .get("/v4alpha/participants/%s/transferprocesses/%s/state".formatted(participantContextId, transferId))
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .contentType(JSON)
+                .extract().jsonPath().getString("state");
+    }
+
+    /**
+     * Retrieves a transfer process in the specified participant context.
+     *
+     * @param participantContextId the participant context ID
+     * @param transferId           the transfer process ID
+     * @return the transfer process
+     */
+    public TransferProcessDto getTransferProcess(String participantContextId, String transferId) {
+        return connector.baseManagementRequest(participantContextId)
+                .contentType(JSON)
+                .when()
+                .get("/v4alpha/participants/%s/transferprocesses/%s".formatted(participantContextId, transferId))
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .contentType(JSON)
+                .extract().as(TransferProcessDto.class);
+    }
+}

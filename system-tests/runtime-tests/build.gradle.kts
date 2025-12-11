@@ -40,6 +40,7 @@ dependencies {
     testImplementation(libs.wiremock) {
         exclude("com.networknt", "json-schema-validator")
     }
+    testImplementation(testFixtures(libs.edc.lib.oauth2.authn))
     testImplementation(libs.nimbus.jwt)
     testImplementation(libs.bouncyCastle.bcpkixJdk18on)
 }

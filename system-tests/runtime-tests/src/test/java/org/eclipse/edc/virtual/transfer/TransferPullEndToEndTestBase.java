@@ -18,30 +18,30 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
-import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.junit.annotations.Runtime;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.virtual.Runtimes.ControlPlane;
 import org.eclipse.edc.virtual.transfer.fixtures.Participants;
 import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnector;
+import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnectorClient;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.AssetDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.DataAddressDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.PermissionDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.PolicyDefinitionDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.PolicyDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import java.util.List;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
 abstract class TransferPullEndToEndTestBase {
-
-    protected static final String ASSET_ID = "asset-id";
-    protected static final String POLICY_ID = "policy-id";
 
     @RegisterExtension
     static WireMockExtension callbacksEndpoint = WireMockExtension.newInstance()
@@ -50,14 +50,14 @@ abstract class TransferPullEndToEndTestBase {
 
     @BeforeAll
     static void beforeAll(PublicEndpointGeneratorService generatorService,
-                          VirtualConnector connector,
+                          VirtualConnectorClient connectorClient,
                           Participants participants,
                           @Runtime(ControlPlane.NAME) Vault vault) {
         generatorService.addGeneratorFunction("HttpData", address -> Endpoint.url("http://example.com"));
 
 
-        connector.createParticipant(participants.consumer().contextId(), participants.consumer().id(), participants.consumer().config());
-        connector.createParticipant(participants.provider().contextId(), participants.provider().id(), participants.provider().config());
+        connectorClient.createParticipant(participants.consumer().contextId(), participants.consumer().id(), participants.consumer().config());
+        connectorClient.createParticipant(participants.provider().contextId(), participants.provider().id(), participants.provider().config());
 
         try {
             var key = new ECKeyGenerator(Curve.P_256)
@@ -72,40 +72,27 @@ abstract class TransferPullEndToEndTestBase {
     }
 
     @Test
-    void httpPull_dataTransfer(VirtualConnector env, Participants participants, TransferProcessService transferService) {
+    void httpPull_dataTransfer(VirtualConnector env, VirtualConnectorClient connectorClient, Participants participants) {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
-        var assetId = setup(env, participants.provider());
-        var transferProcessId = env.startTransfer(participants.consumer().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+        var assetId = setup(connectorClient, participants.provider());
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
 
-        var consumerTransfer = transferService.findById(transferProcessId);
-        assertThat(consumerTransfer).isNotNull();
+        var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
+        var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
 
-        var providerTransfer = transferService.findById(consumerTransfer.getCorrelationId());
-
-        assertThat(providerTransfer).isNotNull();
-
-        assertThat(consumerTransfer.getParticipantContextId()).isEqualTo(participants.consumer().contextId());
-        assertThat(providerTransfer.getParticipantContextId()).isEqualTo(participants.provider().contextId());
+        assertThat(consumerTransfer.getState()).isEqualTo(providerTransfer.getState());
 
     }
 
-    private String setup(VirtualConnector env, Participants.Participant provider) {
-        var asset = Asset.Builder.newInstance()
-                .id(ASSET_ID)
-                .dataAddress(DataAddress.Builder.newInstance().type("HttpData").build())
-                .participantContextId(provider.contextId())
-                .build();
+    private String setup(VirtualConnectorClient connectorClient, Participants.Participant provider) {
+        var asset = new AssetDto(new DataAddressDto("HttpData"));
 
-        var policyDefinition = PolicyDefinition.Builder.newInstance()
-                .id(POLICY_ID)
-                .policy(Policy.Builder.newInstance().build())
-                .participantContextId(provider.contextId())
-                .build();
+        var permissions = List.of(new PermissionDto());
+        var policyDef = new PolicyDefinitionDto(new PolicyDto(permissions));
 
-        env.setupResources(provider.contextId(), asset, policyDefinition, policyDefinition);
+        return connectorClient.setupResources(provider.contextId(), asset, policyDef, policyDef);
 
-        return asset.getId();
     }
 
 }
