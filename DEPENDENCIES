@@ -262,6 +262,7 @@ maven/mavencentral/org.eclipse.edc/dcp-spi/0.16.0-SNAPSHOT, Apache-2.0, approved
 maven/mavencentral/org.eclipse.edc/dcp-transform-lib/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/dcp-validation-lib/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/decentralized-claims-core/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
+maven/mavencentral/org.eclipse.edc/decentralized-claims-issuers-configuration/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/decentralized-claims-lib/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/decentralized-claims-service/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/decentralized-claims-spi/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
@@ -429,8 +430,6 @@ maven/mavencentral/org.eclipse.edc/transform-spi/0.16.0-SNAPSHOT, Apache-2.0, ap
 maven/mavencentral/org.eclipse.edc/util-lib/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/validator-lib/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/validator-spi/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
-maven/mavencentral/org.eclipse.edc/vault-hashicorp-spi/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
-maven/mavencentral/org.eclipse.edc/vault-hashicorp/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/verifiable-credential-spi/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/verifiable-credential-validators/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/verifiable-credentials-api/0.16.0-SNAPSHOT, Apache-2.0, approved, technology.edc
