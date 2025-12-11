@@ -17,13 +17,13 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly(project(":extensions:control-plane:api:management-api"))
-    runtimeOnly(project(":core:v-connector-core"))
-    runtimeOnly(project(":core:negotiation-manager"))
-    runtimeOnly(project(":core:transfer-process-manager"))
-    runtimeOnly(project(":extensions:banner-extension"))
-    runtimeOnly(project(":extensions:cel:cel-extension"))
-    runtimeOnly(project(":data-protocols:dsp"))
+    api(project(":extensions:control-plane:api:management-api"))
+    api(project(":core:v-connector-core"))
+    api(project(":core:negotiation-manager"))
+    api(project(":core:transfer-process-manager"))
+    api(project(":extensions:banner-extension"))
+    api(project(":extensions:cel:cel-extension"))
+    api(project(":data-protocols:dsp"))
     runtimeOnly(libs.edc.lib.oauth2.authn)
     runtimeOnly(libs.edc.lib.oauth2.authz)
     runtimeOnly(libs.edc.core.connector)
@@ -32,7 +32,6 @@ dependencies {
     runtimeOnly(libs.edc.core.jersey)
     runtimeOnly(libs.edc.core.jetty)
     runtimeOnly(libs.edc.api.observability)
-    runtimeOnly(libs.bundles.dcp)
     runtimeOnly(libs.edc.core.controlplane) {
         exclude("org.eclipse.edc", "control-plane-contract-manager")
         exclude("org.eclipse.edc", "control-plane-transfer-manager")
@@ -41,9 +40,4 @@ dependencies {
     runtimeOnly(libs.edc.core.dataplane.signaling.client)
     runtimeOnly(libs.edc.core.dataplane.signaling.transfer)
 }
-
-edcBuild {
-    publish.set(false)
-}
-
 

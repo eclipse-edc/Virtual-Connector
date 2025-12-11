@@ -26,14 +26,17 @@ import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessStateMac
 
 public class PostgresChangeDataCaptureDefaultExtension implements ServiceExtension {
 
-    @Inject
+    @Inject(required = false)
     private ContractNegotiationStateMachineService stateMachineService;
 
-    @Inject
+    @Inject(required = false)
     private TransferProcessStateMachineService transferProcessStateMachineService;
 
     @Provider(isDefault = true)
     public ContractNegotiationChangeListener negotiationChangeListener() {
+        if (stateMachineService == null) {
+            throw new IllegalStateException("ContractNegotiationStateMachineService not available");
+        }
         return (before, after) -> {
             var state = ContractNegotiationStates.from(after.getState());
             return stateMachineService.handle(after.getId(), state);
@@ -42,6 +45,9 @@ public class PostgresChangeDataCaptureDefaultExtension implements ServiceExtensi
 
     @Provider(isDefault = true)
     public TransferProcessChangeListener transferProcessChangeListener() {
+        if (transferProcessStateMachineService == null) {
+            throw new IllegalStateException("TransferProcessStateMachineService not available");
+        }
         return (before, after) -> {
             var state = TransferProcessStates.from(after.getState());
             return transferProcessStateMachineService.handle(after.getId(), state);

@@ -18,20 +18,11 @@ plugins {
 
 dependencies {
     implementation(libs.edc.iam.mock)
-    implementation(project(":system-tests:runtimes:controlplane-postgres")) {
-        exclude("org.eclipse.edc", "decentralized-claims-service")
-        exclude("org.eclipse.edc", "decentralized-claims-core")
-        exclude("org.eclipse.edc", "decentralized-claims-sts-remote-client")
-        exclude("org.eclipse.edc", "decentralized-claims-issuers-configuration")
-        exclude("org.eclipse.edc", "vault-hashicorp")
-        exclude("org.eclipse.edc.virtualized", "dcp-scope-core")
-        exclude(module = "dcp-scope-core")
-    }
-    implementation(project(":extensions:postgres-cdc"))
-    implementation(project(":extensions:negotiation-cdc-publisher-nats"))
-    implementation(project(":extensions:negotiation-subscriber-nats"))
-    implementation(project(":extensions:transfer-process-cdc-publisher-nats"))
-    implementation(project(":extensions:transfer-process-subscriber-nats"))
+    implementation(project(":dist:bom:virtual-controlplane-base-bom"))
+    implementation(project(":dist:bom:virtual-controlplane-feature-sql-bom"))
+    implementation(project(":dist:bom:virtual-controlplane-feature-nats-bom"))
+    implementation(project(":dist:bom:virtual-controlplane-feature-nats-cdc-bom"))
+
     runtimeOnly(libs.edc.bom.dataplane) {
         exclude(module = "data-plane-selector-client")
     }

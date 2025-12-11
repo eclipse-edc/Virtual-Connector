@@ -24,23 +24,21 @@ import org.eclipse.edc.junit.utils.LazySupplier;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
+import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.vault.VaultContainer;
 
 import java.net.URI;
 import java.util.HashMap;
 
 import static io.restassured.RestAssured.given;
-import static java.lang.String.format;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.eclipse.edc.virtual.test.system.fixtures.DockerImages.createPgContainer;
 import static org.hamcrest.Matchers.equalTo;
 
 @SuppressWarnings("JUnitMalformedDeclaration")
@@ -102,7 +100,8 @@ public class RuntimeSmokeTests {
         @RegisterExtension
         static final RuntimeExtension RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
                 .name("control-plane-memory")
-                .modules(":system-tests:runtimes:controlplane-memory")
+                .modules(":dist:bom:virtual-controlplane-memory-bom", ":dist:bom:virtual-controlplane-feature-dcp-bom")
+
                 .endpoints(ENDPOINTS.build())
                 .configurationProvider(RuntimeSmokeTests::config)
                 .paramProvider(DefaultEndpoint.class, RuntimeSmokeTests::defaultEndpoint)
@@ -116,12 +115,13 @@ public class RuntimeSmokeTests {
     @Testcontainers
     class ControlPlanePgDcp extends SmokeTest {
 
-        static final String DOCKER_IMAGE_NAME = "hashicorp/vault:1.18.3";
-        static final String TOKEN = "token";
+        @Order(0)
+        @RegisterExtension
+        static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
 
         @Order(0)
         @RegisterExtension
-        static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension();
+        static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension(createPgContainer());
         static final String DB_NAME = "smoke_test";
 
 
@@ -130,20 +130,19 @@ public class RuntimeSmokeTests {
         static final BeforeAllCallback CREATE_DATABASES = context -> {
             POSTGRESQL_EXTENSION.createDatabase(DB_NAME);
         };
-
-        @SuppressWarnings("resource")
-        @Container
-        private static final VaultContainer<?> VAULTCONTAINER = new VaultContainer<>(DOCKER_IMAGE_NAME)
-                .withVaultToken(TOKEN);
-
         @RegisterExtension
         @Order(2)
         static final RuntimeExtension RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
                 .name("control-plane-pg")
-                .modules(":system-tests:runtimes:controlplane-postgres")
+                .modules(":dist:bom:virtual-controlplane-memory-bom",
+                        ":dist:bom:virtual-controlplane-feature-dcp-bom",
+                        ":dist:bom:virtual-controlplane-feature-sql-bom",
+                        ":dist:bom:virtual-controlplane-feature-nats-bom",
+                        ":dist:bom:virtual-controlplane-feature-nats-cdc")
                 .endpoints(ENDPOINTS.build())
                 .configurationProvider(RuntimeSmokeTests::config)
                 .configurationProvider(ControlPlanePgDcp::config)
+                .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(DB_NAME))
                 .paramProvider(DefaultEndpoint.class, RuntimeSmokeTests::defaultEndpoint)
                 .build();
@@ -151,21 +150,68 @@ public class RuntimeSmokeTests {
         private static Config config() {
             return ConfigFactory.fromMap(new HashMap<>() {
                 {
-                    put("edc.vault.hashicorp.url", format("http://localhost:%s", getVaultPort()));
-                    put("edc.vault.hashicorp.token", TOKEN);
                     put("edc.iam.oauth2.issuer", "test-issuer");
                     put("edc.iam.oauth2.jwks.cache.validity", "0");
                     put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
+                    put("edc.postgres.cdc.url", POSTGRESQL_EXTENSION.getJdbcUrl(DB_NAME));
+                    put("edc.postgres.cdc.user", POSTGRESQL_EXTENSION.getUsername());
+                    put("edc.postgres.cdc.password", POSTGRESQL_EXTENSION.getPassword());
+                    put("edc.postgres.cdc.slot", "edc_cdc_slot_" + Runtimes.ControlPlane.NAME.toLowerCase());
                 }
             });
         }
+    }
 
-        private static Integer getVaultPort() {
-            if (!VAULTCONTAINER.isRunning()) {
-                VAULTCONTAINER.start();
-                VAULTCONTAINER.waitingFor(Wait.forHealthcheck());
-            }
-            return VAULTCONTAINER.getFirstMappedPort();
+    @Nested
+    @PostgresqlIntegrationTest
+    @Testcontainers
+    class CdcAgent extends SmokeTest {
+
+        @Order(0)
+        @RegisterExtension
+        static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
+
+        @Order(0)
+        @RegisterExtension
+        static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension(createPgContainer());
+        static final String DB_NAME = "smoke_test";
+
+
+        @Order(1)
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASES = context -> {
+            POSTGRESQL_EXTENSION.createDatabase(DB_NAME);
+        };
+        @RegisterExtension
+        @Order(2)
+        static final RuntimeExtension RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
+                .name("cdc-agent")
+                .modules(":dist:bom:virtual-controlplane-cdc-base-bom",
+                        ":dist:bom:virtual-controlplane-feature-nats-cdc-bom")
+                .endpoints(ENDPOINTS.build())
+                .configurationProvider(RuntimeSmokeTests::config)
+                .configurationProvider(CdcAgent::config)
+                .configurationProvider(NATS_EXTENSION::configFor)
+                .configurationProvider(CdcAgent::pgConfig)
+                .paramProvider(DefaultEndpoint.class, RuntimeSmokeTests::defaultEndpoint)
+                .build();
+
+        private static Config pgConfig() {
+            var cfg = POSTGRESQL_EXTENSION.configFor(DB_NAME);
+            var override = new HashMap<>(cfg.getEntries());
+            override.put("edc.sql.schema.autocreate", "false");
+            return ConfigFactory.fromMap(override);
+        }
+
+        private static Config config() {
+            return ConfigFactory.fromMap(new HashMap<>() {
+                {
+                    put("edc.postgres.cdc.url", POSTGRESQL_EXTENSION.getJdbcUrl(DB_NAME));
+                    put("edc.postgres.cdc.user", POSTGRESQL_EXTENSION.getUsername());
+                    put("edc.postgres.cdc.password", POSTGRESQL_EXTENSION.getPassword());
+                    put("edc.postgres.cdc.slot", "edc_cdc_slot_" + Runtimes.ControlPlane.NAME.toLowerCase());
+                }
+            });
         }
     }
 

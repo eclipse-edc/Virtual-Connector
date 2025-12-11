@@ -81,9 +81,6 @@ include(":extensions:control-plane:api:management-api:v-management-api-schema-va
 include(":extensions:common:api:lib:v-management-api-lib")
 
 include(":system-tests:system-test-fixtures")
-include(":system-tests:runtimes:controlplane-base")
-include(":system-tests:runtimes:controlplane-memory")
-include(":system-tests:runtimes:controlplane-postgres")
 include(":system-tests:runtimes:issuer")
 include(":system-tests:runtimes:identity-hub")
 include(":system-tests:runtime-tests")
@@ -96,5 +93,12 @@ include(":system-tests:runtimes:e2e:e2e-controlplane-memory")
 include(":system-tests:runtimes:e2e:e2e-controlplane-postgres")
 include(":system-tests:runtimes:e2e:e2e-dcp-controlplane-postgres")
 
-
+// BOM modules ----------------------------------------------------------------
+include(":dist:bom:virtual-controlplane-base-bom")
+include(":dist:bom:virtual-controlplane-memory-bom")
+include(":dist:bom:virtual-controlplane-cdc-base-bom")
+include(":dist:bom:virtual-controlplane-feature-dcp-bom")
+include(":dist:bom:virtual-controlplane-feature-sql-bom")
+include(":dist:bom:virtual-controlplane-feature-nats-bom")
+include(":dist:bom:virtual-controlplane-feature-nats-cdc-bom")
 
