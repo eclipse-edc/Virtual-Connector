@@ -18,12 +18,7 @@ plugins {
 
 dependencies {
     implementation(project(":system-tests:extensions:v-tck-extension"));
-    implementation(project(":system-tests:runtimes:controlplane-memory")) {
-        exclude("org.eclipse.edc", "decentralized-claims-service")
-        exclude("org.eclipse.edc", "decentralized-claims-core")
-        exclude("org.eclipse.edc", "decentralized-claims-sts-remote-client")
-        exclude("org.eclipse.edc", "decentralized-claims-issuers-configuration")
-    }
+    implementation(project(":dist:bom:virtual-controlplane-memory-bom"));
     runtimeOnly(libs.edc.tck.extension)
     runtimeOnly(libs.edc.core.participantcontext.single)
     runtimeOnly(libs.edc.bom.dataplane) {

@@ -73,6 +73,7 @@ edc-core-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-co
 edc-core-dataplane-signaling-client = { module = "org.eclipse.edc:data-plane-signaling-client", version.ref = "edc" }
 edc-core-dataplane-signaling-transfer = { module = "org.eclipse.edc:transfer-data-plane-signaling", version.ref = "edc" }
 edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
+edc-core-sql = { module = "org.eclipse.edc:sql-core", version.ref = "edc" }
 
 # EDC Lib modules
 edc-lib-api = { module = "org.eclipse.edc:api-lib", version.ref = "edc" }
@@ -102,17 +103,19 @@ edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 # EDC Extensions modules
 edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
 edc-tck-extension = { module = "org.eclipse.edc:tck-extension", version.ref = "edc" }
-edc-vault-hashicorp = { module = "org.eclipse.edc:vault-hashicorp", version.ref = "edc" }
 edc-crypto-verifiablecredentials-ldp = { module = "org.eclipse.edc:ldp-verifiable-credentials", version.ref = "edc" }
 edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiable-credentials", version.ref = "edc" }
 edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
 edc-participantcontext-store-sql = { module = "org.eclipse.edc:participantcontext-store-sql", version.ref = "edc" }
 edc-participantcontext-config-store-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
+edc-transaction-local = { module = "org.eclipse.edc:transaction-local", version.ref = "edc" }
+edc-sql-pool = { module = "org.eclipse.edc:sql-pool-apache-commons", version.ref = "edc" }
 
 # EDC DCP modules
 edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", version.ref = "edc" }
 edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", version.ref = "edc" }
 edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "edc" }
+edc-iam-dcp-trustedissuers = { module = "org.eclipse.edc:decentralized-claims-issuers-configuration", version.ref = "edc" }
 
 # EDC BOM modules
 edc-bom-controlplane-sql = { module = "org.eclipse.edc:controlplane-feature-sql-bom", version.ref = "edc" }
@@ -154,7 +157,8 @@ dcp = [
     "edc-crypto-verifiablecredentials-ldp",
     "edc-iam-dcp-core",
     "edc-oauth2-client",
-    "edc-iam-decentralized"
+    "edc-iam-decentralized",
+    "edc-iam-dcp-trustedissuers",
 ]
 
 [plugins]

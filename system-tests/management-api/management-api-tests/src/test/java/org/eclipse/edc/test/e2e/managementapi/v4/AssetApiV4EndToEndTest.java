@@ -505,7 +505,6 @@ public class AssetApiV4EndToEndTest {
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "Asset")
                     .add(ID, " ")
-                    .add("properties", createPropertiesBuilder().build())
                     .build()
                     .toString();
 

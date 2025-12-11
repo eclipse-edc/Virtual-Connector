@@ -76,7 +76,6 @@ jobs:
       - uses: ./.github/actions/setup-java
       - name: Postgresql Tests
         run: |
-          ./gradlew shadowJar
           ./gradlew test -DincludeTags="PostgresqlIntegrationTest"
 
   End-To-End-Tests:
@@ -86,5 +85,4 @@ jobs:
       - uses: ./.github/actions/setup-java
       - name: End to End Integration Tests
         run: |
-          ./gradlew shadowJar
           ./gradlew test -DincludeTags="EndToEndTest"

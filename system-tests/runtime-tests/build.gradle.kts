@@ -43,6 +43,13 @@ dependencies {
     testImplementation(testFixtures(libs.edc.lib.oauth2.authn))
     testImplementation(libs.nimbus.jwt)
     testImplementation(libs.bouncyCastle.bcpkixJdk18on)
+
+    testCompileOnly(project(":system-tests:runtimes:e2e:e2e-controlplane-memory"))
+    testCompileOnly(project(":system-tests:runtimes:e2e:e2e-controlplane-postgres"))
+    testCompileOnly(project(":system-tests:runtimes:e2e:e2e-dcp-controlplane-postgres"))
+    testCompileOnly(project(":system-tests:runtimes:issuer"))
+    testCompileOnly(project(":system-tests:runtimes:identity-hub"))
+
 }
 
 edcBuild {
