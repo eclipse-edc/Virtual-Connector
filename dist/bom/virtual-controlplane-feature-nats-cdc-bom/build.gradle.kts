@@ -17,8 +17,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:postgres-cdc"))
-    api(project(":extensions:negotiation-cdc-publisher-nats"))
-    api(project(":extensions:transfer-process-cdc-publisher-nats"))
+    api(project(":extensions:cdc:postgres:postgres-cdc"))
+    api(project(":extensions:cdc:publisher:negotiation-cdc-publisher-nats"))
+    api(project(":extensions:cdc:publisher:transfer-process-cdc-publisher-nats"))
 }
 
