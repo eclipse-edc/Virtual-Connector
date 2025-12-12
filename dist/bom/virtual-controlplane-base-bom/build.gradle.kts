@@ -21,7 +21,7 @@ dependencies {
     api(project(":core:v-connector-core"))
     api(project(":core:negotiation-manager"))
     api(project(":core:transfer-process-manager"))
-    api(project(":extensions:banner-extension"))
+    api(project(":extensions:common:banner-extension"))
     api(project(":extensions:cel:cel-extension"))
     api(project(":data-protocols:dsp"))
     runtimeOnly(libs.edc.lib.oauth2.authn)

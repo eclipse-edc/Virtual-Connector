@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:negotiation-subscriber-nats"))
-    api(project(":extensions:transfer-process-subscriber-nats"))
+    api(project(":extensions:cdc:subscriber:negotiation-subscriber-nats"))
+    api(project(":extensions:cdc:subscriber:transfer-process-subscriber-nats"))
 }
 
