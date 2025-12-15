@@ -44,6 +44,10 @@ public class ReplicationConsumer implements Function<DatabaseChange, StatusResul
 
     @Override
     public StatusResult<Void> apply(DatabaseChange diff) {
+        if (diff.action().equals(DatabaseChange.Action.DELETE)) {
+            // Ignore deletes
+            return StatusResult.success();
+        }
         switch (diff.table()) {
             case "edc_contract_negotiation" -> {
                 var before = diff.oldRow().isEmpty() ? null : toContractNegotiation(diff.oldRow());

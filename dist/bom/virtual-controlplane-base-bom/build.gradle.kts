@@ -31,6 +31,7 @@ dependencies {
     runtimeOnly(libs.edc.core.token)
     runtimeOnly(libs.edc.core.jersey)
     runtimeOnly(libs.edc.core.jetty)
+    runtimeOnly(libs.edc.core.policy.monitor)
     runtimeOnly(libs.edc.api.observability)
     runtimeOnly(libs.edc.core.controlplane) {
         exclude("org.eclipse.edc", "control-plane-contract-manager")
