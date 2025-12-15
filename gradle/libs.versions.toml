@@ -74,6 +74,7 @@ edc-core-dataplane-signaling-client = { module = "org.eclipse.edc:data-plane-sig
 edc-core-dataplane-signaling-transfer = { module = "org.eclipse.edc:transfer-data-plane-signaling", version.ref = "edc" }
 edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
 edc-core-sql = { module = "org.eclipse.edc:sql-core", version.ref = "edc" }
+edc-core-policy-monitor = { module = "org.eclipse.edc:policy-monitor-core", version.ref = "edc" }
 
 # EDC Lib modules
 edc-lib-api = { module = "org.eclipse.edc:api-lib", version.ref = "edc" }
