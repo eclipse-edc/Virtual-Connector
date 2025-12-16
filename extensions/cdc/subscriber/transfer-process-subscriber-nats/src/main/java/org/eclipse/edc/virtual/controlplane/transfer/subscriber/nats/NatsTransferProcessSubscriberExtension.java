@@ -14,26 +14,23 @@
 
 package org.eclipse.edc.virtual.controlplane.transfer.subscriber.nats;
 
-import io.nats.client.Nats;
-import io.nats.client.api.StorageType;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessStateMachineService;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
-import static org.eclipse.edc.virtual.nats.NatsFunctions.createConsumer;
-import static org.eclipse.edc.virtual.nats.NatsFunctions.createStream;
 
 public class NatsTransferProcessSubscriberExtension implements ServiceExtension {
 
     @Configuration
-    private NatsSubscriberConfig natsSubscriberConfig;
+    private NatsSubscriberConfig subscriberConfig;
 
     @Inject
     private TypeManager typeManager;
@@ -42,26 +39,34 @@ public class NatsTransferProcessSubscriberExtension implements ServiceExtension 
     private TransferProcessStateMachineService stateMachineService;
 
     @Inject
+    private ExecutorInstrumentation executorInstrumentation;
+
+    @Inject
     private Monitor monitor;
 
     private NatsTransferProcessSubscriber subscriber;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        subscriber = new NatsTransferProcessSubscriber(natsSubscriberConfig, stateMachineService, () -> typeManager.getMapper(JSON_LD), monitor);
+        subscriber = NatsTransferProcessSubscriber.Builder.newInstance()
+                .url(subscriberConfig.url())
+                .name(subscriberConfig.name())
+                .stream(subscriberConfig.stream)
+                .subject(subscriberConfig.subject())
+                .monitor(monitor)
+                .mapperSupplier(() -> typeManager.getMapper(JSON_LD))
+                .stateMachineService(stateMachineService)
+                .autoCreate(subscriberConfig.autoCreate)
+                .executorInstrumentation(executorInstrumentation)
+                .batchSize(subscriberConfig.batchSize)
+                .maxWait(subscriberConfig.maxWait)
+                .build();
     }
 
     @Override
     public void prepare() {
-        if (natsSubscriberConfig.autoCreate()) {
-            try (var conn = Nats.connect(natsSubscriberConfig.url())) {
-                conn.jetStream();
-                var jsm = conn.jetStreamManagement();
-                createStream(jsm, natsSubscriberConfig.stream(), StorageType.Memory, natsSubscriberConfig.subject());
-                createConsumer(jsm, natsSubscriberConfig.stream(), natsSubscriberConfig.name(), natsSubscriberConfig.subject());
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+        if (subscriber != null) {
+            subscriber.prepare();
         }
     }
 
@@ -91,7 +96,12 @@ public class NatsTransferProcessSubscriberExtension implements ServiceExtension 
             @Setting(key = "edc.nats.tp.subscriber.stream", description = "The stream name where to attach the consumer", defaultValue = "tp-stream")
             String stream,
             @Setting(key = "edc.nats.tp.subscriber.subject", description = "The subject of the consumer for contract negotiation events", defaultValue = "transfers.>")
-            String subject
+            String subject,
+            @Setting(key = "edc.nats.tp.subscriber.batch-size", description = "The size of the batch when fetching messages", defaultValue = "100")
+            Integer batchSize,
+            @Setting(key = "edc.nats.tp.subscriber.max-wait", description = "The max waiting time for messages (ms)", defaultValue = "100")
+            Integer maxWait
+
     ) {
     }
 }

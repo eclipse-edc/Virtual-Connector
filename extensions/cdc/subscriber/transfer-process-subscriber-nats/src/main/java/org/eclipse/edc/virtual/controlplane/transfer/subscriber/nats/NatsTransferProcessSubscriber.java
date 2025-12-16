@@ -16,10 +16,7 @@ package org.eclipse.edc.virtual.controlplane.transfer.subscriber.nats;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.nats.client.Connection;
-import io.nats.client.JetStreamSubscription;
-import io.nats.client.Nats;
-import io.nats.client.PullSubscribeOptions;
+import io.nats.client.Message;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessCompleted;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessDeprovisioned;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessDeprovisioningRequested;
@@ -31,7 +28,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessSuspended;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessTerminated;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.ResponseStatus;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessStateMachineService;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.events.TransferProcessCompleting;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.events.TransferProcessCompletingRequested;
@@ -43,14 +41,11 @@ import org.eclipse.edc.virtual.controlplane.transfer.spi.events.TransferProcessS
 import org.eclipse.edc.virtual.controlplane.transfer.spi.events.TransferProcessSuspendingRequested;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.events.TransferProcessTerminating;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.events.TransferProcessTerminatingRequested;
-import org.eclipse.edc.virtual.controlplane.transfer.subscriber.nats.NatsTransferProcessSubscriberExtension.NatsSubscriberConfig;
+import org.eclipse.edc.virtual.nats.subscriber.NatsSubscriber;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
@@ -74,14 +69,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
 
-public class NatsTransferProcessSubscriber {
-
-    private final NatsSubscriberConfig config;
-    private final TransferProcessStateMachineService stateMachineService;
-    private final Supplier<ObjectMapper> mapperSupplier;
-    private final Monitor monitor;
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    private final AtomicBoolean active = new AtomicBoolean(false);
+public class NatsTransferProcessSubscriber extends NatsSubscriber {
 
     private final Map<String, TransferProcessStates> stateMap = new HashMap<>() {
         {
@@ -107,68 +95,21 @@ public class NatsTransferProcessSubscriber {
             put(TransferProcessDeprovisioned.class.getSimpleName(), DEPROVISIONED);
         }
     };
+    private Supplier<ObjectMapper> mapperSupplier;
+    private TransferProcessStateMachineService stateMachineService;
 
-    private Connection connection;
-
-    public NatsTransferProcessSubscriber(NatsSubscriberConfig config, TransferProcessStateMachineService stateMachineService, Supplier<ObjectMapper> mapperSupplier, Monitor monitor) {
-        this.config = config;
-        this.stateMachineService = stateMachineService;
-        this.mapperSupplier = mapperSupplier;
-        this.monitor = monitor;
+    private NatsTransferProcessSubscriber() {
     }
 
-    public void start() {
+    protected StatusResult<Void> handleMessage(Message message) {
         try {
-            connection = Nats.connect(config.url());
-            var js = connection.jetStream();
-            var pullOptions = PullSubscribeOptions.builder()
-                    .stream(config.stream())
-                    .durable(config.name())
-                    .build();
-
-            var sub = js.subscribe(config.subject(), pullOptions);
-            active.set(true);
-            executorService.submit(() -> {
-                run(sub);
+            var envelope = mapperSupplier.get().readValue(message.getData(), new TypeReference<Map<String, Object>>() {
             });
+            var transferProcessId = getTransferProcessId(envelope);
+            var state = getState(envelope);
+            return stateMachineService.handle(transferProcessId, state);
         } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void run(JetStreamSubscription sub) {
-        while (active.get()) {
-            var messages = sub.fetch(100, Duration.ofMillis(100));
-            for (var message : messages) {
-                try {
-                    var envelope = mapperSupplier.get().readValue(message.getData(), new TypeReference<Map<String, Object>>() {
-                    });
-                    var transferProcessId = getTransferProcessId(envelope);
-                    var state = getState(envelope);
-                    var result = stateMachineService.handle(transferProcessId, state);
-                    if (result.failed()) {
-                        monitor.severe("Failed to handle transfer process state change for ID: " + transferProcessId + ", state: " + state + ", reason: " + result.getFailureDetail());
-                        message.nak();
-                        continue;
-                    }
-                    message.ack();
-                } catch (Exception e) {
-                    monitor.severe("Failed to process transfer message: " + e.getMessage(), e);
-                    message.nak();
-                }
-            }
-        }
-    }
-
-    public void stop() {
-        active.set(false);
-        executorService.shutdown();
-        try {
-            if (connection != null) {
-                connection.close();
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, e.getMessage());
         }
     }
 
@@ -181,5 +122,39 @@ public class NatsTransferProcessSubscriber {
     private String getTransferProcessId(Map<String, Object> envelope) {
         var payload = (Map<String, Object>) envelope.get("payload");
         return payload.get("transferProcessId").toString();
+    }
+
+
+    public static class Builder extends NatsSubscriber.Builder<NatsTransferProcessSubscriber, Builder> {
+
+        protected Builder() {
+            super(new NatsTransferProcessSubscriber());
+        }
+
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder mapperSupplier(Supplier<ObjectMapper> mapperSupplier) {
+            subscriber.mapperSupplier = mapperSupplier;
+            return self();
+        }
+
+        public Builder stateMachineService(TransferProcessStateMachineService stateMachineService) {
+            subscriber.stateMachineService = stateMachineService;
+            return self();
+        }
+
+        @Override
+        public Builder self() {
+            return this;
+        }
+
+        @Override
+        public NatsTransferProcessSubscriber build() {
+            Objects.requireNonNull(subscriber.mapperSupplier, "mapperSupplier must be set");
+            Objects.requireNonNull(subscriber.stateMachineService, "stateMachineService must be set");
+            return super.build();
+        }
     }
 }
