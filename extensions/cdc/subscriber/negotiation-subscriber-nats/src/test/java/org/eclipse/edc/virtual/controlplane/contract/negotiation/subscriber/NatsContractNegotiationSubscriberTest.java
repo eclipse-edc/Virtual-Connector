@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotia
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationVerified;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.virtual.controlplane.contract.negotiation.subscriber.NatsContractNegotiationSubscriberExtension.NatsSubscriberConfig;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationStateMachineService;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationAccepting;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationAgreeing;
@@ -80,8 +79,15 @@ public class NatsContractNegotiationSubscriberTest {
     void beforeEach() {
         NATS_EXTENSION.createStream(STREAM_NAME, "negotiations.>");
         NATS_EXTENSION.createConsumer(STREAM_NAME, CONSUMER_NAME, "negotiations.>");
-        var config = new NatsSubscriberConfig(NATS_EXTENSION.getNatsUrl(), CONSUMER_NAME, false, STREAM_NAME, "negotiations.>");
-        subscriber = new NatsContractNegotiationSubscriber(config, stateMachineService, ObjectMapper::new, mock());
+        subscriber = NatsContractNegotiationSubscriber.Builder.newInstance()
+                .url(NATS_EXTENSION.getNatsUrl())
+                .name(CONSUMER_NAME)
+                .stream(STREAM_NAME)
+                .subject("negotiations.>")
+                .monitor(mock())
+                .mapperSupplier(ObjectMapper::new)
+                .stateMachineService(stateMachineService)
+                .build();
 
     }
 

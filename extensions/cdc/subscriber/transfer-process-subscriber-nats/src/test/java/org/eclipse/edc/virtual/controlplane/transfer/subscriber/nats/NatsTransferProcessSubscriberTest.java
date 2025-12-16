@@ -38,7 +38,6 @@ import org.eclipse.edc.virtual.controlplane.transfer.spi.events.TransferProcessS
 import org.eclipse.edc.virtual.controlplane.transfer.spi.events.TransferProcessSuspendingRequested;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.events.TransferProcessTerminating;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.events.TransferProcessTerminatingRequested;
-import org.eclipse.edc.virtual.controlplane.transfer.subscriber.nats.NatsTransferProcessSubscriberExtension.NatsSubscriberConfig;
 import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,9 +93,15 @@ public class NatsTransferProcessSubscriberTest {
     void beforeEach() {
         NATS_EXTENSION.createStream(STREAM_NAME, "transfers.>");
         NATS_EXTENSION.createConsumer(STREAM_NAME, CONSUMER_NAME, "transfers.>");
-        var config = new NatsSubscriberConfig(NATS_EXTENSION.getNatsUrl(), CONSUMER_NAME, false, STREAM_NAME, "transfers.>");
-        subscriber = new NatsTransferProcessSubscriber(config, stateMachineService, ObjectMapper::new, mock());
-
+        subscriber = NatsTransferProcessSubscriber.Builder.newInstance()
+                .url(NATS_EXTENSION.getNatsUrl())
+                .name(CONSUMER_NAME)
+                .stream(STREAM_NAME)
+                .subject("transfers.>")
+                .monitor(mock())
+                .mapperSupplier(ObjectMapper::new)
+                .stateMachineService(stateMachineService)
+                .build();
     }
 
     @AfterEach
