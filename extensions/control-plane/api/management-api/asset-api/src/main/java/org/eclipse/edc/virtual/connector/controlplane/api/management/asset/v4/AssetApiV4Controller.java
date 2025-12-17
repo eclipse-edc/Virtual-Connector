@@ -178,7 +178,10 @@ public class AssetApiV4Controller implements AssetApiV4 {
         validator.validate(EDC_ASSET_TYPE, assetJson).orElseThrow(ValidationFailureException::new);
 
         var asset = typeTransformerRegistry.transform(assetJson, Asset.class)
-                .orElseThrow(InvalidRequestException::new);
+                .orElseThrow(InvalidRequestException::new)
+                .toBuilder()
+                .participantContextId(participantContextId)
+                .build();
 
         var assetId = asset.getId();
         authorizationService.authorize(securityContext, participantContextId, assetId, Asset.class).orElseThrow(exceptionMapper(Asset.class, assetId));

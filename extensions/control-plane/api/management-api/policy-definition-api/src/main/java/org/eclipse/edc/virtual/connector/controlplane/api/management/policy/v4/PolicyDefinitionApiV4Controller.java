@@ -187,7 +187,10 @@ public class PolicyDefinitionApiV4Controller implements PolicyDefinitionApiV4 {
                 .orElseThrow(exceptionMapper(PolicyDefinition.class, id));
 
         var policyDefinition = typeTransformerRegistry.transform(input, PolicyDefinition.class)
-                .orElseThrow(InvalidRequestException::new);
+                .orElseThrow(InvalidRequestException::new)
+                .toBuilder()
+                .participantContextId(participantContextId)
+                .build();
 
         policyDefinitionService.update(policyDefinition)
                 .onSuccess(d -> monitor.debug(format("Policy Definition updated %s", d.getId())))

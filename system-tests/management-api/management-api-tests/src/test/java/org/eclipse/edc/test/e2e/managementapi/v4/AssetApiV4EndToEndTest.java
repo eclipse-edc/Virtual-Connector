@@ -118,6 +118,8 @@ public class AssetApiV4EndToEndTest {
             assertThat(dbAsset.getDataAddress().getProperty(EDC_NAMESPACE + "complex"))
                     .asInstanceOf(MAP)
                     .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(VALUE, "value")));
+
+            assertThat(asset.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
         }
 
         @Test
@@ -497,6 +499,7 @@ public class AssetApiV4EndToEndTest {
                     .containsEntry(EDC_NAMESPACE + "nested",
                             List.of(Map.of(EDC_NAMESPACE + "innerValue",
                                     List.of(Map.of(VALUE, "value")))));
+            assertThat(asset.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
         }
 
         @Test

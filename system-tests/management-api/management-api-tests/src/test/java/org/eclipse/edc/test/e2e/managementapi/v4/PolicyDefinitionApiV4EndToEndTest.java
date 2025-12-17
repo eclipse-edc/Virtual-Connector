@@ -497,10 +497,14 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .then()
                     .statusCode(204);
 
-            assertThat(store.findById(id))
+            var policyDefinition = store.findById(id);
+            assertThat(policyDefinition)
                     .extracting(PolicyDefinition::getPrivateProperties)
                     .asInstanceOf(MAP)
                     .isNotEmpty();
+
+            assertThat(policyDefinition.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
+
         }
 
         @Test

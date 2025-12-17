@@ -251,7 +251,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
             transitionToSuspended(process);
             return StatusResult.success();
         } else {
-            return dispatch(TransferSuspensionMessage.Builder.newInstance(), process, Object.class)
+            return dispatch(TransferSuspensionMessage.Builder.newInstance().reason(process.getErrorDetail()), process, Object.class)
                     .onSuccess(c -> transitionToSuspended(process))
                     .mapEmpty();
         }
