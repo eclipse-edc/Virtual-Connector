@@ -86,3 +86,8 @@ jobs:
       - name: End to End Integration Tests
         run: |
           ./gradlew test -DincludeTags="EndToEndTest"
+
+  Verify-OpenApi:
+    if: github.event_name == 'pull_request'
+    uses: eclipse-edc/.github/.github/workflows/verify-openapi.yml@main
+    secrets: inherit
