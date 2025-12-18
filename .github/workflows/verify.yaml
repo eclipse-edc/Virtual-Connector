@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-java
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Run Checkstyle
         run: |
           ./gradlew checkstyleMain checkstyleTest
@@ -65,7 +65,7 @@ jobs:
     needs: [ verify-license-headers ]
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-java
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Run Unit tests
         run: ./gradlew test
 
@@ -73,16 +73,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-java
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Postgresql Tests
         run: |
           ./gradlew test -DincludeTags="PostgresqlIntegrationTest"
+
+  Component-Tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - name: Component Tests
+        run: ./gradlew test -DincludeTags="ComponentTest"
+
+  API-Tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - name: Component Tests
+        run: ./gradlew test -DincludeTags="ApiTest"
 
   End-To-End-Tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-java
+      - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: End to End Integration Tests
         run: |
           ./gradlew test -DincludeTags="EndToEndTest"
