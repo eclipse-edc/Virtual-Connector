@@ -54,6 +54,7 @@ public interface Runtimes {
                     put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                     put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
                     put("edc.iam.oauth2.issuer", "test-issuer");
+                    put("edc.encryption.strict", "false");
                 }
             });
         }

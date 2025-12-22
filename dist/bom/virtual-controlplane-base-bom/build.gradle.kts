@@ -40,5 +40,6 @@ dependencies {
     runtimeOnly(libs.edc.core.dataplane.selector)
     runtimeOnly(libs.edc.core.dataplane.signaling.client)
     runtimeOnly(libs.edc.core.dataplane.signaling.transfer)
+    runtimeOnly(libs.edc.encryption.aes)
 }
 
