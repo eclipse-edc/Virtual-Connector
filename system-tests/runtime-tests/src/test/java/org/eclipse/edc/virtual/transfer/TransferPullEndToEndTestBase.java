@@ -197,6 +197,26 @@ abstract class TransferPullEndToEndTestBase {
 
     }
 
+    @Test
+    void completeByConsumer(VirtualConnector env, TransferProcessService service, VirtualConnectorClient connectorClient, Participants participants) {
+        var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
+
+        var assetId = setup(connectorClient, participants.provider());
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+
+        var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
+        var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
+
+        assertThat(consumerTransfer.getState()).isEqualTo(providerTransfer.getState());
+
+
+        service.complete(consumerTransfer.getId())
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+
+        connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, COMPLETED);
+        connectorClient.waitTransferInState(participants.provider().contextId(), consumerTransfer.getCorrelationId(), COMPLETED);
+
+    }
 
     private String setup(VirtualConnectorClient connectorClient, Participants.Participant provider) {
         var asset = new AssetDto(new DataAddressDto("HttpData"));

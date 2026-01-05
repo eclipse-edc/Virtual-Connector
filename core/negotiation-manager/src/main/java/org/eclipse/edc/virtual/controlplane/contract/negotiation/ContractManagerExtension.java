@@ -74,4 +74,5 @@ public class ContractManagerExtension implements ServiceExtension {
     public ContractNegotiationStateMachineService contractNegotiationStateMachineService(ServiceExtensionContext context) {
         return new ContractNegotiationStateMachineServiceImpl(clock, identityResolver, webhookResolver, dispatcherRegistry, contractNegotiationStore, transactionContext, pendingGuard, observable, monitor);
     }
+
 }

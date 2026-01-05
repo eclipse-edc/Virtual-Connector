@@ -302,6 +302,7 @@ public class ContractNegotiationStateMachineServiceImpl implements ContractNegot
     protected void transitionToTerminated(ContractNegotiation negotiation, String message) {
         negotiation.setErrorDetail(message);
         transitionToTerminated(negotiation);
+        observable.invokeForEach(l -> l.terminated(negotiation));
     }
 
     protected void transitionToAgreeing(ContractNegotiation negotiation) {
