@@ -15,22 +15,9 @@
 package org.eclipse.edc.virtual.controlplane.contract.negotiation.subscriber;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationAccepted;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationAgreed;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationInitiated;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationOffered;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationRequested;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationVerified;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationStateMachineService;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationAccepting;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationAgreeing;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationFinalizing;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationOffering;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationRequesting;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationTerminating;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationVerifying;
 import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,24 +29,11 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTED;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.OFFERED;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -99,20 +73,18 @@ public class NatsContractNegotiationSubscriberTest {
 
     @ParameterizedTest
     @ArgumentsSource(StateProvider.class)
-    void handleMessage(ContractNegotiationStates expectedState, String eventType) {
+    void handleMessage(ContractNegotiationStates expectedState) {
         when(stateMachineService.handle(any(), any())).thenReturn(StatusResult.success());
         subscriber.start();
         var id = UUID.randomUUID().toString();
         var payload = """
                 {
-                    "type": "%s",
-                    "payload": {
-                        "contractNegotiationId": "%s"
-                    }
+                    "state": "%s",
+                    "contractNegotiationId": "%s"
                 }
-                """.formatted(eventType, id);
+                """.formatted(expectedState.name(), id);
 
-        NATS_EXTENSION.publish("negotiations." + eventType.toLowerCase(), payload.getBytes());
+        NATS_EXTENSION.publish("negotiations.provider." + expectedState.name(), payload.getBytes());
 
         await().untilAsserted(() -> {
             verify(stateMachineService).handle(id, expectedState);
@@ -124,22 +96,7 @@ public class NatsContractNegotiationSubscriberTest {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-
-            return Stream.of(
-                    arguments(INITIAL, ContractNegotiationInitiated.class.getSimpleName()),
-                    arguments(REQUESTING, ContractNegotiationRequesting.class.getSimpleName()),
-                    arguments(REQUESTED, ContractNegotiationRequested.class.getSimpleName()),
-                    arguments(OFFERING, ContractNegotiationOffering.class.getSimpleName()),
-                    arguments(OFFERED, ContractNegotiationOffered.class.getSimpleName()),
-                    arguments(ACCEPTING, ContractNegotiationAccepting.class.getSimpleName()),
-                    arguments(ACCEPTED, ContractNegotiationAccepted.class.getSimpleName()),
-                    arguments(AGREEING, ContractNegotiationAgreeing.class.getSimpleName()),
-                    arguments(AGREED, ContractNegotiationAgreed.class.getSimpleName()),
-                    arguments(VERIFYING, ContractNegotiationVerifying.class.getSimpleName()),
-                    arguments(VERIFIED, ContractNegotiationVerified.class.getSimpleName()),
-                    arguments(FINALIZING, ContractNegotiationFinalizing.class.getSimpleName()),
-                    arguments(TERMINATING, ContractNegotiationTerminating.class.getSimpleName())
-            );
+            return Arrays.stream(ContractNegotiationStates.values()).map(Arguments::arguments);
         }
     }
 

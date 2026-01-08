@@ -18,50 +18,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Connection;
 import io.nats.client.JetStream;
 import io.nats.client.Nats;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationAccepted;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationAgreed;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationInitiated;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationOffered;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationRequested;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationVerified;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.virtual.controlplane.contract.negotiation.cdc.publisher.nats.ContractNegotiationCdcPublisherExtension.NatsPublisherConfig;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationChangeListener;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationAccepting;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationAgreeing;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationFinalizing;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationOffering;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationRequesting;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationTerminating;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.events.ContractNegotiationVerifying;
 
 import java.time.Clock;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTED;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.OFFERED;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.from;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 public class NatsContractNegotiationChangePublisher implements ContractNegotiationChangeListener {
@@ -70,23 +37,7 @@ public class NatsContractNegotiationChangePublisher implements ContractNegotiati
     private final NatsPublisherConfig config;
     private final Supplier<ObjectMapper> objectMapper;
     private final Clock clock;
-    private final Map<ContractNegotiationStates, Function<ContractNegotiation, ContractNegotiationEvent>> eventTypeMap = new HashMap<>() {
-        {
-            put(INITIAL, builder(ContractNegotiationInitiated.Builder::newInstance));
-            put(REQUESTING, builder(ContractNegotiationRequesting.Builder::newInstance));
-            put(REQUESTED, builder(ContractNegotiationRequested.Builder::newInstance));
-            put(OFFERING, builder(ContractNegotiationOffering.Builder::newInstance));
-            put(OFFERED, builder(ContractNegotiationOffered.Builder::newInstance));
-            put(ACCEPTING, builder(ContractNegotiationAccepting.Builder::newInstance));
-            put(ACCEPTED, builder(ContractNegotiationAccepted.Builder::newInstance));
-            put(AGREEING, builder(ContractNegotiationAgreeing.Builder::newInstance));
-            put(AGREED, builder(ContractNegotiationAgreed.Builder::newInstance));
-            put(VERIFYING, builder(ContractNegotiationVerifying.Builder::newInstance));
-            put(VERIFIED, builder(ContractNegotiationVerified.Builder::newInstance));
-            put(FINALIZING, builder(ContractNegotiationFinalizing.Builder::newInstance));
-            put(TERMINATING, builder(ContractNegotiationTerminating.Builder::newInstance));
-        }
-    };
+
     private JetStream js;
     private Connection connection;
 
@@ -96,20 +47,17 @@ public class NatsContractNegotiationChangePublisher implements ContractNegotiati
         this.clock = clock;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public StatusResult<Void> onChange(ContractNegotiation before, ContractNegotiation after) {
         if (!active.get()) {
             return StatusResult.failure(FATAL_ERROR, "NATS Contract Negotiation Change Listener is not active.");
         }
-        var event = toEvent(after);
-        if (event == null) {
-            return StatusResult.success();
-        }
-        var payload = EventEnvelope.Builder.newInstance()
-                .payload(event)
-                .at(clock.millis())
-                .build();
+
+        var payload = new HashMap<>();
+        payload.put("contractNegotiationId", after.getId());
+        payload.put("state", after.stateAsString());
+        payload.put("timestamp", clock.millis());
+
         try {
             var subject = format("%s.%s.%s", config.subjectPrefix(), after.getType().name().toLowerCase(), after.stateAsString().toLowerCase());
             var message = objectMapper.get().writeValueAsString(payload);
@@ -141,30 +89,5 @@ public class NatsContractNegotiationChangePublisher implements ContractNegotiati
         }
         active.set(false);
     }
-
-
-    private ContractNegotiationEvent toEvent(ContractNegotiation cn) {
-        var state = from(cn.getState());
-        return Optional.ofNullable(eventTypeMap.get(state))
-                .map(builder -> builder.apply(cn))
-                .orElse(null);
-    }
-
-    private <T extends ContractNegotiationEvent, B extends ContractNegotiationEvent.Builder<T, B>> Function<ContractNegotiation, ContractNegotiationEvent> builder(Supplier<B> builder) {
-        return negotiation -> {
-            var b = baseBuilder(builder.get(), negotiation);
-            return b.build();
-        };
-    }
-
-    private <T extends ContractNegotiationEvent, B extends ContractNegotiationEvent.Builder<T, B>> B baseBuilder(B builder, ContractNegotiation negotiation) {
-        return builder.contractNegotiationId(negotiation.getId())
-                .counterPartyAddress(negotiation.getCounterPartyAddress())
-                .callbackAddresses(negotiation.getCallbackAddresses())
-                .contractOffers(negotiation.getContractOffers())
-                .counterPartyId(negotiation.getCounterPartyId())
-                .protocol(negotiation.getProtocol());
-    }
-
 
 }
