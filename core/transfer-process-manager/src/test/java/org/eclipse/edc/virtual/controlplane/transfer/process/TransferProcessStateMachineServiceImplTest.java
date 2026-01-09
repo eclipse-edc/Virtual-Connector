@@ -17,7 +17,7 @@ package org.eclipse.edc.virtual.controlplane.transfer.process;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
@@ -83,7 +83,7 @@ public class TransferProcessStateMachineServiceImplTest {
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
     private final TransferProcessStore transferProcessStore = mock();
     private final PolicyArchive policyArchive = mock();
-    private final DataFlowManager dataFlowManager = mock();
+    private final DataFlowController dataFlowController = mock();
     private final Vault vault = mock();
     private final TransferProcessListener listener = mock();
     private final ParticipantWebhookResolver participantWebhookResolver = mock();
@@ -96,7 +96,7 @@ public class TransferProcessStateMachineServiceImplTest {
     @BeforeEach
     void setup() {
         stateMachineService = TransferProcessStateMachineServiceImpl.Builder.newInstance()
-                .dataFlowManager(dataFlowManager)
+                .dataFlowController(dataFlowController)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
                 .observable(new MockTransferObservable(listener))
@@ -118,9 +118,9 @@ public class TransferProcessStateMachineServiceImplTest {
         var transferProcessId = "transferProcessId";
         var contractId = "contractId";
 
-        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
-        when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
-        when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+        when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
+        when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
+        when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
         when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
 
         when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
@@ -259,7 +259,7 @@ public class TransferProcessStateMachineServiceImplTest {
                 .build();
 
         when(transferProcessStore.findById(transferProcessId)).thenReturn(transferProcess);
-        when(dataFlowManager.start(eq(transferProcess), any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, "test message"));
+        when(dataFlowController.start(eq(transferProcess), any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, "test message"));
 
         var result = stateMachineService.handle(transferProcessId, STARTING);
         assertThat(result).isFailed()
@@ -297,7 +297,7 @@ public class TransferProcessStateMachineServiceImplTest {
                 .build();
 
         when(transferProcessStore.findById(transferProcessId)).thenReturn(transferProcess);
-        when(dataFlowManager.suspend(eq(transferProcess))).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, "test message"));
+        when(dataFlowController.suspend(eq(transferProcess))).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, "test message"));
 
         var result = stateMachineService.handle(transferProcessId, SUSPENDING);
         assertThat(result).isFailed()
