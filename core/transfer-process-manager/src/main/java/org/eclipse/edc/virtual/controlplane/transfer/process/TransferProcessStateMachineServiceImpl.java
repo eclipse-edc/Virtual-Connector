@@ -17,7 +17,7 @@ package org.eclipse.edc.virtual.controlplane.transfer.process;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
@@ -70,7 +70,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
 
     private TransferProcessStore store;
     private TransactionContext transactionContext;
-    private DataFlowManager dataFlowManager;
+    private DataFlowController dataFlowController;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private ParticipantWebhookResolver webhookResolver;
     private Vault vault;
@@ -188,7 +188,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
     private StatusResult<Void> processStarting(TransferProcess process) {
         var policy = policyArchive.findPolicyForContract(process.getContractId());
 
-        var result = dataFlowManager.start(process, policy);
+        var result = dataFlowController.start(process, policy);
 
         if (result.failed()) {
             transitionToTerminating(process, result.getFailureDetail());
@@ -207,7 +207,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
             transitionToTerminated(process);
             return StatusResult.success();
         }
-        var result = dataFlowManager.terminate(process);
+        var result = dataFlowController.terminate(process);
 
         if (result.failed()) {
             transitionToTerminated(process, "Failed to terminate transfer process: " + result.getFailureDetail());
@@ -225,7 +225,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
 
     private StatusResult<Void> processCompleting(TransferProcess process) {
         if (process.completionWasRequestedByCounterParty()) {
-            var result = dataFlowManager.terminate(process);
+            var result = dataFlowController.terminate(process);
             if (result.failed()) {
                 transitionToTerminated(process, "Failed to terminate transfer process: " + result.getFailureDetail());
                 return StatusResult.failure(FATAL_ERROR, result.getFailureDetail());
@@ -241,7 +241,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
 
     private StatusResult<Void> processSuspending(TransferProcess process) {
         if (process.getType() == PROVIDER) {
-            var result = dataFlowManager.suspend(process);
+            var result = dataFlowController.suspend(process);
             if (result.failed()) {
                 transitionToTerminating(process, "Failed to suspend transfer process: " + result.getFailureDetail());
                 return StatusResult.failure(FATAL_ERROR, result.getFailureDetail());
@@ -417,7 +417,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
 
 
         public TransferProcessStateMachineService build() {
-            Objects.requireNonNull(service.dataFlowManager, "dataFlowManager cannot be null");
+            Objects.requireNonNull(service.dataFlowController, "dataFlowController cannot be null");
             Objects.requireNonNull(service.dispatcherRegistry, "dispatcherRegistry cannot be null");
             Objects.requireNonNull(service.observable, "observable cannot be null");
             Objects.requireNonNull(service.policyArchive, "policyArchive cannot be null");
@@ -428,8 +428,8 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
             return service;
         }
 
-        public Builder dataFlowManager(DataFlowManager dataFlowManager) {
-            service.dataFlowManager = dataFlowManager;
+        public Builder dataFlowController(DataFlowController dataFlowController) {
+            service.dataFlowController = dataFlowController;
             return this;
         }
 

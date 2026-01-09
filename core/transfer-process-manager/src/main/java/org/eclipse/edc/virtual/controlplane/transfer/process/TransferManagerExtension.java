@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolve
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -67,7 +67,7 @@ public class TransferManagerExtension implements ServiceExtension {
     private PolicyArchive policyArchive;
 
     @Inject
-    private DataFlowManager dataFlowManager;
+    private DataFlowController dataFlowController;
 
     @Inject
     private DataAddressResolver dataAddressResolver;
@@ -88,7 +88,7 @@ public class TransferManagerExtension implements ServiceExtension {
         return TransferProcessStateMachineServiceImpl.Builder.newInstance()
                 .store(store)
                 .transactionContext(transactionContext)
-                .dataFlowManager(dataFlowManager)
+                .dataFlowController(dataFlowController)
                 .dispatcherRegistry(dispatcherRegistry)
                 .webhookResolver(webhookResolver)
                 .vault(vault)
