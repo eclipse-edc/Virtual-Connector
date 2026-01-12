@@ -64,6 +64,7 @@ maven/mavencentral/com.google.re2j/re2j/1.8, BSD-3-Clause, approved, #20485
 maven/mavencentral/com.jayway.jsonpath/json-path/2.10.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.networknt/json-schema-validator/2.0.0, , restricted, clearlydefined
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.6, Apache-2.0, approved, clearlydefined
+maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.7, , restricted, clearlydefined
 maven/mavencentral/com.puppycrawl.tools/checkstyle/12.1.1, , restricted, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp-dnsoverhttps/5.3.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp-jvm/5.3.2, Apache-2.0, approved, clearlydefined
@@ -530,7 +531,7 @@ maven/mavencentral/org.slf4j/slf4j-api/2.0.17, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.9, MIT, approved, #5915
 maven/mavencentral/org.testcontainers/database-commons/1.21.4, Apache-2.0, approved, #20875
 maven/mavencentral/org.testcontainers/jdbc/1.21.4, Apache-2.0, approved, #20877
-maven/mavencentral/org.testcontainers/junit-jupiter/1.21.4, , restricted, clearlydefined
+maven/mavencentral/org.testcontainers/junit-jupiter/1.21.4, MIT, approved, clearlydefined
 maven/mavencentral/org.testcontainers/postgresql/1.21.4, MIT, approved, #20876
 maven/mavencentral/org.testcontainers/testcontainers-database-commons/2.0.3, Apache-2.0, approved, #25271
 maven/mavencentral/org.testcontainers/testcontainers-jdbc/2.0.3, Apache-2.0, approved, #25272
