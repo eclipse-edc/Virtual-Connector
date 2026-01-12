@@ -308,13 +308,11 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
 
     private void transitionToRequesting(TransferProcess process) {
         process.transitionRequesting();
-        observable.invokeForEach(l -> l.preRequesting(process));
         update(process);
     }
 
     private void transitionToTerminated(TransferProcess process) {
         process.transitionTerminated();
-        observable.invokeForEach(l -> l.preTerminated(process));
         update(process);
         observable.invokeForEach(l -> l.terminated(process));
     }
@@ -332,7 +330,6 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
 
     private void transitionToStarted(TransferProcess transferProcess) {
         transferProcess.transitionStarted();
-        observable.invokeForEach(l -> l.preStarted(transferProcess));
         update(transferProcess);
         observable.invokeForEach(l -> l.started(transferProcess, TransferProcessStartedData.Builder.newInstance().build()));
     }
@@ -345,7 +342,6 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
 
     private void transitionToCompleted(TransferProcess transferProcess) {
         transferProcess.transitionCompleted();
-        observable.invokeForEach(l -> l.preCompleted(transferProcess));
         update(transferProcess);
         observable.invokeForEach(l -> l.completed(transferProcess));
     }
@@ -359,7 +355,6 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
     private void transitionToRequested(TransferProcess transferProcess, TransferProcessAck ack) {
         transferProcess.transitionRequested();
         transferProcess.setCorrelationId(ack.getProviderPid());
-        observable.invokeForEach(l -> l.preRequested(transferProcess));
         update(transferProcess);
         observable.invokeForEach(l -> l.requested(transferProcess));
     }
