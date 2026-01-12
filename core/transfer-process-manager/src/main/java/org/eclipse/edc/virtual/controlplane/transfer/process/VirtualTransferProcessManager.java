@@ -86,7 +86,6 @@ public class VirtualTransferProcessManager implements TransferProcessManager {
                 .participantContextId(participantContext.getParticipantContextId())
                 .build();
 
-        observable.invokeForEach(l -> l.preCreated(process));
         update(process);
         observable.invokeForEach(l -> l.initiated(process));
 
