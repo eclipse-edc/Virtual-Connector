@@ -39,6 +39,9 @@ import java.util.List;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 
 
 abstract class TransferPullEndToEndTestBase {
@@ -72,7 +75,7 @@ abstract class TransferPullEndToEndTestBase {
     }
 
     @Test
-    void httpPull_dataTransfer(VirtualConnector env, VirtualConnectorClient connectorClient, Participants participants) {
+    void transfer(VirtualConnector env, VirtualConnectorClient connectorClient, Participants participants) {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
@@ -83,6 +86,91 @@ abstract class TransferPullEndToEndTestBase {
 
         assertThat(consumerTransfer.getState()).isEqualTo(providerTransfer.getState());
 
+    }
+
+    @Test
+    void suspendAndResumeByProvider(VirtualConnector env, VirtualConnectorClient connectorClient, Participants participants) {
+        var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
+
+        var assetId = setup(connectorClient, participants.provider());
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+
+        var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
+        var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
+
+        assertThat(consumerTransfer.getState()).isEqualTo(providerTransfer.getState());
+
+        connectorClient.transfers().suspendTransfer(participants.provider().contextId(), consumerTransfer.getCorrelationId(), "Suspending for test");
+
+        connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, SUSPENDED);
+        connectorClient.waitTransferInState(participants.provider().contextId(), consumerTransfer.getCorrelationId(), SUSPENDED);
+
+
+        connectorClient.transfers().resumeTransfer(participants.provider().contextId(), consumerTransfer.getCorrelationId());
+
+        connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, STARTED);
+        connectorClient.waitTransferInState(participants.provider().contextId(), consumerTransfer.getCorrelationId(), STARTED);
+    }
+
+    @Test
+    void suspendAndResumeByConsumer(VirtualConnector env, VirtualConnectorClient connectorClient, Participants participants) {
+        var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
+
+        var assetId = setup(connectorClient, participants.provider());
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+
+        var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
+        var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
+
+        assertThat(consumerTransfer.getState()).isEqualTo(providerTransfer.getState());
+
+        connectorClient.transfers().suspendTransfer(participants.consumer().contextId(), transferProcessId, "Suspending for test");
+
+        connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, SUSPENDED);
+        connectorClient.waitTransferInState(participants.provider().contextId(), consumerTransfer.getCorrelationId(), SUSPENDED);
+
+        connectorClient.transfers().resumeTransfer(participants.consumer().contextId(), transferProcessId);
+
+        connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, STARTED);
+        connectorClient.waitTransferInState(participants.provider().contextId(), consumerTransfer.getCorrelationId(), STARTED);
+    }
+
+    @Test
+    void terminateByConsumer(VirtualConnector env, VirtualConnectorClient connectorClient, Participants participants) {
+        var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
+
+        var assetId = setup(connectorClient, participants.provider());
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+
+        var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
+        var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
+
+        assertThat(consumerTransfer.getState()).isEqualTo(providerTransfer.getState());
+
+        connectorClient.transfers().terminateTransfer(participants.consumer().contextId(), transferProcessId, "Terminate for test");
+
+        connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, TERMINATED);
+        connectorClient.waitTransferInState(participants.provider().contextId(), consumerTransfer.getCorrelationId(), TERMINATED);
+
+    }
+
+    @Test
+    void terminateByProvider(VirtualConnector env, VirtualConnectorClient connectorClient, Participants participants) {
+        var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
+
+        var assetId = setup(connectorClient, participants.provider());
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+
+        var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
+        var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
+
+        assertThat(consumerTransfer.getState()).isEqualTo(providerTransfer.getState());
+
+        connectorClient.transfers().terminateTransfer(participants.consumer().contextId(), transferProcessId, "Suspending for test");
+
+        connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, TERMINATED);
+        connectorClient.waitTransferInState(participants.provider().contextId(), consumerTransfer.getCorrelationId(), TERMINATED);
+        
     }
 
     private String setup(VirtualConnectorClient connectorClient, Participants.Participant provider) {

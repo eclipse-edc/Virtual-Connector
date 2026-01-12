@@ -15,6 +15,8 @@
 package org.eclipse.edc.virtual.transfer.fixtures.api;
 
 import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnectorClient;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.SuspendTransferDto;
+import org.eclipse.edc.virtual.transfer.fixtures.api.model.TerminateTransferDto;
 import org.eclipse.edc.virtual.transfer.fixtures.api.model.TransferProcessDto;
 import org.eclipse.edc.virtual.transfer.fixtures.api.model.TransferRequestDto;
 import org.eclipse.edc.virtual.transfer.fixtures.api.model.WithContext;
@@ -88,5 +90,62 @@ public class TransferApi {
                 .statusCode(200)
                 .contentType(JSON)
                 .extract().as(TransferProcessDto.class);
+    }
+
+    /**
+     * Suspends a transfer process in the specified participant context.
+     *
+     * @param participantContextId the participant context ID
+     * @param transferId           the transfer process ID
+     * @param reason               the reason for suspension
+     */
+    public void suspendTransfer(String participantContextId, String transferId, String reason) {
+        var suspendTransferDto = new SuspendTransferDto(reason);
+        connector.baseManagementRequest(participantContextId)
+                .contentType(JSON)
+                .body(new WithContext<>(suspendTransferDto))
+                .when()
+                .post("/v4alpha/participants/%s/transferprocesses/%s/suspend".formatted(participantContextId, transferId))
+                .then()
+                .log().ifValidationFails()
+                .statusCode(204);
+
+    }
+
+    /**
+     * Suspends a transfer process in the specified participant context.
+     *
+     * @param participantContextId the participant context ID
+     * @param transferId           the transfer process ID
+     * @param reason               the reason for suspension
+     */
+    public void terminateTransfer(String participantContextId, String transferId, String reason) {
+        var terminateTransferDto = new TerminateTransferDto(reason);
+        connector.baseManagementRequest(participantContextId)
+                .contentType(JSON)
+                .body(new WithContext<>(terminateTransferDto))
+                .when()
+                .post("/v4alpha/participants/%s/transferprocesses/%s/terminate".formatted(participantContextId, transferId))
+                .then()
+                .log().ifValidationFails()
+                .statusCode(204);
+
+    }
+
+    /**
+     * Resumes a suspended transfer process in the specified participant context.
+     *
+     * @param participantContextId the participant context ID
+     * @param transferId           the transfer process ID
+     */
+    public void resumeTransfer(String participantContextId, String transferId) {
+        connector.baseManagementRequest(participantContextId)
+                .contentType(JSON)
+                .when()
+                .post("/v4alpha/participants/%s/transferprocesses/%s/resume".formatted(participantContextId, transferId))
+                .then()
+                .log().ifValidationFails()
+                .statusCode(204);
+
     }
 }

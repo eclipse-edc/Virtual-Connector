@@ -57,6 +57,8 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
@@ -331,7 +333,9 @@ public class TransferProcessStateMachineServiceImplTest {
                     arguments(SUSPENDING, CONSUMER, SUSPENDED),
                     arguments(SUSPENDING, PROVIDER, SUSPENDED),
                     arguments(SUSPENDING_REQUESTED, CONSUMER, SUSPENDED),
-                    arguments(SUSPENDING_REQUESTED, PROVIDER, SUSPENDED)
+                    arguments(SUSPENDING_REQUESTED, PROVIDER, SUSPENDED),
+                    arguments(RESUMING, PROVIDER, STARTED),
+                    arguments(RESUMING, CONSUMER, RESUMED)
             );
         }
     }

@@ -55,6 +55,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
@@ -96,6 +97,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
         stateHandlers.put(COMPLETING_REQUESTED, new Handler(this::processCompleting, null));
         stateHandlers.put(SUSPENDING, new Handler(this::processSuspending, null));
         stateHandlers.put(SUSPENDING_REQUESTED, new Handler(this::processSuspending, null));
+        stateHandlers.put(RESUMING, new Handler(this::processResuming, null));
     }
 
     @Override
@@ -200,6 +202,27 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
         return dispatch(messageBuilder, process, Object.class)
                 .onSuccess(c -> transitionToStarted(process))
                 .mapEmpty();
+    }
+
+
+    private StatusResult<Void> processResuming(TransferProcess process) {
+        if (process.getType() == CONSUMER) {
+            return processConsumerResuming(process);
+        } else {
+            return processProviderResuming(process);
+        }
+    }
+
+    private StatusResult<Void> processConsumerResuming(TransferProcess process) {
+        var messageBuilder = TransferStartMessage.Builder.newInstance();
+
+        return dispatch(messageBuilder, process, Object.class)
+                .onSuccess(c -> transitionToResumed(process))
+                .mapEmpty();
+    }
+
+    private StatusResult<Void> processProviderResuming(TransferProcess process) {
+        return processStarting(process);
     }
 
     private StatusResult<Void> processTerminating(TransferProcess process) {
@@ -357,6 +380,11 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
         transferProcess.setCorrelationId(ack.getProviderPid());
         update(transferProcess);
         observable.invokeForEach(l -> l.requested(transferProcess));
+    }
+
+    private void transitionToResumed(TransferProcess process) {
+        process.transitionResumed();
+        update(process);
     }
 
     private <T> StatusResult<T> dispatch(TransferRemoteMessage.Builder<?, ?> messageBuilder,
