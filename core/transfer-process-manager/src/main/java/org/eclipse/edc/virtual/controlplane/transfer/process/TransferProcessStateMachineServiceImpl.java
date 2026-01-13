@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowControll
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
@@ -51,11 +50,11 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
@@ -87,15 +86,15 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
     private void registerStateHandlers() {
         stateHandlers.put(INITIAL, new Handler(this::processInitial, null));
         stateHandlers.put(REQUESTING, new Handler(this::processRequesting, CONSUMER));
+        stateHandlers.put(STARTUP_REQUESTED, new Handler(this::processStartupRequested, CONSUMER));
         stateHandlers.put(STARTING, new Handler(this::processStarting, PROVIDER));
-        stateHandlers.put(PROVISIONING, new Handler(this::processProvisioning, PROVIDER));
-        stateHandlers.put(PROVISIONED, new Handler(this::processProvisioned, null));
         stateHandlers.put(TERMINATING, new Handler(this::processTerminating, null));
         stateHandlers.put(TERMINATING_REQUESTED, new Handler(this::processTerminating, null));
         stateHandlers.put(COMPLETING, new Handler(this::processCompleting, null));
         stateHandlers.put(COMPLETING_REQUESTED, new Handler(this::processCompleting, null));
         stateHandlers.put(SUSPENDING, new Handler(this::processSuspending, null));
         stateHandlers.put(SUSPENDING_REQUESTED, new Handler(this::processSuspending, null));
+        stateHandlers.put(RESUMING, new Handler(this::processResuming, null));
     }
 
     @Override
@@ -110,14 +109,14 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
                 return StatusResult.failure(FATAL_ERROR, transferResult.getFailureDetail());
             }
 
-            var negotiation = transferResult.getContent();
-            if (TransferProcessStates.isFinal(negotiation.getState())) {
-                monitor.debug("Skipping transfer process with id '%s' is in final state '%s'".formatted(transferId, from(negotiation.getState())));
+            var transferProcess = transferResult.getContent();
+            if (TransferProcessStates.isFinal(transferProcess.getState())) {
+                monitor.debug("Skipping transfer process with id '%s' is in final state '%s'".formatted(transferId, from(transferProcess.getState())));
                 return StatusResult.success();
             }
 
-            if (negotiation.getState() != expectedState.code()) {
-                monitor.warning("Skipping transfer process with id '%s' is in state '%s', expected '%s'".formatted(transferId, from(negotiation.getState()), expectedState));
+            if (transferProcess.getState() != expectedState.code()) {
+                monitor.warning("Skipping transfer process with id '%s' is in state '%s', expected '%s'".formatted(transferId, from(transferProcess.getState()), expectedState));
                 return StatusResult.success();
             }
 
@@ -127,34 +126,25 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
                 return StatusResult.success();
             }
 
-            if (handler.type != null && handler.type != negotiation.getType()) {
-                var msg = "Expected type '%s' for state '%s', but got '%s' for transfer process %s".formatted(handler.type, expectedState, negotiation.getType(), transferId);
+            if (handler.type != null && handler.type != transferProcess.getType()) {
+                var msg = "Expected type '%s' for state '%s', but got '%s' for transfer process %s".formatted(handler.type, expectedState, transferProcess.getType(), transferId);
                 monitor.severe(msg);
                 return StatusResult.failure(FATAL_ERROR, msg);
             }
 
-            if (pendingGuard.test(negotiation)) {
+            if (pendingGuard.test(transferProcess)) {
                 monitor.debug("Skipping '%s' for transfer process with id '%s' due matched guard".formatted(expectedState, transferId));
                 return StatusResult.success();
             }
 
-            return handler.function.apply(negotiation);
+            if (transferProcess.isPending()) {
+                monitor.debug("Skipping '%s' for transfer process with id '%s' because it is pending".formatted(expectedState, transferId));
+                return StatusResult.success();
+            }
+
+            return handler.function.apply(transferProcess);
         });
 
-    }
-
-    private StatusResult<Void> processProvisioning(TransferProcess process) {
-        transitionToProvisioned(process);
-        return StatusResult.success();
-    }
-
-    private StatusResult<Void> processProvisioned(TransferProcess process) {
-        if (CONSUMER == process.getType()) {
-            transitionToRequesting(process);
-        } else {
-            transitionToStarting(process);
-        }
-        return StatusResult.success();
     }
 
     private StatusResult<Void> processInitial(TransferProcess process) {
@@ -167,18 +157,35 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
         }
 
         if (process.getType() == CONSUMER) {
-            // TODO handle provisioning with DPS
-            process.setDataPlaneId(null);
-            process.transitionRequesting();
+
+            var provisioning = dataFlowController.prepare(process, policy);
+
+            if (provisioning.failed()) {
+                // with the upcoming data-plane signaling data-plane will be mandatory also on consumer side
+                // so in this case the transfer will be terminated straight away
+                process.transitionRequesting();
+            } else {
+                var response = provisioning.getContent();
+                process.setDataPlaneId(response.getDataPlaneId());
+                if (response.isProvisioning()) {
+                    process.transitionProvisioningRequested();
+                } else {
+                    process.updateDestination(response.getDataAddress());
+                    process.transitionRequesting();
+                }
+            }
+
         } else {
             var assetId = process.getAssetId();
             var dataAddress = addressResolver.resolveForAsset(assetId);
             if (dataAddress == null) {
-                transitionToTerminating(process, "Asset not found: " + assetId);
-                return StatusResult.failure(FATAL_ERROR, "Asset not found: " + assetId);
+                transitionToStarting(process);
+                return StatusResult.success();
             }
+            // default the content address to the asset address; this may be overridden during provisioning
             process.setContentDataAddress(dataAddress);
-            process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
+
+            process.transitionStarting();
         }
 
         update(process);
@@ -194,12 +201,52 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
             transitionToTerminating(process, result.getFailureDetail());
             return StatusResult.failure(FATAL_ERROR, result.getFailureDetail());
         }
+
         var dataFlowResponse = result.getContent();
-        var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(dataFlowResponse.getDataAddress());
         process.setDataPlaneId(dataFlowResponse.getDataPlaneId());
+        if (dataFlowResponse.isProvisioning()) {
+            transitionToStartupRequested(process);
+            return StatusResult.success();
+        } else {
+            var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(dataFlowResponse.getDataAddress());
+            process.setDataPlaneId(dataFlowResponse.getDataPlaneId());
+            return dispatch(messageBuilder, process, Object.class)
+                    .onSuccess(c -> transitionToStarted(process))
+                    .mapEmpty();
+        }
+
+    }
+
+    private StatusResult<Void> processStartupRequested(TransferProcess process) {
+        var result = dataFlowController.started(process);
+
+        if (result.failed()) {
+            transitionToTerminating(process, result.getFailureDetail());
+            return StatusResult.failure(FATAL_ERROR, result.getFailureDetail());
+        }
+        transitionToStarted(process);
+        return StatusResult.success();
+    }
+
+
+    private StatusResult<Void> processResuming(TransferProcess process) {
+        if (process.getType() == CONSUMER) {
+            return processConsumerResuming(process);
+        } else {
+            return processProviderResuming(process);
+        }
+    }
+
+    private StatusResult<Void> processConsumerResuming(TransferProcess process) {
+        var messageBuilder = TransferStartMessage.Builder.newInstance();
+
         return dispatch(messageBuilder, process, Object.class)
-                .onSuccess(c -> transitionToStarted(process))
+                .onSuccess(c -> transitionToResumed(process))
                 .mapEmpty();
+    }
+
+    private StatusResult<Void> processProviderResuming(TransferProcess process) {
+        return processStarting(process);
     }
 
     private StatusResult<Void> processTerminating(TransferProcess process) {
@@ -296,7 +343,7 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
     protected void update(TransferProcess entity) {
         store.save(entity);
         monitor.debug(() -> "[%s] %s %s is now in state %s"
-                .formatted(this.getClass().getSimpleName(), entity.getClass().getSimpleName(),
+                .formatted(entity.getType(), entity.getClass().getSimpleName(),
                         entity.getId(), entity.stateAsString()));
     }
 
@@ -334,11 +381,10 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
         observable.invokeForEach(l -> l.started(transferProcess, TransferProcessStartedData.Builder.newInstance().build()));
     }
 
-    private void transitionToProvisioned(TransferProcess transferProcess) {
-        transferProcess.transitionProvisioned();
+    private void transitionToStartupRequested(TransferProcess transferProcess) {
+        transferProcess.transitionStartupRequested();
         update(transferProcess);
     }
-
 
     private void transitionToCompleted(TransferProcess transferProcess) {
         transferProcess.transitionCompleted();
@@ -357,6 +403,11 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
         transferProcess.setCorrelationId(ack.getProviderPid());
         update(transferProcess);
         observable.invokeForEach(l -> l.requested(transferProcess));
+    }
+
+    private void transitionToResumed(TransferProcess process) {
+        process.transitionResumed();
+        update(process);
     }
 
     private <T> StatusResult<T> dispatch(TransferRemoteMessage.Builder<?, ?> messageBuilder,

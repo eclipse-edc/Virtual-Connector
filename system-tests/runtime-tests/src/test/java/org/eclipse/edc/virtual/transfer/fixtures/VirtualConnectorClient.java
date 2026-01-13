@@ -17,6 +17,7 @@ package org.eclipse.edc.virtual.transfer.fixtures;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.authentication.OauthServer;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.utils.LazySupplier;
@@ -137,13 +138,18 @@ public class VirtualConnectorClient {
     private String startTransferProcess(String participantContext, String contractAgreementId, String providerAddress, String transferType) {
         var request = new TransferRequestDto(PROTOCOL, providerAddress, transferType, contractAgreementId);
         var transferId = transfers.initTransfer(participantContext, request);
-        await().atMost(TIMEOUT).untilAsserted(() -> {
-            var state = transfers.getState(participantContext, transferId);
-            assertThat(state).isEqualTo(STARTED.name());
-        });
+
+        waitTransferInState(participantContext, transferId, STARTED);
 
         return transferId;
 
+    }
+
+    public void waitTransferInState(String participantContextId, String transferId, TransferProcessStates state) {
+        await().atMost(TIMEOUT).untilAsserted(() -> {
+            var currentState = transfers.getState(participantContextId, transferId);
+            assertThat(currentState).isEqualTo(state.name());
+        });
     }
 
     public String initContractNegotiation(String participantContext, String assetId, String providerAddress, String providerId) {
