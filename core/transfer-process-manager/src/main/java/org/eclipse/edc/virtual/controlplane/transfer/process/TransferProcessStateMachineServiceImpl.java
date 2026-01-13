@@ -378,7 +378,10 @@ public class TransferProcessStateMachineServiceImpl implements TransferProcessSt
     private void transitionToStarted(TransferProcess transferProcess) {
         transferProcess.transitionStarted();
         update(transferProcess);
-        observable.invokeForEach(l -> l.started(transferProcess, TransferProcessStartedData.Builder.newInstance().build()));
+        var transferStartedData = TransferProcessStartedData.Builder.newInstance()
+                .dataAddress(transferProcess.getContentDataAddress())
+                .build();
+        observable.invokeForEach(l -> l.started(transferProcess, transferStartedData));
     }
 
     private void transitionToStartupRequested(TransferProcess transferProcess) {
