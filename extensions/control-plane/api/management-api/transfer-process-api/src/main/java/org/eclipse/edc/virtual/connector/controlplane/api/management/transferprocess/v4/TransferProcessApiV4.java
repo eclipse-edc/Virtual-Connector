@@ -86,17 +86,6 @@ public interface TransferProcessApiV4 {
             })
     JsonObject initiateTransferProcessV4(String participantContextId, JsonObject transferRequest, SecurityContext securityContext);
 
-    @Operation(description = "Requests the deprovisioning of resources associated with a transfer process. " + ASYNC_WARNING,
-            responses = {
-                    @ApiResponse(responseCode = "204", description = "Request to deprovision the transfer process was successfully received",
-                            links = @Link(name = "poll-state", operationId = "deprovisionTransferProcessV3")),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
-                    @ApiResponse(responseCode = "404", description = "A transfer process with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
-            })
-    void deprovisionTransferProcessV4(String participantContextId, String id, SecurityContext securityContext);
-
     @Operation(description = "Requests the termination of a transfer process. " + ASYNC_WARNING,
             requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.TERMINATE_TRANSFER))),
             responses = {

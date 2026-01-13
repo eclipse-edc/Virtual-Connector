@@ -53,14 +53,13 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
@@ -120,6 +119,9 @@ public class TransferProcessStateMachineServiceImplTest {
         var transferProcessId = "transferProcessId";
         var contractId = "contractId";
 
+
+        when(dataFlowController.started(any())).thenReturn(StatusResult.success());
+        when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
         when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
         when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
         when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
@@ -316,12 +318,10 @@ public class TransferProcessStateMachineServiceImplTest {
 
             return Stream.of(
                     arguments(INITIAL, CONSUMER, REQUESTING),
-                    arguments(INITIAL, PROVIDER, PROVISIONING),
+                    arguments(INITIAL, PROVIDER, STARTING),
                     arguments(REQUESTING, CONSUMER, REQUESTED),
                     arguments(STARTING, PROVIDER, STARTED),
-                    arguments(PROVISIONING, PROVIDER, PROVISIONED),
-                    arguments(PROVISIONED, PROVIDER, STARTING),
-                    arguments(PROVISIONED, CONSUMER, REQUESTING),
+                    arguments(STARTUP_REQUESTED, CONSUMER, STARTED),
                     arguments(TERMINATING, CONSUMER, TERMINATED),
                     arguments(TERMINATING, PROVIDER, TERMINATED),
                     arguments(TERMINATING_REQUESTED, CONSUMER, TERMINATED),

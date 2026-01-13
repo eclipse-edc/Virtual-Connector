@@ -187,24 +187,6 @@ public class TransferProcessApiV4Controller implements TransferProcessApiV4 {
     }
 
     @POST
-    @Path("/{id}/deprovision")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
-    @Override
-    public void deprovisionTransferProcessV4(@PathParam("participantContextId") String participantContextId,
-                                             @PathParam("id") String id,
-                                             @Context SecurityContext securityContext) {
-
-
-        authorizationService.authorize(securityContext, participantContextId, id, TransferProcess.class)
-                .orElseThrow(exceptionMapper(TransferProcess.class, id));
-
-        service.deprovision(id)
-                .onSuccess(tp -> monitor.debug(format("Deprovision requested for TransferProcess with ID %s", id)))
-                .orElseThrow(exceptionMapper(TransferProcess.class, id));
-    }
-
-    @POST
     @Path("/{id}/terminate")
     @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
     @RequiredScope("management-api:write")

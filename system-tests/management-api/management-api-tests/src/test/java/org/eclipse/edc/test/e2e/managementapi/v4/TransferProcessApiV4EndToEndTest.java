@@ -306,52 +306,6 @@ public class TransferProcessApiV4EndToEndTest {
         }
 
         @Test
-        void deprovision(ManagementEndToEndTestContext context, TransferProcessStore store) {
-            var id = UUID.randomUUID().toString();
-            store.save(createTransferProcessBuilder(id).state(COMPLETED.code()).build());
-
-            context.baseRequest(participantTokenJwt)
-                    .contentType(JSON)
-                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/deprovision")
-                    .then()
-                    .statusCode(204);
-        }
-
-        @Test
-        void deprovision_tokenBearerWrong(ManagementEndToEndTestContext context, OauthServer authServer,
-                                          TransferProcessStore store, ParticipantContextService service) {
-            var id = UUID.randomUUID().toString();
-            store.save(createTransferProcessBuilder(id).state(COMPLETED.code()).build());
-
-            var otherParticipantId = UUID.randomUUID().toString();
-
-            service.createParticipantContext(participantContext(otherParticipantId))
-                    .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
-
-            var token = authServer.createToken(otherParticipantId);
-
-            context.baseRequest(token)
-                    .contentType(JSON)
-                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/deprovision")
-                    .then()
-                    .statusCode(403);
-        }
-
-        @Test
-        void deprovision_tokenLacksWriteScope(ManagementEndToEndTestContext context, OauthServer authServer, TransferProcessStore store) {
-            var id = UUID.randomUUID().toString();
-            store.save(createTransferProcessBuilder(id).state(COMPLETED.code()).build());
-
-            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
-
-            context.baseRequest(token)
-                    .contentType(JSON)
-                    .post("/v4alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/deprovision")
-                    .then()
-                    .statusCode(403);
-        }
-
-        @Test
         void terminate(ManagementEndToEndTestContext context, TransferProcessStore store) {
             var id = UUID.randomUUID().toString();
             store.save(createTransferProcessBuilder(id).state(REQUESTED.code()).build());
