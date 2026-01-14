@@ -18,9 +18,11 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.junit.annotations.Runtime;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.virtual.Runtimes.ControlPlane;
 import org.eclipse.edc.virtual.transfer.fixtures.Participants;
@@ -39,6 +41,7 @@ import java.util.List;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -170,8 +173,30 @@ abstract class TransferPullEndToEndTestBase {
 
         connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, TERMINATED);
         connectorClient.waitTransferInState(participants.provider().contextId(), consumerTransfer.getCorrelationId(), TERMINATED);
-        
+
     }
+
+    @Test
+    void completeByProvider(VirtualConnector env, TransferProcessService service, VirtualConnectorClient connectorClient, Participants participants) {
+        var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
+
+        var assetId = setup(connectorClient, participants.provider());
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+
+        var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
+        var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
+
+        assertThat(consumerTransfer.getState()).isEqualTo(providerTransfer.getState());
+
+
+        service.complete(consumerTransfer.getCorrelationId())
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+
+        connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, COMPLETED);
+        connectorClient.waitTransferInState(participants.provider().contextId(), consumerTransfer.getCorrelationId(), COMPLETED);
+
+    }
+
 
     private String setup(VirtualConnectorClient connectorClient, Participants.Participant provider) {
         var asset = new AssetDto(new DataAddressDto("HttpData"));
