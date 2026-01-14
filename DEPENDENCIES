@@ -89,15 +89,11 @@ maven/mavencentral/io.github.classgraph/classgraph/4.8.176, MIT, approved, CQ225
 maven/mavencentral/io.github.classgraph/classgraph/4.8.184, MIT, approved, CQ22530
 maven/mavencentral/io.nats/jnats/2.24.1, , restricted, clearlydefined
 maven/mavencentral/io.opentelemetry.instrumentation/opentelemetry-instrumentation-annotations/1.32.0, Apache-2.0, approved, #11684
-maven/mavencentral/io.opentelemetry.instrumentation/opentelemetry-instrumentation-annotations/2.22.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.opentelemetry.instrumentation/opentelemetry-instrumentation-annotations/2.23.0, , restricted, clearlydefined
 maven/mavencentral/io.opentelemetry/opentelemetry-api/1.32.0, Apache-2.0, approved, #11682
-maven/mavencentral/io.opentelemetry/opentelemetry-api/1.56.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.opentelemetry/opentelemetry-api/1.57.0, , restricted, clearlydefined
-maven/mavencentral/io.opentelemetry/opentelemetry-common/1.56.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.opentelemetry/opentelemetry-common/1.57.0, , restricted, clearlydefined
 maven/mavencentral/io.opentelemetry/opentelemetry-context/1.32.0, Apache-2.0, approved, #11683
-maven/mavencentral/io.opentelemetry/opentelemetry-context/1.56.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.opentelemetry/opentelemetry-context/1.57.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.rest-assured/json-path/6.0.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.rest-assured/rest-assured-common/6.0.0, , restricted, clearlydefined
@@ -502,18 +498,25 @@ maven/mavencentral/org.jetbrains/annotations/26.0.2-1, Apache-2.0, approved, #16
 maven/mavencentral/org.jspecify/jspecify/1.0.0, Apache-2.0, approved, #21897
 maven/mavencentral/org.junit.jupiter/junit-jupiter-api/6.0.0, EPL-2.0, approved, #22892
 maven/mavencentral/org.junit.jupiter/junit-jupiter-api/6.0.1, EPL-2.0, approved, #22892
+maven/mavencentral/org.junit.jupiter/junit-jupiter-api/6.0.2, EPL-2.0, approved, #22892
 maven/mavencentral/org.junit.jupiter/junit-jupiter-engine/6.0.0, EPL-2.0, approved, #23932
 maven/mavencentral/org.junit.jupiter/junit-jupiter-engine/6.0.1, EPL-2.0, approved, #23932
+maven/mavencentral/org.junit.jupiter/junit-jupiter-engine/6.0.2, EPL-2.0, approved, #23932
 maven/mavencentral/org.junit.jupiter/junit-jupiter-params/6.0.0, EPL-2.0, approved, #23934
 maven/mavencentral/org.junit.jupiter/junit-jupiter-params/6.0.1, EPL-2.0, approved, #23934
+maven/mavencentral/org.junit.jupiter/junit-jupiter-params/6.0.2, EPL-2.0, approved, #23934
 maven/mavencentral/org.junit.platform/junit-platform-commons/6.0.0, EPL-2.0, approved, #22893
 maven/mavencentral/org.junit.platform/junit-platform-commons/6.0.1, EPL-2.0, approved, #22893
+maven/mavencentral/org.junit.platform/junit-platform-commons/6.0.2, EPL-2.0, approved, #22893
 maven/mavencentral/org.junit.platform/junit-platform-engine/6.0.0, EPL-2.0, approved, #23933
 maven/mavencentral/org.junit.platform/junit-platform-engine/6.0.1, EPL-2.0, approved, #23933
+maven/mavencentral/org.junit.platform/junit-platform-engine/6.0.2, EPL-2.0, approved, #23933
 maven/mavencentral/org.junit.platform/junit-platform-launcher/6.0.0, EPL-2.0, approved, #23935
 maven/mavencentral/org.junit.platform/junit-platform-launcher/6.0.1, EPL-2.0, approved, #23935
+maven/mavencentral/org.junit.platform/junit-platform-launcher/6.0.2, EPL-2.0, approved, #23935
 maven/mavencentral/org.junit/junit-bom/6.0.0, , restricted, clearlydefined
 maven/mavencentral/org.junit/junit-bom/6.0.1, , restricted, clearlydefined
+maven/mavencentral/org.junit/junit-bom/6.0.2, , restricted, clearlydefined
 maven/mavencentral/org.jvnet.mimepull/mimepull/1.9.15, CDDL-1.1 OR GPL-2.0-only WITH Classpath-exception-2.0, approved, CQ21484
 maven/mavencentral/org.mockito/mockito-core/5.2.0, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #7401
 maven/mavencentral/org.mockito/mockito-core/5.20.0, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #23392
