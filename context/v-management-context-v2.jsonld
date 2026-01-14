@@ -1,0 +1,18 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "edc": "https://w3id.org/edc/v0.0.1/ns/",
+    "CelExpression": {
+      "@id": "edc:CelExpression",
+      "@context": {
+        "leftOperand": "edc:leftOperand",
+        "scopes": {
+          "@id": "edc:scopes",
+          "@container": "@set"
+        },
+        "expression": "edc:expression",
+        "description": "edc:description"
+      }
+    }
+  }
+}
