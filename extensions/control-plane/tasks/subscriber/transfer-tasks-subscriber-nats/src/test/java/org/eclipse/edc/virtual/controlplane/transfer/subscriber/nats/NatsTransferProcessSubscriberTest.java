@@ -1,0 +1,162 @@
+/*
+ *  Copyright (c) 2026 Metaform Systems, Inc.
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Metaform Systems, Inc. - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.virtual.controlplane.transfer.subscriber.nats;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
+import org.eclipse.edc.virtual.controlplane.tasks.Task;
+import org.eclipse.edc.virtual.controlplane.tasks.TaskTypes;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.CompleteDataFlow;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.PrepareTransfer;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.ResumeDataFlow;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SendTransferRequest;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SignalDataflowStarted;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.StartDataflow;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SuspendDataFlow;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TerminateDataFlow;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
+import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+
+import java.util.UUID;
+import java.util.stream.Stream;
+
+import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+public class NatsTransferProcessSubscriberTest {
+
+    public static final String STREAM_NAME = "stream_test";
+    public static final String CONSUMER_NAME = "consumer_test";
+    @Order(0)
+    @RegisterExtension
+    static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
+    private final TransferProcessTaskExecutor taskManager = mock();
+    private NatsTransferProcessTaskSubscriber subscriber;
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    @BeforeAll
+    static void beforeAll() {
+        TaskTypes.TYPES.forEach(MAPPER::registerSubtypes);
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        NATS_EXTENSION.createStream(STREAM_NAME, "transfers.>");
+        NATS_EXTENSION.createConsumer(STREAM_NAME, CONSUMER_NAME, "transfers.>");
+
+
+        subscriber = NatsTransferProcessTaskSubscriber.Builder.newInstance()
+                .url(NATS_EXTENSION.getNatsUrl())
+                .name(CONSUMER_NAME)
+                .stream(STREAM_NAME)
+                .subject("transfers.>")
+                .monitor(mock())
+                .mapperSupplier(() -> MAPPER)
+                .taskExecutor(taskManager)
+                .build();
+    }
+
+    @AfterEach
+    void afterEach() {
+        subscriber.stop();
+        NATS_EXTENSION.deleteStream(STREAM_NAME);
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(StateTransitionProvider.class)
+    void handleMessage(TransferProcessTaskPayload payload) throws JsonProcessingException {
+        when(taskManager.handle(any())).thenReturn(StatusResult.success());
+        subscriber.start();
+        var task = Task.Builder.newInstance().at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
+
+
+        NATS_EXTENSION.publish("transfers.provider." + payload.name(), MAPPER.writeValueAsBytes(task));
+
+        await().untilAsserted(() -> {
+            verify(taskManager).handle(refEq(payload));
+        });
+    }
+
+
+    public static class StateTransitionProvider implements ArgumentsProvider {
+
+        protected <T extends ProcessTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> B baseBuilder(B builder, String id, TransferProcessStates state, TransferProcess.Type type) {
+            return builder.processId(id)
+                    .processState(state.name())
+                    .processType(type.name());
+        }
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+
+            var id = UUID.randomUUID().toString();
+            return Stream.of(
+                    arguments(baseBuilder(PrepareTransfer.Builder.newInstance(), id, INITIAL, CONSUMER).build(), REQUESTING),
+                    arguments(baseBuilder(SendTransferRequest.Builder.newInstance(), id, REQUESTING, CONSUMER).build(), REQUESTED),
+                    arguments(baseBuilder(SignalDataflowStarted.Builder.newInstance(), id, REQUESTED, CONSUMER).build(), STARTED),
+                    arguments(baseBuilder(SuspendDataFlow.Builder.newInstance(), id, SUSPENDING, CONSUMER).build(), SUSPENDED),
+                    arguments(baseBuilder(ResumeDataFlow.Builder.newInstance(), id, RESUMING, CONSUMER).build(), RESUMED),
+                    arguments(baseBuilder(TerminateDataFlow.Builder.newInstance(), id, TERMINATING, CONSUMER).build(), TERMINATED),
+                    arguments(baseBuilder(CompleteDataFlow.Builder.newInstance(), id, COMPLETING, CONSUMER).build(), COMPLETED),
+
+                    arguments(baseBuilder(PrepareTransfer.Builder.newInstance(), id, INITIAL, PROVIDER).build(), STARTING),
+                    arguments(baseBuilder(StartDataflow.Builder.newInstance(), id, STARTING, PROVIDER).build(), STARTED),
+                    arguments(baseBuilder(SuspendDataFlow.Builder.newInstance(), id, SUSPENDING, PROVIDER).build(), SUSPENDED),
+                    arguments(baseBuilder(ResumeDataFlow.Builder.newInstance(), id, RESUMING, PROVIDER).build(), STARTED),
+                    arguments(baseBuilder(TerminateDataFlow.Builder.newInstance(), id, TERMINATING, PROVIDER).build(), TERMINATED),
+                    arguments(baseBuilder(CompleteDataFlow.Builder.newInstance(), id, COMPLETING, PROVIDER).build(), COMPLETED)
+            );
+
+        }
+    }
+
+}

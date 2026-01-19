@@ -99,9 +99,8 @@ public class VirtualTransferProcessManager implements TransferProcessManager {
 
     protected void update(TransferProcess entity) {
         store.save(entity);
-        monitor.debug(() -> "[%s] %s %s is now in state %s"
-                .formatted(this.getClass().getSimpleName(), entity.getClass().getSimpleName(),
-                        entity.getId(), entity.stateAsString()));
+        monitor.debug(() -> "[%s] %s %s is now in state %s".formatted(entity.getType(), entity.getClass().getSimpleName(),
+                entity.getId(), entity.stateAsString()));
     }
 
     @Override

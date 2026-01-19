@@ -1,0 +1,85 @@
+<mxfile host="65bd71144e">
+    <diagram id="nats-multi-worker" name="Page-1">
+        <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="450" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <!-- Control Plane 1 -->
+                <mxCell id="cp1" value="Control Plane 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+                    <mxGeometry x="120" y="30" width="140" height="50" as="geometry"/>
+                </mxCell>
+                <!-- Control Plane 2 -->
+                <mxCell id="cp2" value="Control Plane 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1">
+                    <mxGeometry x="340" y="30" width="140" height="50" as="geometry"/>
+                </mxCell>
+                <!-- NatsTaskPublisher -->
+                <mxCell id="publisher" value="NatsTaskPublisher&lt;br&gt;(TaskListener)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;" vertex="1" parent="1">
+                    <mxGeometry x="210" y="130" width="180" height="50" as="geometry"/>
+                </mxCell>
+                <!-- NATS JetStream -->
+                <mxCell id="nats" value="NATS JetStream" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1" vertex="1" parent="1">
+                    <mxGeometry x="210" y="230" width="180" height="50" as="geometry"/>
+                </mxCell>
+                <!-- Worker 1 -->
+                <mxCell id="w1" value="Worker 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="20" y="330" width="90" height="40" as="geometry"/>
+                </mxCell>
+                <!-- Worker 2 -->
+                <mxCell id="w2" value="Worker 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="130" y="330" width="90" height="40" as="geometry"/>
+                </mxCell>
+                <!-- Worker 3 -->
+                <mxCell id="w3" value="Worker 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="240" y="330" width="90" height="40" as="geometry"/>
+                </mxCell>
+                <!-- ... -->
+                <mxCell id="dots" value="..." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1" vertex="1" parent="1">
+                    <mxGeometry x="350" y="330" width="40" height="40" as="geometry"/>
+                </mxCell>
+                <!-- Worker N -->
+                <mxCell id="wn" value="Worker N" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="330" width="90" height="40" as="geometry"/>
+                </mxCell>
+                <!-- TaskExecutor label -->
+                <mxCell id="executor" value="TaskExecutor (same for all)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=2" vertex="1" parent="1">
+                    <mxGeometry x="160" y="390" width="200" height="30" as="geometry"/>
+                </mxCell>
+                <!-- Arrow: CP1 to Publisher -->
+                <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="cp1" target="publisher">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Arrow: CP2 to Publisher -->
+                <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="cp2" target="publisher">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Arrow: Publisher to NATS -->
+                <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="publisher" target="nats">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Arrow: NATS to Worker 1 -->
+                <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="nats" target="w1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Arrow: NATS to Worker 2 -->
+                <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="nats" target="w2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Arrow: NATS to Worker 3 -->
+                <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="nats" target="w3">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Arrow: NATS to Worker N -->
+                <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#666666;strokeWidth=2;" edge="1" parent="1" source="nats" target="wn">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- Bracket for TaskExecutor -->
+                <mxCell id="bracket" style="endArrow=none;html=1;strokeColor=#999999;strokeWidth=1;dashed=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="65" y="380" as="sourcePoint"/>
+                        <mxPoint x="455" y="380" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
