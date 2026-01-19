@@ -119,14 +119,14 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
                 return StatusResult.failure(FATAL_ERROR, transferResult.getFailureDetail());
             }
 
-            var negotiation = transferResult.getContent();
-            if (TransferProcessStates.isFinal(negotiation.getState())) {
-                monitor.debug("Skipping transfer process with id '%s' is in final state '%s'".formatted(transferId, from(negotiation.getState())));
+            var transferProcess = transferResult.getContent();
+            if (TransferProcessStates.isFinal(transferProcess.getState())) {
+                monitor.debug("Skipping transfer process with id '%s' is in final state '%s'".formatted(transferId, from(transferProcess.getState())));
                 return StatusResult.success();
             }
 
-            if (negotiation.getState() != expectedState.code()) {
-                monitor.warning("Skipping transfer process with id '%s' is in state '%s', expected '%s'".formatted(transferId, from(negotiation.getState()), expectedState));
+            if (transferProcess.getState() != expectedState.code()) {
+                monitor.warning("Skipping transfer process with id '%s' is in state '%s', expected '%s'".formatted(transferId, from(transferProcess.getState()), expectedState));
                 return StatusResult.success();
             }
 
@@ -136,18 +136,23 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
                 return StatusResult.success();
             }
 
-            if (handler.type != null && handler.type != negotiation.getType()) {
-                var msg = "Expected type '%s' for state '%s', but got '%s' for transfer process %s".formatted(handler.type, expectedState, negotiation.getType(), transferId);
+            if (handler.type != null && handler.type != transferProcess.getType()) {
+                var msg = "Expected type '%s' for state '%s', but got '%s' for transfer process %s".formatted(handler.type, expectedState, transferProcess.getType(), transferId);
                 monitor.severe(msg);
                 return StatusResult.failure(FATAL_ERROR, msg);
             }
 
-            if (pendingGuard.test(negotiation)) {
+            if (transferProcess.isPending()) {
+                monitor.debug("Skipping transfer process with id '%s' is in pending state".formatted(transferId));
+                return StatusResult.success();
+            }
+
+            if (pendingGuard.test(transferProcess)) {
                 monitor.debug("Skipping '%s' for transfer process with id '%s' due matched guard".formatted(expectedState, transferId));
                 return StatusResult.success();
             }
 
-            return handler.function.apply(negotiation);
+            return handler.function.apply(transferProcess);
         });
 
     }

@@ -23,6 +23,8 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
 
 public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtension {
@@ -42,6 +44,12 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
     @Inject
     private Monitor monitor;
 
+    @Inject
+    private TaskService taskService;
+
+    @Inject
+    private TransactionContext transactionContext;
+
     private NatsTransferProcessTaskSubscriber subscriber;
 
     @Override
@@ -58,6 +66,8 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
                 .executorInstrumentation(executorInstrumentation)
                 .batchSize(subscriberConfig.batchSize)
                 .maxWait(subscriberConfig.maxWait)
+                .taskService(taskService)
+                .transactionContext(transactionContext)
                 .build();
     }
 

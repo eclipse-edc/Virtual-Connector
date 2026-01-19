@@ -39,11 +39,13 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,10 +60,6 @@ class TaskPollExecutorTest {
     private final ExecutorInstrumentation instrumentation = mock();
     private final Clock clock = Clock.systemUTC();
     private TaskPollExecutor pollExecutor;
-
-    private static org.mockito.MockingDetails mockingDetails(Object mock) {
-        return org.mockito.Mockito.mockingDetails(mock);
-    }
 
     @BeforeEach
     void setUp() {
@@ -157,7 +155,7 @@ class TaskPollExecutorTest {
                 .thenReturn(List.of(task))
                 .thenReturn(List.of());
         when(contractNegotiationTaskExecutor.handle(any()))
-                .thenReturn(StatusResult.failure(FATAL_ERROR, "Processing failed"));
+                .thenReturn(StatusResult.failure(ERROR_RETRY, "Processing failed"));
 
         pollExecutor.start();
 

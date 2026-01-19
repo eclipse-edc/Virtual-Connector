@@ -15,41 +15,29 @@
 package org.eclipse.edc.virtual.controlplane.contract.negotiation.subscriber;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.nats.client.Message;
-import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
-import org.eclipse.edc.virtual.controlplane.tasks.Task;
-import org.eclipse.edc.virtual.nats.subscriber.NatsSubscriber;
+import org.eclipse.edc.virtual.controlplane.tasks.subscriber.AbstractTaskSubscriber;
 
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public class NatsContractNegotiationTaskSubscriber extends NatsSubscriber {
+public class NatsContractNegotiationTaskSubscriber extends AbstractTaskSubscriber<ContractNegotiationTaskPayload> {
 
     protected ContractNegotiationTaskExecutor taskExecutor;
     protected Supplier<ObjectMapper> mapperSupplier;
 
     private NatsContractNegotiationTaskSubscriber() {
+        super(ContractNegotiationTaskPayload.class);
     }
 
-    // TODO check if the task was actually stored
     @Override
-    protected StatusResult<Void> handleMessage(Message message) {
-        try {
-            var task = mapperSupplier.get().readValue(message.getData(), Task.class);
-            if (task.getPayload() instanceof ContractNegotiationTaskPayload payload) {
-                return taskExecutor.handle(payload);
-            } else {
-                return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Invalid task payload type");
-            }
-        } catch (Exception e) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, e.getMessage());
-        }
+    protected StatusResult<Void> handlePayload(ContractNegotiationTaskPayload payload) {
+        return taskExecutor.handle(payload);
     }
 
-    public static class Builder extends NatsSubscriber.Builder<NatsContractNegotiationTaskSubscriber, Builder> {
+    public static class Builder extends AbstractTaskSubscriber.Builder<NatsContractNegotiationTaskSubscriber, Builder, ContractNegotiationTaskPayload> {
 
         protected Builder() {
             super(new NatsContractNegotiationTaskSubscriber());
@@ -58,12 +46,7 @@ public class NatsContractNegotiationTaskSubscriber extends NatsSubscriber {
         public static Builder newInstance() {
             return new Builder();
         }
-
-        public Builder mapperSupplier(Supplier<ObjectMapper> mapperSupplier) {
-            subscriber.mapperSupplier = mapperSupplier;
-            return self();
-        }
-
+        
         public Builder taskExecutor(ContractNegotiationTaskExecutor taskExecutor) {
             subscriber.taskExecutor = taskExecutor;
             return self();
@@ -76,7 +59,6 @@ public class NatsContractNegotiationTaskSubscriber extends NatsSubscriber {
 
         @Override
         public NatsContractNegotiationTaskSubscriber build() {
-            Objects.requireNonNull(subscriber.mapperSupplier, "mapperSupplier must be set");
             Objects.requireNonNull(subscriber.taskExecutor, "stateMachineService must be set");
             return super.build();
         }

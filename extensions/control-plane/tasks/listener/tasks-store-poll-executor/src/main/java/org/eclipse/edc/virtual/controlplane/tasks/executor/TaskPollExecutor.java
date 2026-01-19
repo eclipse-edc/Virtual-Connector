@@ -136,8 +136,13 @@ public class TaskPollExecutor {
         if (result.succeeded()) {
             taskStore.delete(task.getId());
         } else {
-            monitor.severe("Failed to process task " + task.getId() + ": " + result.getFailureDetail());
-            taskStore.update(task.toBuilder().at(clock.millis()).build());
+            if (result.fatalError()) {
+                monitor.severe("Fatal error processing task " + task.getId() + ": " + result.getFailureDetail());
+                taskStore.delete(task.getId());
+            } else {
+                monitor.warning("Transient error processing task " + task.getId() + ": " + result.getFailureDetail() + ". Will retry later.");
+                taskStore.update(task.toBuilder().at(clock.millis()).build());
+            }
         }
     }
 
