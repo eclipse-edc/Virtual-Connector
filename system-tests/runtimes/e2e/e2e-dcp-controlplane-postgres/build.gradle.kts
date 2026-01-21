@@ -22,7 +22,6 @@ dependencies {
     implementation(project(":dist:bom:virtual-controlplane-feature-dcp-bom"))
     implementation(project(":dist:bom:virtual-controlplane-feature-sql-bom"))
     implementation(project(":dist:bom:virtual-controlplane-feature-nats-bom"))
-    implementation(project(":dist:bom:virtual-controlplane-feature-nats-cdc-bom"))
 
     runtimeOnly(libs.edc.bom.dataplane) {
         exclude(module = "data-plane-selector-client")

@@ -20,9 +20,7 @@ dependencies {
     implementation(libs.edc.iam.mock)
     implementation(project(":dist:bom:virtual-controlplane-base-bom"))
     implementation(project(":dist:bom:virtual-controlplane-feature-sql-bom"))
-    implementation(project(":extensions:control-plane:tasks:listener:tasks-store-listener"))
-    implementation(project(":extensions:control-plane:tasks:listener:tasks-store-poll-executor"))
-    implementation(project(":extensions:control-plane:tasks:store:tasks-store-sql"))
+    implementation(project(":dist:bom:virtual-controlplane-feature-nats-bom"))
 
     runtimeOnly(libs.edc.bom.dataplane) {
         exclude(module = "data-plane-selector-client")

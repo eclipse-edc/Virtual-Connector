@@ -34,7 +34,7 @@ public interface Runtimes {
         };
 
         String[] PG_MODULES = {
-                ":system-tests:runtimes:e2e:e2e-controlplane-postgres",
+                ":system-tests:runtimes:e2e:e2e-controlplane-postgres-nats",
         };
 
 
