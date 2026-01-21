@@ -19,6 +19,7 @@ plugins {
 dependencies {
     api(project(":extensions:control-plane:api:management-api"))
     api(project(":core:v-connector-core"))
+    api(project(":core:v-task-core"))
     api(project(":core:negotiation-manager"))
     api(project(":core:transfer-process-manager"))
     api(project(":extensions:common:banner-extension"))
