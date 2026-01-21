@@ -19,6 +19,8 @@ plugins {
 dependencies {
     api(project(":spi:iam:decentralized-claims:dcp-scope-spi"))
     api(libs.edc.spi.core)
+    api(libs.edc.spi.catalog)
+    api(libs.edc.spi.transfer)
     api(libs.edc.spi.dcp)
     api(libs.edc.spi.transaction)
     api(libs.edc.spi.policy.context)

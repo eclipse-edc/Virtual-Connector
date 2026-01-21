@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.virtual.controlplane.iam.decentralizedclaims.scope.core;
 
+import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractor;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Operator;
@@ -23,15 +26,23 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.virtual.controlplane.iam.decentralizedclaims.scope.spi.DcpScope;
 import org.eclipse.edc.virtual.controlplane.iam.decentralizedclaims.scope.spi.DcpScopeRegistry;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class DynamicScopeExtractorTest {
@@ -41,7 +52,13 @@ class DynamicScopeExtractorTest {
 
     @Test
     void extractScope_shouldFail_whenRegistryFails() {
+        var msg = mock(TransferRequestMessage.class);
+        var ctx = RequestContext.Builder.newInstance()
+                .direction(RequestContext.Direction.Egress)
+                .message(msg)
+                .build();
 
+        when(context.requestContext()).thenReturn(ctx);
         when(registry.getScopeMapping()).thenReturn(ServiceResult.unexpected("registry-error"));
 
         var extractor = new DynamicScopeExtractor(registry);
@@ -52,8 +69,9 @@ class DynamicScopeExtractorTest {
         verify(context).reportProblem(contains("Failed to get scope mapping"));
     }
 
-    @Test
-    void extractScopes() {
+    @ParameterizedTest
+    @ArgumentsSource(MessageTypeProvider.class)
+    void extractScopes(RemoteMessage msg) {
         // scopes: wildcard (should match), matching profile (should match), non-matching profile (excluded), wrong prefix (excluded)
         var wildcard = DcpScope.Builder.newInstance()
                 .id("w")
@@ -86,7 +104,6 @@ class DynamicScopeExtractorTest {
                 .prefixMapping("other:")
                 .profile("proto")
                 .build();
-        var msg = mock(RemoteMessage.class);
         when(msg.getProtocol()).thenReturn("proto");
 
         var ctx = RequestContext.Builder.newInstance()
@@ -107,11 +124,48 @@ class DynamicScopeExtractorTest {
 
     @Test
     void extractScopes_empty() {
+        var msg = mock(TransferRequestMessage.class);
+        var ctx = RequestContext.Builder.newInstance()
+                .direction(RequestContext.Direction.Egress)
+                .message(msg)
+                .build();
+
+        when(context.requestContext()).thenReturn(ctx);
         when(registry.getScopeMapping()).thenReturn(ServiceResult.success(List.of()));
 
         ScopeExtractor extractor = new DynamicScopeExtractor(registry);
 
         Set<String> result = extractor.extractScopes(12345, Operator.EQ, null, context);
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void extractScopes_empty_withWrongMessage() {
+
+        var msg = mock(RemoteMessage.class);
+        var ctx = RequestContext.Builder.newInstance()
+                .direction(RequestContext.Direction.Egress)
+                .message(msg)
+                .build();
+
+        when(context.requestContext()).thenReturn(ctx);
+
+        ScopeExtractor extractor = new DynamicScopeExtractor(registry);
+
+        Set<String> result = extractor.extractScopes(12345, Operator.EQ, null, context);
+        assertTrue(result.isEmpty());
+        verifyNoInteractions(registry);
+    }
+
+    public static class MessageTypeProvider implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(mock(TransferRequestMessage.class)),
+                    arguments(mock(CatalogRequestMessage.class)),
+                    arguments(mock(ContractRequestMessage.class))
+            );
+        }
     }
 }

@@ -14,9 +14,13 @@
 
 package org.eclipse.edc.virtual.controlplane.iam.decentralizedclaims.scope.core;
 
+import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractor;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.virtual.controlplane.iam.decentralizedclaims.scope.spi.DcpScope;
 import org.eclipse.edc.virtual.controlplane.iam.decentralizedclaims.scope.spi.DcpScopeRegistry;
 
@@ -27,6 +31,7 @@ import java.util.stream.Collectors;
  * Extracts scopes dynamically from the DCP scope registry based on the request context.
  */
 public class DynamicScopeExtractor implements ScopeExtractor {
+    private static final Set<Class<? extends RemoteMessage>> SUPPORTED_MESSAGES = Set.of(CatalogRequestMessage.class, ContractRequestMessage.class, TransferRequestMessage.class);
     private final DcpScopeRegistry registry;
 
     public DynamicScopeExtractor(DcpScopeRegistry registry) {
@@ -35,11 +40,14 @@ public class DynamicScopeExtractor implements ScopeExtractor {
 
     @Override
     public Set<String> extractScopes(Object leftValue, Operator operator, Object rightValue, RequestPolicyContext context) {
-        Set<String> scopes = Set.of();
+        // extract only for supported messages
+        if (!SUPPORTED_MESSAGES.contains(context.requestContext().getMessage().getClass())) {
+            return Set.of();
+        }
         var result = registry.getScopeMapping();
         if (result.failed()) {
             context.reportProblem("Failed to get scope mapping: " + result.getFailureMessages());
-            return scopes;
+            return Set.of();
         }
         return result.getContent().stream().filter(scope -> filterScope(scope, leftValue, context))
                 .map(DcpScope::getValue)
