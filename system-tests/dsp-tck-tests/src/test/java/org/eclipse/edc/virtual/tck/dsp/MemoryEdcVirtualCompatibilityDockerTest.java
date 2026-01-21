@@ -61,11 +61,6 @@ public class MemoryEdcVirtualCompatibilityDockerTest extends DspCompatibilityDoc
     protected List<String> getAllowedFailures() {
         return List.of();
     }
-
-    @Override
-    protected String dockerConfigFilePath() {
-        return resourceConfig("docker.tck.tasks.properties");
-    }
-
+    
 }
 

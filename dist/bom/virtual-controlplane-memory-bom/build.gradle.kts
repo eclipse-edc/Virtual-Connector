@@ -18,7 +18,6 @@ plugins {
 
 dependencies {
     api(project(":dist:bom:virtual-controlplane-base-bom"))
-    implementation(project(":extensions:control-plane:tasks:listener:tasks-store-listener"))
     implementation(project(":extensions:control-plane:tasks:listener:tasks-store-poll-executor"))
 }
 

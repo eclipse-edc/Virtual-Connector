@@ -84,10 +84,6 @@ public class PostgresVirtualCompatibilityDockerTest extends DspCompatibilityDock
                 put("edc.component.id", "DSP-compatibility-test");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
-                put("edc.postgres.cdc.url", POSTGRESQL_EXTENSION.getJdbcUrl(CONNECTOR.toLowerCase()));
-                put("edc.postgres.cdc.user", POSTGRESQL_EXTENSION.getUsername());
-                put("edc.postgres.cdc.password", POSTGRESQL_EXTENSION.getPassword());
-                put("edc.postgres.cdc.slot", "edc_cdc_slot_" + CONNECTOR.toLowerCase());
                 put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
                 put("edc.iam.oauth2.issuer", "test-issuer");
             }

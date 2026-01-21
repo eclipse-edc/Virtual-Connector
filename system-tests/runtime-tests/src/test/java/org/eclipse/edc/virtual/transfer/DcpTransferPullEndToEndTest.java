@@ -250,10 +250,6 @@ class DcpTransferPullEndToEndTest {
         private static Config runtimeConfiguration() {
             return ConfigFactory.fromMap(new HashMap<>() {
                 {
-                    put("edc.postgres.cdc.url", POSTGRESQL_EXTENSION.getJdbcUrl(Runtimes.ControlPlane.NAME.toLowerCase()));
-                    put("edc.postgres.cdc.user", POSTGRESQL_EXTENSION.getUsername());
-                    put("edc.postgres.cdc.password", POSTGRESQL_EXTENSION.getPassword());
-                    put("edc.postgres.cdc.slot", "edc_cdc_slot_" + Runtimes.ControlPlane.NAME.toLowerCase());
                     put("edc.iam.dcp.scopes.membership.id", "membership-scope");
                     put("edc.iam.dcp.scopes.membership.type", "DEFAULT");
                     put("edc.iam.dcp.scopes.membership.value", "org.eclipse.edc.vc.type:MembershipCredential:read");

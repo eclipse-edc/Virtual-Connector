@@ -38,8 +38,6 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
@@ -54,7 +52,6 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -644,23 +641,9 @@ public class CatalogApiV4EndToEndTest {
                 .configurationProvider(() -> POSTGRES_EXTENSION
                         .configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(NATS_EXTENSION::configFor)
-                .configurationProvider(CatalogApiV4EndToEndTest.Postgres::runtimeConfiguration)
                 .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
-
-        private static Config runtimeConfiguration() {
-            return ConfigFactory.fromMap(new HashMap<>() {
-                {
-                    put("edc.postgres.cdc.url", POSTGRES_EXTENSION
-                            .getJdbcUrl(Runtimes.ControlPlane.NAME.toLowerCase()));
-                    put("edc.postgres.cdc.user", POSTGRES_EXTENSION.getUsername());
-                    put("edc.postgres.cdc.password", POSTGRES_EXTENSION.getPassword());
-                    put("edc.postgres.cdc.slot",
-                            "edc_cdc_slot_" + Runtimes.ControlPlane.NAME.toLowerCase());
-                }
-            });
-        }
 
     }
 

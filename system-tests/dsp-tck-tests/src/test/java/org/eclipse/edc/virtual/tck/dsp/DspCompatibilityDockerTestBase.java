@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.fail;
 @Testcontainers
 public abstract class DspCompatibilityDockerTestBase {
 
-    public static final List<String> ALLOWED_FAILURES = List.of("TP:03-01", "TP:03-02", "TP:02-05", "TP:01-05");
+    public static final List<String> ALLOWED_FAILURES = List.of();
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC5");
 
     @Timeout(300)

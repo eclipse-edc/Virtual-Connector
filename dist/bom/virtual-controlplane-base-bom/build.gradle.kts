@@ -24,6 +24,7 @@ dependencies {
     api(project(":core:transfer-process-manager"))
     api(project(":extensions:common:banner-extension"))
     api(project(":extensions:cel:cel-extension"))
+    api(project(":extensions:control-plane:tasks:listener:tasks-store-listener"))
     api(project(":data-protocols:dsp"))
     runtimeOnly(libs.edc.lib.oauth2.authn)
     runtimeOnly(libs.edc.lib.oauth2.authz)
