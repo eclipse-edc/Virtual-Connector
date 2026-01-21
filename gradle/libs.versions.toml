@@ -99,6 +99,7 @@ edc-lib-oauth2-authn = { module = "org.eclipse.edc:auth-authentication-oauth2-li
 edc-lib-oauth2-authz = { module = "org.eclipse.edc:auth-authorization-oauth2-lib", version.ref = "edc" }
 edc-lib-validator = { module = "org.eclipse.edc:validator-lib", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
+edc-lib-tck = { module = "org.eclipse.edc:tck-lib", version.ref = "edc" }
 
 # EDC Extensions modules
 edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }

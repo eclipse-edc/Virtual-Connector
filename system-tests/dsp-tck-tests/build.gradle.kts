@@ -31,7 +31,10 @@ dependencies {
     runtimeOnly(libs.parsson)
 
     testCompileOnly(project(":system-tests:runtimes:tck:tck-controlplane-memory"))
+    testCompileOnly(project(":system-tests:runtimes:tck:tck-controlplane-memory-tasks"))
     testCompileOnly(project(":system-tests:runtimes:tck:tck-controlplane-postgres"))
+    testCompileOnly(project(":system-tests:runtimes:tck:tck-controlplane-postgres-tasks"))
+
 }
 
 edcBuild {

@@ -14,42 +14,27 @@
 
 package org.eclipse.edc.virtual.controlplane.transfer.subscriber.nats;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.nats.client.Message;
-import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.virtual.controlplane.tasks.Task;
+import org.eclipse.edc.virtual.controlplane.tasks.subscriber.AbstractTaskSubscriber;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
-import org.eclipse.edc.virtual.nats.subscriber.NatsSubscriber;
 
 import java.util.Objects;
-import java.util.function.Supplier;
 
-public class NatsTransferProcessTaskSubscriber extends NatsSubscriber {
+public class NatsTransferProcessTaskSubscriber extends AbstractTaskSubscriber<TransferProcessTaskPayload> {
 
-    private Supplier<ObjectMapper> mapperSupplier;
     private TransferProcessTaskExecutor taskExecutor;
 
     private NatsTransferProcessTaskSubscriber() {
+        super(TransferProcessTaskPayload.class);
     }
 
-    // TODO check if the task was actually stored
-
-    protected StatusResult<Void> handleMessage(Message message) {
-        try {
-            var task = mapperSupplier.get().readValue(message.getData(), Task.class);
-            if (task.getPayload() instanceof TransferProcessTaskPayload payload) {
-                return taskExecutor.handle(payload);
-            } else {
-                return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Invalid task payload type");
-            }
-        } catch (Exception e) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, e.getMessage());
-        }
+    @Override
+    protected StatusResult<Void> handlePayload(TransferProcessTaskPayload payload) {
+        return taskExecutor.handle(payload);
     }
 
-    public static class Builder extends NatsSubscriber.Builder<NatsTransferProcessTaskSubscriber, Builder> {
+    public static class Builder extends AbstractTaskSubscriber.Builder<NatsTransferProcessTaskSubscriber, Builder, TransferProcessTaskPayload> {
 
         protected Builder() {
             super(new NatsTransferProcessTaskSubscriber());
@@ -59,10 +44,6 @@ public class NatsTransferProcessTaskSubscriber extends NatsSubscriber {
             return new Builder();
         }
 
-        public Builder mapperSupplier(Supplier<ObjectMapper> mapperSupplier) {
-            subscriber.mapperSupplier = mapperSupplier;
-            return self();
-        }
 
         public Builder taskExecutor(TransferProcessTaskExecutor taskManager) {
             subscriber.taskExecutor = taskManager;

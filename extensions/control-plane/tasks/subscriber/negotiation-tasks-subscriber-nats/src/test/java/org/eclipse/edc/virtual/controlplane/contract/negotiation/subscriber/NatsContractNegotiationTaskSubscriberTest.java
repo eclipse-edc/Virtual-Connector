@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.AgreeNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
@@ -31,6 +32,7 @@ import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendV
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.VerifyNegotiation;
 import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
 import org.eclipse.edc.virtual.controlplane.tasks.Task;
+import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
 import org.eclipse.edc.virtual.controlplane.tasks.TaskTypes;
 import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -72,9 +74,10 @@ public class NatsContractNegotiationTaskSubscriberTest {
     @Order(0)
     @RegisterExtension
     static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
-    private final ContractNegotiationTaskExecutor taskManager = mock();
-    private NatsContractNegotiationTaskSubscriber subscriber;
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private final ContractNegotiationTaskExecutor taskManager = mock();
+    private final TaskService taskService = mock();
+    private NatsContractNegotiationTaskSubscriber subscriber;
 
     @BeforeAll
     static void beforeAll() {
@@ -93,6 +96,8 @@ public class NatsContractNegotiationTaskSubscriberTest {
                 .monitor(mock())
                 .mapperSupplier(() -> MAPPER)
                 .taskExecutor(taskManager)
+                .taskService(taskService)
+                .transactionContext(new NoopTransactionContext())
                 .build();
 
     }
@@ -106,6 +111,7 @@ public class NatsContractNegotiationTaskSubscriberTest {
     @ParameterizedTest
     @ArgumentsSource(StateTransitionProvider.class)
     void handleMessage(ContractNegotiationTaskPayload payload) throws JsonProcessingException {
+        when(taskService.findById(any())).thenReturn(mock());
         when(taskManager.handle(any())).thenReturn(StatusResult.success());
         subscriber.start();
         var task = Task.Builder.newInstance().at(System.currentTimeMillis())
@@ -116,6 +122,7 @@ public class NatsContractNegotiationTaskSubscriberTest {
 
         await().untilAsserted(() -> {
             verify(taskManager).handle(refEq(payload));
+            verify(taskService).delete(any());
         });
     }
 

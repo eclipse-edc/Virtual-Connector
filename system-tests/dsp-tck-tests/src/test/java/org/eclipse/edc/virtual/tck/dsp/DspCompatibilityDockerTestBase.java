@@ -26,19 +26,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.eclipse.edc.virtual.tck.dsp.TckTestReporter.ALLOWED_FAILURES;
 
 @Testcontainers
 public abstract class DspCompatibilityDockerTestBase {
 
+    public static final List<String> ALLOWED_FAILURES = List.of("TP:03-01", "TP:03-02", "TP:02-05", "TP:01-05");
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC5");
-
-    private static String resourceConfig(String resource) {
-        return Path.of(TestUtils.getResource(resource)).toString();
-    }
 
     @Timeout(300)
     @Test
@@ -48,7 +44,7 @@ public abstract class DspCompatibilityDockerTestBase {
         var monitor = new ConsoleMonitor(">>> TCK Runtime (Docker)", ConsoleMonitor.Level.INFO, true);
         var reporter = new TckTestReporter();
 
-        TCK_CONTAINER.addFileSystemBind(resourceConfig("docker.tck.properties"), "/etc/tck/config.properties", BindMode.READ_ONLY, SelinuxContext.SINGLE);
+        TCK_CONTAINER.addFileSystemBind(dockerConfigFilePath(), "/etc/tck/config.properties", BindMode.READ_ONLY, SelinuxContext.SINGLE);
         TCK_CONTAINER.addFileSystemBind(resourceConfig("dspace-edc-context-v1.jsonld"), "/etc/tck/dspace-edc-context-v1.jsonld", BindMode.READ_ONLY, SelinuxContext.SINGLE);
         TCK_CONTAINER.withExtraHost("host.docker.internal", "host-gateway");
         TCK_CONTAINER.withLogConsumer(outputFrame -> monitor.info(outputFrame.getUtf8String()));
@@ -58,12 +54,23 @@ public abstract class DspCompatibilityDockerTestBase {
 
         var failures = reporter.failures();
 
-        assertThat(failures).containsAll(ALLOWED_FAILURES);
-
-        failures.removeAll(ALLOWED_FAILURES);
+        var allowedFailures = getAllowedFailures();
+        failures.removeAll(allowedFailures);
 
         if (!failures.isEmpty()) {
             fail(failures.size() + " TCK test cases failed:\n" + String.join("\n", failures));
         }
+    }
+
+    protected String resourceConfig(String resource) {
+        return Path.of(TestUtils.getResource(resource)).toString();
+    }
+
+    protected List<String> getAllowedFailures() {
+        return ALLOWED_FAILURES;
+    }
+
+    protected String dockerConfigFilePath() {
+        return resourceConfig("docker.tck.properties");
     }
 }

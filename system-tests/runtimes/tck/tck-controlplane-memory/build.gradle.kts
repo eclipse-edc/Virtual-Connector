@@ -17,8 +17,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":system-tests:extensions:v-tck-extension"));
-    implementation(project(":dist:bom:virtual-controlplane-memory-bom"));
+    implementation(project(":system-tests:extensions:v-tck-extension"))
+    implementation(project(":dist:bom:virtual-controlplane-memory-bom"))
     runtimeOnly(libs.edc.tck.extension)
     runtimeOnly(libs.edc.core.participantcontext.single)
     runtimeOnly(libs.edc.bom.dataplane) {

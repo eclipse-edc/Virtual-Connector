@@ -22,9 +22,7 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 public class TckTestReporter implements Consumer<OutputFrame> {
-
-    public static final List<String> ALLOWED_FAILURES = List.of("TP:03-01", "TP:03-02", "TP:02-05", "TP:01-05");
-
+    
     private final List<String> failures = new ArrayList<>();
     private final Pattern failedRegex = Pattern.compile("FAILED: (\\w+:.*)");
 

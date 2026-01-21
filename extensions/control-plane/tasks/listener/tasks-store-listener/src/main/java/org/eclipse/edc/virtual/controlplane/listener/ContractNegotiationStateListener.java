@@ -16,6 +16,7 @@ package org.eclipse.edc.virtual.controlplane.listener;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.AcceptNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.AgreeNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.FinalizeNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
@@ -51,6 +52,24 @@ public class ContractNegotiationStateListener extends StateListener implements C
     public void agreed(ContractNegotiation negotiation) {
         if (negotiation.getType() == ContractNegotiation.Type.CONSUMER) {
             var task = baseBuilder(VerifyNegotiation.Builder.newInstance(), negotiation)
+                    .build();
+            storeTask(task);
+        }
+    }
+
+    @Override
+    public void offered(ContractNegotiation negotiation) {
+        if (negotiation.getType() == ContractNegotiation.Type.CONSUMER) {
+            var task = baseBuilder(AcceptNegotiation.Builder.newInstance(), negotiation)
+                    .build();
+            storeTask(task);
+        }
+    }
+
+    @Override
+    public void accepted(ContractNegotiation negotiation) {
+        if (negotiation.getType() == ContractNegotiation.Type.PROVIDER) {
+            var task = baseBuilder(AgreeNegotiation.Builder.newInstance(), negotiation)
                     .build();
             storeTask(task);
         }

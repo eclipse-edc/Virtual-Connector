@@ -23,7 +23,9 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
+import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
 
 public class NatsContractNegotiationSubscriberExtension implements ServiceExtension {
 
@@ -42,6 +44,12 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
     @Inject
     private Monitor monitor;
 
+    @Inject
+    private TaskService taskService;
+
+    @Inject
+    private TransactionContext transactionContext;
+
     private NatsContractNegotiationTaskSubscriber subscriber;
 
 
@@ -59,6 +67,8 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
                 .executorInstrumentation(executorInstrumentation)
                 .batchSize(subscriberConfig.batchSize)
                 .maxWait(subscriberConfig.maxWait)
+                .taskService(taskService)
+                .transactionContext(transactionContext)
                 .build();
     }
 

@@ -14,12 +14,17 @@
 
 package org.eclipse.edc.virtual.controlplane.tasks;
 
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.AcceptNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.AgreeNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.FinalizeNegotiation;
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.OfferNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendAccept;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendAgreement;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendFinalizeNegotiation;
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendOffer;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendRequestNegotiation;
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendTerminateNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendVerificationNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.VerifyNegotiation;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.CompleteDataFlow;
@@ -38,8 +43,13 @@ public class TaskTypes {
     public static final List<Class<?>> TYPES = List.of(
             RequestNegotiation.class,
             SendRequestNegotiation.class,
+            AcceptNegotiation.class,
+            SendAccept.class,
             AgreeNegotiation.class,
+            OfferNegotiation.class,
             SendAgreement.class,
+            SendOffer.class,
+            SendTerminateNegotiation.class,
             VerifyNegotiation.class,
             SendVerificationNegotiation.class,
             FinalizeNegotiation.class,

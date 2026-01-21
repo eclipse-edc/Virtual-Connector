@@ -23,6 +23,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
@@ -33,13 +35,18 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.AcceptNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.AgreeNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.FinalizeNegotiation;
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.OfferNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendAccept;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendAgreement;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendFinalizeNegotiation;
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendOffer;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendRequestNegotiation;
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendTerminateNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendVerificationNegotiation;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.VerifyNegotiation;
 import org.eclipse.edc.virtual.controlplane.participantcontext.spi.ParticipantWebhookResolver;
@@ -79,6 +86,11 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
         handlers.put(SendRequestNegotiation.class, new Handler(this::handleSendRequest, ContractNegotiation.Type.CONSUMER));
         handlers.put(AgreeNegotiation.class, new Handler(this::handleAgree, ContractNegotiation.Type.PROVIDER));
         handlers.put(SendAgreement.class, new Handler(this::handleSendAgreement, ContractNegotiation.Type.PROVIDER));
+        handlers.put(AcceptNegotiation.class, new Handler(this::handleAccept, ContractNegotiation.Type.CONSUMER));
+        handlers.put(SendAccept.class, new Handler(this::handleSendAccept, ContractNegotiation.Type.CONSUMER));
+        handlers.put(OfferNegotiation.class, new Handler(this::handleOffer, ContractNegotiation.Type.PROVIDER));
+        handlers.put(SendOffer.class, new Handler(this::handleSendOffer, ContractNegotiation.Type.PROVIDER));
+        handlers.put(SendTerminateNegotiation.class, new Handler(this::handleSendTermination, null));
         handlers.put(VerifyNegotiation.class, new Handler(this::handleVerify, ContractNegotiation.Type.CONSUMER));
         handlers.put(SendVerificationNegotiation.class, new Handler(this::handleSendVerification, ContractNegotiation.Type.CONSUMER));
         handlers.put(FinalizeNegotiation.class, new Handler(this::handleFinalize, ContractNegotiation.Type.PROVIDER));
@@ -148,12 +160,54 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
 
     }
 
-    private StatusResult<Void> handleAgree(ContractNegotiation negotiation) {
-        transitionToAgreeing(negotiation);
-        var task = baseBuilder(SendAgreement.Builder.newInstance(), negotiation)
+    protected StatusResult<Void> handleSendAccept(ContractNegotiation negotiation) {
+        var messageBuilder = ContractNegotiationEventMessage.Builder.newInstance().type(ContractNegotiationEventMessage.Type.ACCEPTED);
+        messageBuilder.policy(negotiation.getLastContractOffer().getPolicy());
+        return dispatch(messageBuilder, negotiation, Object.class)
+                .onSuccess((n) -> transitionToAccepted(negotiation))
+                .mapEmpty();
+    }
+
+    private StatusResult<Void> handleAccept(ContractNegotiation negotiation) {
+        transitionToAccepting(negotiation);
+        var task = baseBuilder(SendAccept.Builder.newInstance(), negotiation)
                 .build();
         storeTask(task);
         return StatusResult.success();
+    }
+
+    private StatusResult<Void> handleOffer(ContractNegotiation negotiation) {
+        transitionToOffering(negotiation);
+        var task = baseBuilder(SendOffer.Builder.newInstance(), negotiation)
+                .build();
+        storeTask(task);
+        return StatusResult.success();
+    }
+
+    private StatusResult<Void> handleSendOffer(ContractNegotiation negotiation) {
+        var callbackAddress = webhookResolver.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
+        if (callbackAddress == null) {
+            transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
+            return StatusResult.failure(FATAL_ERROR, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
+        }
+
+        var messageBuilder = ContractOfferMessage.Builder.newInstance()
+                .contractOffer(negotiation.getLastContractOffer())
+                .callbackAddress(callbackAddress.url());
+
+        return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class)
+                .onSuccess(ack -> transitionToOffered(negotiation, ack))
+                .mapEmpty();
+    }
+
+    protected StatusResult<Void> handleSendTermination(ContractNegotiation negotiation) {
+        var messageBuilder = ContractNegotiationTerminationMessage.Builder.newInstance()
+                .rejectionReason(negotiation.getErrorDetail())
+                .policy(negotiation.getLastContractOffer().getPolicy());
+
+        return dispatch(messageBuilder, negotiation, Object.class)
+                .onSuccess(v -> transitionToTerminated(negotiation))
+                .mapEmpty();
     }
 
     private StatusResult<Void> handleSendRequest(ContractNegotiation negotiation) {
@@ -193,6 +247,15 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
         return dispatch(messageBuilder, negotiation, Object.class)
                 .onSuccess((n) -> transitionToVerified(negotiation))
                 .mapEmpty();
+    }
+
+
+    private StatusResult<Void> handleAgree(ContractNegotiation negotiation) {
+        transitionToAgreeing(negotiation);
+        var task = baseBuilder(SendAgreement.Builder.newInstance(), negotiation)
+                .build();
+        storeTask(task);
+        return StatusResult.success();
     }
 
     protected StatusResult<Void> handleSendAgreement(ContractNegotiation negotiation) {
@@ -258,6 +321,25 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
                 .mapEmpty();
     }
 
+    protected void transitionToOffered(ContractNegotiation negotiation, ContractNegotiationAck ack) {
+        negotiation.transitionOffered();
+        negotiation.setCorrelationId(ack.getConsumerPid());
+        update(negotiation);
+        observable.invokeForEach(l -> l.offered(negotiation));
+    }
+
+    protected void transitionToAccepted(ContractNegotiation negotiation) {
+        negotiation.transitionAccepted();
+        update(negotiation);
+        observable.invokeForEach(l -> l.accepted(negotiation));
+    }
+
+
+    protected void transitionToAccepting(ContractNegotiation negotiation) {
+        negotiation.transitionAccepting();
+        update(negotiation);
+    }
+
     protected void transitionToTerminated(ContractNegotiation negotiation, String message) {
         negotiation.setErrorDetail(message);
         transitionToTerminated(negotiation);
@@ -266,6 +348,11 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
 
     protected void transitionToAgreeing(ContractNegotiation negotiation) {
         negotiation.transitionAgreeing();
+        update(negotiation);
+    }
+
+    protected void transitionToOffering(ContractNegotiation negotiation) {
+        negotiation.transitionOffering();
         update(negotiation);
     }
 
@@ -352,7 +439,7 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
         negotiation.transitionRequesting();
         update(negotiation);
     }
-    
+
     protected void update(ContractNegotiation entity) {
         store.save(entity);
         monitor.debug(() -> "[%s] %s %s is now in state %s".formatted(entity.getType(), entity.getClass().getSimpleName(),

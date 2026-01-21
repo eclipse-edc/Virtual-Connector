@@ -18,15 +18,17 @@ plugins {
 
 dependencies {
 
-    implementation(project(":system-tests:extensions:v-tck-extension"));
+    implementation(project(":system-tests:extensions:v-tasks-tck-extension"))
     implementation(project(":dist:bom:virtual-controlplane-base-bom"))
     implementation(project(":dist:bom:virtual-controlplane-feature-sql-bom"))
-    implementation(project(":dist:bom:virtual-controlplane-feature-nats-bom"))
+    implementation(project(":core:transfer-process-task-executor"))
+    implementation(project(":core:negotiation-task-executor"))
+    implementation(project(":core:v-task-core"))
     implementation(project(":extensions:control-plane:tasks:listener:tasks-store-listener"))
     implementation(project(":extensions:control-plane:tasks:publisher:tasks-publisher-nats"))
+    implementation(project(":extensions:control-plane:tasks:subscriber:negotiation-tasks-subscriber-nats"))
+    implementation(project(":extensions:control-plane:tasks:subscriber:transfer-tasks-subscriber-nats"))
     implementation(project(":extensions:control-plane:tasks:store:tasks-store-sql"))
-    runtimeOnly(libs.edc.tck.extension)
-    runtimeOnly(libs.edc.core.participantcontext.single)
     runtimeOnly(libs.edc.bom.dataplane) {
         exclude(module = "data-plane-selector-client")
     }

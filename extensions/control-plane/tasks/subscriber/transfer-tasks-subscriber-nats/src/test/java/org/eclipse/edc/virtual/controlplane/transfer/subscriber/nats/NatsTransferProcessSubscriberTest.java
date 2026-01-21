@@ -19,8 +19,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
 import org.eclipse.edc.virtual.controlplane.tasks.Task;
+import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
 import org.eclipse.edc.virtual.controlplane.tasks.TaskTypes;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.CompleteDataFlow;
@@ -77,9 +79,10 @@ public class NatsTransferProcessSubscriberTest {
     @Order(0)
     @RegisterExtension
     static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
-    private final TransferProcessTaskExecutor taskManager = mock();
-    private NatsTransferProcessTaskSubscriber subscriber;
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private final TransferProcessTaskExecutor taskManager = mock();
+    private final TaskService taskService = mock();
+    private NatsTransferProcessTaskSubscriber subscriber;
 
     @BeforeAll
     static void beforeAll() {
@@ -100,6 +103,8 @@ public class NatsTransferProcessSubscriberTest {
                 .monitor(mock())
                 .mapperSupplier(() -> MAPPER)
                 .taskExecutor(taskManager)
+                .taskService(taskService)
+                .transactionContext(new NoopTransactionContext())
                 .build();
     }
 
@@ -112,6 +117,7 @@ public class NatsTransferProcessSubscriberTest {
     @ParameterizedTest
     @ArgumentsSource(StateTransitionProvider.class)
     void handleMessage(TransferProcessTaskPayload payload) throws JsonProcessingException {
+        when(taskService.findById(any())).thenReturn(mock());
         when(taskManager.handle(any())).thenReturn(StatusResult.success());
         subscriber.start();
         var task = Task.Builder.newInstance().at(System.currentTimeMillis())
