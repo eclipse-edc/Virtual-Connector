@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:v-core-spi"))
+    api(project(":spi:v-task-spi"))
     api(libs.edc.spi.core)
     api(libs.edc.spi.transaction)
     api(libs.edc.spi.protocol)

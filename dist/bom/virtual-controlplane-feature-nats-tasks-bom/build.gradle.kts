@@ -12,13 +12,13 @@
  *
  */
 
-package org.eclipse.edc.virtual.controlplane.transfer.store;
-
-import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessChangeListener;
-
-@ExtensionPoint
-public interface TransferProcessChangeRegistry {
-
-    void registerChangeListener(TransferProcessChangeListener listener);
+plugins {
+    `java-library`
 }
+
+dependencies {
+    api(project(":extensions:control-plane:tasks:publisher:tasks-publisher-nats"))
+    api(project(":extensions:control-plane:tasks:subscriber:negotiation-tasks-subscriber-nats"))
+    api(project(":extensions:control-plane:tasks:subscriber:transfer-tasks-subscriber-nats"))
+}
+

@@ -18,8 +18,8 @@ plugins {
 
 dependencies {
     api(project(":dist:bom:virtual-controlplane-base-bom"))
-    api(project(":extensions:cdc:memory:negotiation-cdc-memory"))
-    api(project(":extensions:cdc:memory:transfer-process-cdc-memory"))
+    implementation(project(":extensions:control-plane:tasks:listener:tasks-store-listener"))
+    implementation(project(":extensions:control-plane:tasks:listener:tasks-store-poll-executor"))
 }
 
 

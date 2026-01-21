@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.HashMap;
+import java.util.List;
 
 @EndToEndTest
 @Testcontainers
@@ -56,6 +57,15 @@ public class MemoryEdcVirtualCompatibilityDockerTest extends DspCompatibilityDoc
         });
     }
 
+    @Override
+    protected List<String> getAllowedFailures() {
+        return List.of();
+    }
+
+    @Override
+    protected String dockerConfigFilePath() {
+        return resourceConfig("docker.tck.tasks.properties");
+    }
 
 }
 

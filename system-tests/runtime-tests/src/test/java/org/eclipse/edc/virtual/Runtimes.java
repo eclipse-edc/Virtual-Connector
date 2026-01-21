@@ -34,10 +34,6 @@ public interface Runtimes {
                 ":system-tests:runtimes:e2e:e2e-controlplane-memory",
         };
 
-        String[] MEMORY_TASKS = {
-                ":system-tests:runtimes:e2e:e2e-controlplane-memory-tasks",
-        };
-
         String[] PG_TASKS_MODULES = {
                 ":system-tests:runtimes:e2e:e2e-controlplane-postgres-tasks",
         };

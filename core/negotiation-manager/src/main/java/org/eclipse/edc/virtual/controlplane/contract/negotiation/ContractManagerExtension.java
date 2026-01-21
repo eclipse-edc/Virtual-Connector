@@ -27,8 +27,11 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.eclipse.edc.virtual.controlplane.contract.negotiation.task.ContractNegotiationTaskExecutorImpl;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationStateMachineService;
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
 import org.eclipse.edc.virtual.controlplane.participantcontext.spi.ParticipantWebhookResolver;
+import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
 
 import java.time.Clock;
 
@@ -63,6 +66,9 @@ public class ContractManagerExtension implements ServiceExtension {
     private ContractNegotiationObservable observable;
 
     @Inject
+    private TaskService taskService;
+
+    @Inject
     private Clock clock;
 
     @Provider
@@ -75,4 +81,19 @@ public class ContractManagerExtension implements ServiceExtension {
         return new ContractNegotiationStateMachineServiceImpl(clock, identityResolver, webhookResolver, dispatcherRegistry, contractNegotiationStore, transactionContext, pendingGuard, observable, monitor);
     }
 
+    @Provider
+    public ContractNegotiationTaskExecutor contractNegotiationTaskExecutor() {
+        return ContractNegotiationTaskExecutorImpl.Builder.newInstance()
+                .taskService(taskService)
+                .clock(clock)
+                .identityResolver(identityResolver)
+                .webhookResolver(webhookResolver)
+                .dispatcherRegistry(dispatcherRegistry)
+                .store(contractNegotiationStore)
+                .transactionContext(transactionContext)
+                .pendingGuard(pendingGuard)
+                .observable(observable)
+                .monitor(monitor)
+                .build();
+    }
 }

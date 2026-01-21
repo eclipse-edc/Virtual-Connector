@@ -74,28 +74,6 @@ class TransferPullEndToEndTest {
     }
 
     @Nested
-    @EndToEndTest
-    class InMemoryTasks extends TransferPullEndToEndTestBase {
-
-        @Order(0)
-        @RegisterExtension
-        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
-
-        @RegisterExtension
-        static final RuntimeExtension CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
-                .name(Runtimes.ControlPlane.NAME)
-                .modules(Runtimes.ControlPlane.MEMORY_TASKS)
-                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
-                .configurationProvider(Runtimes.ControlPlane::config)
-                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
-                .paramProvider(VirtualConnector.class, VirtualConnector::forContext)
-                .paramProvider(VirtualConnectorClient.class, (ctx) -> VirtualConnectorClient.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
-                .paramProvider(Participants.class, context -> participants())
-                .build();
-
-    }
-
-    @Nested
     @PostgresqlIntegrationTest
     class Postgres extends TransferPullEndToEndTestBase {
 
