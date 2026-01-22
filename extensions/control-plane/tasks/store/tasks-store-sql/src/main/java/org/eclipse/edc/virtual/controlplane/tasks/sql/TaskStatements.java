@@ -41,6 +41,14 @@ public interface TaskStatements extends SqlStatements {
         return "timestamp";
     }
 
+    default String getRetryCountColumn() {
+        return "retry_count";
+    }
+
+    default String getGroupColumn() {
+        return "task_group";
+    }
+
     String getInsertTemplate();
 
     String getUpdateTemplate();
@@ -52,5 +60,5 @@ public interface TaskStatements extends SqlStatements {
     String getDeleteStatement();
 
     SqlQueryStatement createQuery(QuerySpec querySpec);
-    
+
 }

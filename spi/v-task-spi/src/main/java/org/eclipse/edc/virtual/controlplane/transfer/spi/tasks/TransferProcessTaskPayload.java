@@ -17,5 +17,9 @@ package org.eclipse.edc.virtual.controlplane.transfer.spi.tasks;
 import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
 
 public abstract class TransferProcessTaskPayload extends ProcessTaskPayload {
-
+    
+    @Override
+    public String group() {
+        return "transfer.process";
+    }
 }

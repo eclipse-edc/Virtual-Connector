@@ -65,8 +65,9 @@ class TaskPollExecutorTest {
     void setUp() {
         when(instrumentation.instrument(any(), anyString())).thenAnswer(invocation -> invocation.getArgument(0));
 
+        var cfg = new TaskPollConfig(10, 2);
         pollExecutor = new TaskPollExecutor(
-                instrumentation,
+                cfg, instrumentation,
                 contractNegotiationTaskExecutor,
                 transferProcessTaskExecutor,
                 taskStore,
@@ -270,6 +271,36 @@ class TaskPollExecutorTest {
     }
 
     @Test
+    void run_shouldDeleteTaskAfterLimitReached() {
+        var payload = RequestNegotiation.Builder.newInstance()
+                .processId("negotiation-123")
+                .processState("INITIAL")
+                .processType("CONSUMER")
+                .build();
+
+        var task = Task.Builder.newInstance()
+                .at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
+
+        when(taskStore.fetchForUpdate(any(QuerySpec.class)))
+                .thenReturn(List.of(task))
+                .thenReturn(List.of(task.toBuilder().retryCount(task.getRetryCount() + 1).build()))
+                .thenReturn(List.of(task.toBuilder().retryCount(task.getRetryCount() + 2).build()));
+
+        when(contractNegotiationTaskExecutor.handle(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+
+        pollExecutor.start();
+
+        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
+                    verify(taskStore, times(3)).fetchForUpdate(any(QuerySpec.class));
+                    verify(taskStore).delete(task.getId());
+                    verify(taskStore, times(2)).update(any());
+                }
+        );
+    }
+
+    @Test
     void stop_shouldStopPolling() throws InterruptedException {
         when(taskStore.fetchForUpdate(any(QuerySpec.class))).thenReturn(List.of());
 
@@ -300,6 +331,7 @@ class TaskPollExecutorTest {
         when(taskStore.fetchForUpdate(any(QuerySpec.class)))
                 .thenReturn(List.of(task))
                 .thenReturn(List.of());
+
         when(contractNegotiationTaskExecutor.handle(any()))
                 .thenReturn(StatusResult.failure(FATAL_ERROR, "Task execution failed"));
 
@@ -361,6 +393,11 @@ class TaskPollExecutorTest {
         @Override
         public String name() {
             return "unknown.payload";
+        }
+
+        @Override
+        public String group() {
+            return "unknown";
         }
     }
 }

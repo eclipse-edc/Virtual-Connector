@@ -41,6 +41,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class TaskPollExecutor {
 
+    private final TaskPollConfig taskPollConfig;
     private final ContractNegotiationTaskExecutor contractNegotiationTaskExecutor;
     private final TransferProcessTaskExecutor transferProcessTaskExecutor;
     private final TaskStore taskStore;
@@ -49,7 +50,6 @@ public class TaskPollExecutor {
     private final ScheduledExecutorService executor;
     private final Clock clock;
     private final AtomicBoolean active = new AtomicBoolean();
-    private final int shutdownTimeout = 10;
 
     private final QuerySpec query = QuerySpec.Builder.newInstance()
             .sortField("at")
@@ -58,9 +58,10 @@ public class TaskPollExecutor {
             .build();
 
 
-    public TaskPollExecutor(ExecutorInstrumentation instrumentation, ContractNegotiationTaskExecutor contractNegotiationTaskExecutor,
+    public TaskPollExecutor(TaskPollConfig taskPollConfig, ExecutorInstrumentation instrumentation, ContractNegotiationTaskExecutor contractNegotiationTaskExecutor,
                             TransferProcessTaskExecutor transferProcessTaskExecutor, TaskStore taskStore, TransactionContext transactionContext,
                             Monitor monitor, Clock clock) {
+        this.taskPollConfig = taskPollConfig;
         this.contractNegotiationTaskExecutor = contractNegotiationTaskExecutor;
         this.transferProcessTaskExecutor = transferProcessTaskExecutor;
         this.taskStore = taskStore;
@@ -99,9 +100,9 @@ public class TaskPollExecutor {
         executor.shutdown();
 
         try {
-            if (!executor.awaitTermination(shutdownTimeout, SECONDS)) {
+            if (!executor.awaitTermination(taskPollConfig.shutdownTimeout(), SECONDS)) {
                 executor.shutdownNow();
-                if (!executor.awaitTermination(shutdownTimeout, SECONDS)) {
+                if (!executor.awaitTermination(taskPollConfig.shutdownTimeout(), SECONDS)) {
                     monitor.severe("StateMachineManager [%s] await termination timeout");
                 }
             }
@@ -140,8 +141,13 @@ public class TaskPollExecutor {
                 monitor.severe("Fatal error processing task " + task.getId() + ": " + result.getFailureDetail());
                 taskStore.delete(task.getId());
             } else {
+                if (task.getRetryCount() >= taskPollConfig.maxRetries()) {
+                    monitor.severe("Task " + task.getId() + " reached max retry count of " + taskPollConfig.maxRetries() + ". Dropping task. Last error: " + result.getFailureDetail());
+                    taskStore.delete(task.getId());
+                    return;
+                }
                 monitor.warning("Transient error processing task " + task.getId() + ": " + result.getFailureDetail() + ". Will retry later.");
-                taskStore.update(task.toBuilder().at(clock.millis()).build());
+                taskStore.update(task.toBuilder().at(clock.millis()).retryCount(task.getRetryCount() + 1).build());
             }
         }
     }

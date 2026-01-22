@@ -17,7 +17,9 @@ CREATE TABLE IF NOT EXISTS edc_tasks
 (
     id                      VARCHAR PRIMARY KEY NOT NULL,
     name                    VARCHAR             NOT NULL,
+    task_group              VARCHAR             NOT NULL,
     payload                 JSON DEFAULT '{}',
+    retry_count             INT                 NOT NULL,
     timestamp               BIGINT              NOT NULL
 );
 

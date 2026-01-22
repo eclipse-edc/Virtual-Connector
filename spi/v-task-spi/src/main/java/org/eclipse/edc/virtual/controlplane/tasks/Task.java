@@ -24,6 +24,10 @@ public class Task {
     protected String id;
 
     protected long at;
+    protected int retryCount;
+
+    protected String name;
+    protected String group;
 
     protected TaskPayload payload;
 
@@ -35,11 +39,22 @@ public class Task {
         return id;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", include = JsonTypeInfo.As.EXTERNAL_PROPERTY)
     public TaskPayload getPayload() {
         return payload;
     }
 
+    public int getRetryCount() {
+        return retryCount;
+    }
 
     public Task.Builder toBuilder() {
         return Builder.newInstance()
@@ -56,7 +71,7 @@ public class Task {
             task = new Task();
         }
 
-        public static  Task.Builder newInstance() {
+        public static Task.Builder newInstance() {
             return new Task.Builder();
         }
 
@@ -75,14 +90,39 @@ public class Task {
             return this;
         }
 
+        public Task.Builder retryCount(int retryCount) {
+            task.retryCount = retryCount;
+            return this;
+        }
+
+        public Task.Builder name(String name) {
+            task.name = name;
+            return this;
+        }
+
+        public Task.Builder group(String group) {
+            task.group = group;
+            return this;
+        }
+
         public Task build() {
             if (task.id == null) {
                 task.id = UUID.randomUUID().toString();
             }
+            Objects.requireNonNull(task.payload, "Task payload must be set");
+
+            if (task.name == null) {
+                task.name = task.payload.name();
+            }
+            if (task.group == null) {
+                task.group = task.payload.group();
+            }
             if (task.at == 0) {
                 throw new IllegalStateException("Event 'at' field must be set");
             }
-            Objects.requireNonNull(task.payload, "Task payload must be set");
+            Objects.requireNonNull(task.name, "Task name must be set");
+            Objects.requireNonNull(task.group, "Task group must be set");
+
             return task;
         }
 

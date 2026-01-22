@@ -25,6 +25,7 @@ import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
 import org.eclipse.edc.virtual.nats.subscriber.NatsSubscriber;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Clock;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -34,6 +35,8 @@ public abstract class AbstractTaskSubscriber<P extends ProcessTaskPayload> exten
     protected TaskService taskService;
     protected TransactionContext transactionContext;
     protected Supplier<ObjectMapper> mapperSupplier;
+    protected Clock clock;
+    protected int maxRetries = 3;
 
     protected AbstractTaskSubscriber(Class<P> target) {
         this.target = target;
@@ -65,6 +68,14 @@ public abstract class AbstractTaskSubscriber<P extends ProcessTaskPayload> exten
         var result = handlePayload((P) task.getPayload());
         if (result.succeeded() || result.fatalError()) {
             taskService.delete(task.getId());
+        } else {
+            if (persistedTask.getRetryCount() >= maxRetries) {
+                monitor.severe("Task " + persistedTask.getId() + " reached max retry count of " + maxRetries + ". Dropping task. Last error: " + result.getFailureDetail());
+                taskService.delete(persistedTask.getId());
+                return StatusResult.success();
+            }
+            //increment retry count
+            taskService.update(task.toBuilder().retryCount(task.getRetryCount() + 1).at(clock.millis()).build());
         }
         return result;
     }
@@ -90,11 +101,22 @@ public abstract class AbstractTaskSubscriber<P extends ProcessTaskPayload> exten
             return (B) self();
         }
 
+        public B clock(Clock clock) {
+            subscriber.clock = clock;
+            return (B) self();
+        }
+
+        public B maxRetries(int maxRetries) {
+            subscriber.maxRetries = maxRetries;
+            return (B) self();
+        }
+
         @Override
         public T build() {
             Objects.requireNonNull(subscriber.mapperSupplier, "mapperSupplier must be set");
             Objects.requireNonNull(subscriber.taskService, "taskService must be set");
             Objects.requireNonNull(subscriber.transactionContext, "transactionContext must be set");
+            Objects.requireNonNull(subscriber.clock, "clock must be set");
             return super.build();
         }
     }

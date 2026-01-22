@@ -26,10 +26,12 @@ public class TaskMapping extends TranslationMapping {
     public static final String FIELD_ID = "id";
     public static final String FIELD_AT_TIMESTAMP = "at";
     public static final String FIELD_NAME = "name";
+    public static final String FIELD_GROUP = "group";
 
     public TaskMapping(TaskStatements statements) {
         add(FIELD_ID, statements.getIdColumn());
         add(FIELD_AT_TIMESTAMP, statements.getTimestampColumn());
         add(FIELD_NAME, statements.getNameColumn());
+        add(FIELD_GROUP, statements.getGroupColumn());
     }
 }

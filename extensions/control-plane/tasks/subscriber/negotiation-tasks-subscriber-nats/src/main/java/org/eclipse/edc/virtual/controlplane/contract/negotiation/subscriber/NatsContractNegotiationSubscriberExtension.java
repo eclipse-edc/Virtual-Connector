@@ -27,6 +27,8 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
 import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
 
+import java.time.Clock;
+
 public class NatsContractNegotiationSubscriberExtension implements ServiceExtension {
 
     @Configuration
@@ -50,6 +52,9 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
     @Inject
     private TransactionContext transactionContext;
 
+    @Inject
+    private Clock clock;
+
     private NatsContractNegotiationTaskSubscriber subscriber;
 
 
@@ -69,6 +74,8 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
                 .maxWait(subscriberConfig.maxWait)
                 .taskService(taskService)
                 .transactionContext(transactionContext)
+                .maxRetries(subscriberConfig.maxRetries)
+                .clock(clock)
                 .build();
     }
 
@@ -108,7 +115,9 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
             @Setting(key = "edc.nats.cn.subscriber.batch-size", description = "The size of the batch when fetching messages", defaultValue = "100")
             Integer batchSize,
             @Setting(key = "edc.nats.cn.subscriber.max-wait", description = "The max waiting time for messages (ms)", defaultValue = "100")
-            Integer maxWait
+            Integer maxWait,
+            @Setting(key = "edc.nats.cn.subscriber.max-retries", description = "Max retries for task execution failure on transient errors", defaultValue = "3")
+            Integer maxRetries
     ) {
     }
 }

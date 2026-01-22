@@ -27,6 +27,8 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
 
+import java.time.Clock;
+
 public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtension {
 
     @Configuration
@@ -46,6 +48,9 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
 
     @Inject
     private TaskService taskService;
+
+    @Inject
+    private Clock clock;
 
     @Inject
     private TransactionContext transactionContext;
@@ -68,6 +73,8 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
                 .maxWait(subscriberConfig.maxWait)
                 .taskService(taskService)
                 .transactionContext(transactionContext)
+                .maxRetries(subscriberConfig.maxRetries)
+                .clock(clock)
                 .build();
     }
 
@@ -108,7 +115,9 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
             @Setting(key = "edc.nats.tp.subscriber.batch-size", description = "The size of the batch when fetching messages", defaultValue = "100")
             Integer batchSize,
             @Setting(key = "edc.nats.tp.subscriber.max-wait", description = "The max waiting time for messages (ms)", defaultValue = "100")
-            Integer maxWait
+            Integer maxWait,
+            @Setting(key = "edc.nats.tp.subscriber.max-retries", description = "Max retries for task execution failure on transient errors", defaultValue = "3")
+            Integer maxRetries
 
     ) {
     }

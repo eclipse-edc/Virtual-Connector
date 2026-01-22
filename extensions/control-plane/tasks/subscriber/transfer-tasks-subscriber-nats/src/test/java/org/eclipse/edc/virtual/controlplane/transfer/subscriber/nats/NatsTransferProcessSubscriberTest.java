@@ -39,6 +39,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,6 +47,8 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.time.Clock;
+import java.time.Duration;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -65,14 +68,16 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class NatsTransferProcessSubscriberTest {
+class NatsTransferProcessSubscriberTest {
 
     public static final String STREAM_NAME = "stream_test";
     public static final String CONSUMER_NAME = "consumer_test";
@@ -87,6 +92,12 @@ public class NatsTransferProcessSubscriberTest {
     @BeforeAll
     static void beforeAll() {
         TaskTypes.TYPES.forEach(MAPPER::registerSubtypes);
+    }
+
+    protected static <T extends ProcessTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> B baseBuilder(B builder, String id, TransferProcessStates state, TransferProcess.Type type) {
+        return builder.processId(id)
+                .processState(state.name())
+                .processType(type.name());
     }
 
     @BeforeEach
@@ -105,6 +116,8 @@ public class NatsTransferProcessSubscriberTest {
                 .taskExecutor(taskManager)
                 .taskService(taskService)
                 .transactionContext(new NoopTransactionContext())
+                .clock(Clock.systemUTC())
+                .maxRetries(2)
                 .build();
     }
 
@@ -117,13 +130,16 @@ public class NatsTransferProcessSubscriberTest {
     @ParameterizedTest
     @ArgumentsSource(StateTransitionProvider.class)
     void handleMessage(TransferProcessTaskPayload payload) throws JsonProcessingException {
-        when(taskService.findById(any())).thenReturn(mock());
-        when(taskManager.handle(any())).thenReturn(StatusResult.success());
-        subscriber.start();
         var task = Task.Builder.newInstance().at(System.currentTimeMillis())
                 .payload(payload)
                 .build();
 
+        when(taskService.findById(any())).thenReturn(task)
+                .thenReturn(task.toBuilder().retryCount(task.getRetryCount() + 1).build())
+                .thenReturn(task.toBuilder().retryCount(task.getRetryCount() + 2).build());
+
+        when(taskManager.handle(any())).thenReturn(StatusResult.success());
+        subscriber.start();
 
         NATS_EXTENSION.publish("transfers.provider." + payload.name(), MAPPER.writeValueAsBytes(task));
 
@@ -132,14 +148,31 @@ public class NatsTransferProcessSubscriberTest {
         });
     }
 
+    @Test
+    void handleRetryMessage_withLimit() throws JsonProcessingException {
+        var payload = baseBuilder(PrepareTransfer.Builder.newInstance(), UUID.randomUUID().toString(), INITIAL, CONSUMER).build();
+        var task = Task.Builder.newInstance().at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
+
+        when(taskService.findById(any())).thenReturn(task)
+                .thenReturn(task.toBuilder().retryCount(task.getRetryCount() + 1).build())
+                .thenReturn(task.toBuilder().retryCount(task.getRetryCount() + 2).build());
+
+        when(taskManager.handle(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+        subscriber.start();
+
+        NATS_EXTENSION.publish("transfers.provider." + payload.name(), MAPPER.writeValueAsBytes(task));
+
+        await().atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
+            verify(taskManager, times(3)).handle(refEq(payload));
+            verify(taskService).delete(task.getId());
+            verify(taskService, times(2)).update(any());
+        });
+    }
 
     public static class StateTransitionProvider implements ArgumentsProvider {
 
-        protected <T extends ProcessTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> B baseBuilder(B builder, String id, TransferProcessStates state, TransferProcess.Type type) {
-            return builder.processId(id)
-                    .processState(state.name())
-                    .processType(type.name());
-        }
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {

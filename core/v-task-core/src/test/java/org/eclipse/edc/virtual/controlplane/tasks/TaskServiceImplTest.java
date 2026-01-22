@@ -78,7 +78,28 @@ class TaskServiceImplTest {
 
         service.create(task);
 
+        verify(taskStore).create(task);
         verify(taskListener).created(any());
+
+    }
+
+    @Test
+    void update() {
+        var payload = TestPayload.Builder.newInstance()
+                .processId("process-1")
+                .processState("INITIAL")
+                .processType("CONSUMER")
+                .build();
+        var task = Task.Builder.newInstance()
+                .at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
+
+
+        service.update(task);
+
+        verify(taskStore).update(task);
+
     }
 
     @Test
@@ -202,12 +223,20 @@ class TaskServiceImplTest {
      */
     public static class TestPayload extends ProcessTaskPayload {
 
+        private String group = "test.group";
+        private String name = "test.payload";
+
         private TestPayload() {
         }
 
         @Override
         public String name() {
-            return "test.payload";
+            return name;
+        }
+
+        @Override
+        public String group() {
+            return group;
         }
 
         @JsonPOJOBuilder(withPrefix = "")
@@ -220,6 +249,16 @@ class TaskServiceImplTest {
             @JsonCreator
             public static Builder newInstance() {
                 return new TestPayload.Builder();
+            }
+
+            public Builder group(String group) {
+                task.group = group;
+                return this;
+            }
+
+            public Builder name(String name) {
+                task.name = name;
+                return this;
             }
 
             @Override

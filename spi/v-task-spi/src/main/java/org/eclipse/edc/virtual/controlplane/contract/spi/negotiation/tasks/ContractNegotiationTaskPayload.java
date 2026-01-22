@@ -17,5 +17,9 @@ package org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks;
 import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
 
 public abstract class ContractNegotiationTaskPayload extends ProcessTaskPayload {
-
+    
+    @Override
+    public String group() {
+        return "contract.negotiation";
+    }
 }
