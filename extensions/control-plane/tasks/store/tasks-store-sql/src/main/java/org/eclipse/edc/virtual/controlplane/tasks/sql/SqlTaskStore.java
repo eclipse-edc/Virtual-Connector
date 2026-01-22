@@ -45,8 +45,10 @@ public class SqlTaskStore extends AbstractSqlStore implements TaskStore {
                 var stmt = statements.getInsertTemplate();
                 queryExecutor.execute(connection, stmt,
                         task.getId(),
-                        task.getPayload().name(),
+                        task.getName(),
+                        task.getGroup(),
                         toJson(task.getPayload()),
+                        task.getRetryCount(),
                         task.getAt()
                 );
             } catch (SQLException e) {
@@ -61,8 +63,10 @@ public class SqlTaskStore extends AbstractSqlStore implements TaskStore {
             try (var connection = getConnection()) {
                 var stmt = statements.getUpdateTemplate();
                 queryExecutor.execute(connection, stmt,
-                        task.getPayload().name(),
+                        task.getName(),
+                        task.getGroup(),
                         toJson(task.getPayload()),
+                        task.getRetryCount(),
                         task.getAt(),
                         task.getId()
                 );
@@ -114,6 +118,9 @@ public class SqlTaskStore extends AbstractSqlStore implements TaskStore {
         return Task.Builder.newInstance()
                 .id(resultSet.getString(statements.getIdColumn()))
                 .payload(payload)
+                .name(resultSet.getString(statements.getNameColumn()))
+                .group(resultSet.getString(statements.getGroupColumn()))
+                .retryCount(resultSet.getInt(statements.getRetryCountColumn()))
                 .at(resultSet.getLong(statements.getTimestampColumn()))
                 .build();
     }

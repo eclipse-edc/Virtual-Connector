@@ -28,7 +28,9 @@ public class BaseSqlDialectStatementsTask implements TaskStatements {
         return executeStatement()
                 .column(getIdColumn())
                 .column(getNameColumn())
+                .column(getGroupColumn())
                 .jsonColumn(getPayloadColumn())
+                .column(getRetryCountColumn())
                 .column(getTimestampColumn())
                 .insertInto(getTaskTable());
     }
@@ -37,7 +39,9 @@ public class BaseSqlDialectStatementsTask implements TaskStatements {
     public String getUpdateTemplate() {
         return executeStatement()
                 .column(getNameColumn())
+                .column(getGroupColumn())
                 .jsonColumn(getPayloadColumn())
+                .column(getRetryCountColumn())
                 .column(getTimestampColumn())
                 .update(getTaskTable(), getIdColumn());
     }

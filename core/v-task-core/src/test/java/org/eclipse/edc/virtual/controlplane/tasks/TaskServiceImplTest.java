@@ -202,12 +202,20 @@ class TaskServiceImplTest {
      */
     public static class TestPayload extends ProcessTaskPayload {
 
+        private String group = "test.group";
+        private String name = "test.payload";
+
         private TestPayload() {
         }
 
         @Override
         public String name() {
-            return "test.payload";
+            return name;
+        }
+
+        @Override
+        public String group() {
+            return group;
         }
 
         @JsonPOJOBuilder(withPrefix = "")
@@ -220,6 +228,16 @@ class TaskServiceImplTest {
             @JsonCreator
             public static Builder newInstance() {
                 return new TestPayload.Builder();
+            }
+
+            public Builder group(String group) {
+                task.group = group;
+                return this;
+            }
+
+            public Builder name(String name) {
+                task.name = name;
+                return this;
             }
 
             @Override
