@@ -52,6 +52,11 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public void update(Task task) {
+        transactionContext.execute(() -> taskStore.update(task));
+    }
+
+    @Override
     public Task findById(String id) {
         return transactionContext.execute(() -> taskStore.findById(id));
     }

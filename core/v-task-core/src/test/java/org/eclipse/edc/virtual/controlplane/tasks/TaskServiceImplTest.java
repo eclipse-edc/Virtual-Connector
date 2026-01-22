@@ -78,7 +78,28 @@ class TaskServiceImplTest {
 
         service.create(task);
 
+        verify(taskStore).create(task);
         verify(taskListener).created(any());
+
+    }
+
+    @Test
+    void update() {
+        var payload = TestPayload.Builder.newInstance()
+                .processId("process-1")
+                .processState("INITIAL")
+                .processType("CONSUMER")
+                .build();
+        var task = Task.Builder.newInstance()
+                .at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
+
+
+        service.update(task);
+
+        verify(taskStore).update(task);
+
     }
 
     @Test

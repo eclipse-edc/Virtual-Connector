@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.virtual.controlplane.tasks.executor;
 
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -38,6 +39,10 @@ public class TaskPollExecutorExtension implements ServiceExtension {
     private TransferProcessTaskExecutor transferProcessTaskExecutor;
     @Inject
     private ContractNegotiationTaskExecutor contractNegotiationTaskExecutor;
+
+    @Configuration
+    private TaskPollConfig taskPollConfig;
+
     private TaskPollExecutor executor;
 
     @Inject
@@ -48,7 +53,7 @@ public class TaskPollExecutorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        executor = new TaskPollExecutor(executorInstrumentation, contractNegotiationTaskExecutor, transferProcessTaskExecutor,
+        executor = new TaskPollExecutor(taskPollConfig, executorInstrumentation, contractNegotiationTaskExecutor, transferProcessTaskExecutor,
                 taskStore, transactionContext, monitor, clock);
     }
 
@@ -61,4 +66,6 @@ public class TaskPollExecutorExtension implements ServiceExtension {
     public void shutdown() {
         executor.stop();
     }
+
+
 }

@@ -26,5 +26,7 @@ public interface TaskService {
 
     void delete(String id);
 
+    void update(Task task);
+
     Task findById(String id);
 }

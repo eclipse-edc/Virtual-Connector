@@ -101,6 +101,8 @@ class NatsTaskPublisherTest {
         var task = Task.Builder.newInstance()
                 .at(System.currentTimeMillis())
                 .payload(mockPayload)
+                .name("test-task")
+                .group("test-group")
                 .build();
 
         // ObjectMapper will fail to serialize the mock object
@@ -197,6 +199,11 @@ class NatsTaskPublisherTest {
         @Override
         public String name() {
             return "unsupported.payload";
+        }
+
+        @Override
+        public String group() {
+            return "unsupported";
         }
     }
 }
