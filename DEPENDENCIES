@@ -91,7 +91,7 @@ maven/mavencentral/dev.failsafe/failsafe/3.3.2, Apache-2.0, approved, #9268
 maven/mavencentral/info.picocli/picocli/4.7.7, Apache-2.0, approved, #4365
 maven/mavencentral/io.github.classgraph/classgraph/4.8.176, MIT, approved, CQ22530
 maven/mavencentral/io.github.classgraph/classgraph/4.8.184, MIT, approved, CQ22530
-maven/mavencentral/io.nats/jnats/2.24.1, , restricted, clearlydefined
+maven/mavencentral/io.nats/jnats/2.25.1, , restricted, clearlydefined
 maven/mavencentral/io.opentelemetry.instrumentation/opentelemetry-instrumentation-annotations/1.32.0, Apache-2.0, approved, #11684
 maven/mavencentral/io.opentelemetry.instrumentation/opentelemetry-instrumentation-annotations/2.24.0, , restricted, clearlydefined
 maven/mavencentral/io.opentelemetry/opentelemetry-api/1.32.0, Apache-2.0, approved, #11682
