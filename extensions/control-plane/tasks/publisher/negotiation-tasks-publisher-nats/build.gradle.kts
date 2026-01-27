@@ -19,16 +19,16 @@ plugins {
 dependencies {
     api(libs.edc.spi.core)
     api(libs.edc.spi.contract)
+    api(libs.edc.spi.transfer)
+    api(libs.edc.spi.transaction)
     api(project(":spi:v-core-spi"))
     api(project(":spi:v-task-spi"))
-    implementation(libs.nats.client)
-    implementation(project(":extensions:lib:nats-lib"))
     implementation(project(":extensions:control-plane::tasks:lib:tasks-nats-lib"))
+    implementation(libs.nats.client)
     testImplementation(libs.awaitility)
     testImplementation(libs.edc.junit)
     testImplementation(testFixtures(libs.edc.spi.contract))
-    testImplementation(libs.testcontainers.junit)
     testImplementation(testFixtures(project(":extensions:lib:nats-lib")))
-    testImplementation(project(":core:v-task-core"))
+    testImplementation(libs.testcontainers.junit)
 }
 
