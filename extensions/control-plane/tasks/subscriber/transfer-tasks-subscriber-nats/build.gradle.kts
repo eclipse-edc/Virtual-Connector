@@ -23,7 +23,7 @@ dependencies {
     api(project(":spi:v-task-spi"))
     implementation(libs.nats.client)
     implementation(project(":extensions:lib:nats-lib"))
-    implementation(project(":extensions:control-plane::tasks:lib:tasks-subscriber-nats-lib"))
+    implementation(project(":extensions:control-plane::tasks:lib:tasks-nats-lib"))
     testImplementation(libs.awaitility)
     testImplementation(libs.edc.junit)
     testImplementation(testFixtures(libs.edc.spi.contract))
