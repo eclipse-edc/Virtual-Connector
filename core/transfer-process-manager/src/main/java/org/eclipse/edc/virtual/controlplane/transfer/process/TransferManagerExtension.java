@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtual.controlplane.participantcontext.spi.ParticipantWebhookResolver;
 import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
@@ -38,7 +37,6 @@ import org.eclipse.edc.virtual.controlplane.transfer.process.task.command.Comple
 import org.eclipse.edc.virtual.controlplane.transfer.process.task.command.ResumeTransferCommandHandler;
 import org.eclipse.edc.virtual.controlplane.transfer.process.task.command.SuspendTransferCommandHandler;
 import org.eclipse.edc.virtual.controlplane.transfer.process.task.command.TerminateTransferCommandHandler;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessStateMachineService;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
 
 import java.time.Clock;
@@ -104,23 +102,6 @@ public class TransferManagerExtension implements ServiceExtension {
     @Provider
     public TransferProcessManager transferProcessManager() {
         return new VirtualTransferProcessManager(store, observable, policyArchive, clock, monitor);
-    }
-
-    @Provider
-    public TransferProcessStateMachineService transferProcessStateMachineService(ServiceExtensionContext context) {
-        return TransferProcessStateMachineServiceImpl.Builder.newInstance()
-                .store(store)
-                .transactionContext(transactionContext)
-                .dataFlowController(dataFlowController)
-                .dispatcherRegistry(dispatcherRegistry)
-                .webhookResolver(webhookResolver)
-                .vault(vault)
-                .addressResolver(dataAddressResolver)
-                .monitor(monitor)
-                .pendingGuard(pendingGuard)
-                .observable(observable)
-                .policyArchive(policyArchive)
-                .build();
     }
 
     @Provider

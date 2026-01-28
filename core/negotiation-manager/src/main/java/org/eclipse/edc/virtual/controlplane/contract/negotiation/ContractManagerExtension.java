@@ -25,10 +25,8 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtual.controlplane.contract.negotiation.task.ContractNegotiationTaskExecutorImpl;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationStateMachineService;
 import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
 import org.eclipse.edc.virtual.controlplane.participantcontext.spi.ParticipantWebhookResolver;
 import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
@@ -74,11 +72,6 @@ public class ContractManagerExtension implements ServiceExtension {
     @Provider
     public ConsumerContractNegotiationManager consumerContractNegotiationManager() {
         return new VirtualConsumerContractNegotiationManager(contractNegotiationStore, observable, monitor);
-    }
-
-    @Provider
-    public ContractNegotiationStateMachineService contractNegotiationStateMachineService(ServiceExtensionContext context) {
-        return new ContractNegotiationStateMachineServiceImpl(clock, identityResolver, webhookResolver, dispatcherRegistry, contractNegotiationStore, transactionContext, pendingGuard, observable, monitor);
     }
 
     @Provider
