@@ -30,5 +30,4 @@ dependencies {
     api(project(":extensions:control-plane:api:management-api:participant-context-config-api"))
     api(project(":extensions:control-plane:api:management-api:cel-api"))
     api(project(":extensions:control-plane:api:management-api:management-api-configuration"))
-    api(project(":extensions:control-plane:api:management-api:v-management-api-schema-validator"))
 }

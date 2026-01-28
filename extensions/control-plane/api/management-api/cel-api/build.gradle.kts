@@ -23,7 +23,6 @@ plugins {
 dependencies {
 
     api(project(":spi:v-auth-spi"))
-    api(project(":extensions:cel:cel-spi"))
     api(project(":extensions:common:api:lib:v-management-api-lib"))
     implementation(libs.edc.spi.core)
     implementation(libs.edc.spi.contract)
@@ -33,6 +32,7 @@ dependencies {
     implementation(libs.edc.spi.validator)
     implementation(libs.edc.spi.web)
     implementation(libs.edc.spi.transform)
+    implementation(libs.edc.spi.cel)
     implementation(libs.edc.lib.controlplane.transform)
     implementation(libs.jakarta.annotation)
 

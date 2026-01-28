@@ -18,8 +18,9 @@ plugins {
 
 dependencies {
     api(project(":dist:bom:virtual-controlplane-base-bom"))
-    api(project(":extensions:cel:cel-store-sql"))
     api(project(":extensions:control-plane:tasks:store:tasks-store-sql"))
+    runtimeOnly(libs.edc.bom.controlplane.sql)
+    runtimeOnly(libs.edc.cel.store.sql)
     runtimeOnly(libs.edc.bom.controlplane.sql)
     runtimeOnly(libs.edc.participantcontext.store.sql)
     runtimeOnly(libs.edc.participantcontext.config.store.sql)

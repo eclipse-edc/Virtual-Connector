@@ -24,14 +24,14 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.policy.cel.model.CelExpression;
+import org.eclipse.edc.policy.cel.service.CelPolicyExpressionService;
+import org.eclipse.edc.policy.cel.store.CelExpressionStore;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
 import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
-import org.eclipse.edc.virtual.policy.cel.model.CelExpression;
-import org.eclipse.edc.virtual.policy.cel.service.CelPolicyExpressionService;
-import org.eclipse.edc.virtual.policy.cel.store.CelExpressionStore;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -55,7 +55,6 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContext;
 import static org.eclipse.edc.virtual.test.system.fixtures.DockerImages.createPgContainer;
-import static org.eclipse.virtualized.api.management.VirtualManagementApi.EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -171,7 +170,7 @@ public class CelExpressionApiV4EndToEndTest {
                     .log().ifError()
                     .statusCode(200)
                     .body(ID, is(expr.getId()))
-                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .body("leftOperand", is(expr.getLeftOperand()))
                     .body("expression", is(expr.getExpression()))
                     .body("description", is(expr.getDescription()))

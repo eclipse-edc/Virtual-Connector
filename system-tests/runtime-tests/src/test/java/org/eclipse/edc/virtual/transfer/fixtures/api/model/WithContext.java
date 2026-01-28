@@ -26,8 +26,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEME
  */
 public record WithContext<T extends Typed>(@JsonUnwrapped T entity, @JsonProperty("@context") List<String> context) {
     public WithContext(T entity) {
-        this(entity, List.of(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2,
-                "https://w3id.org/edc/virtual-connector/management/v2"
-        ));
+        this(entity, List.of(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2));
     }
 }

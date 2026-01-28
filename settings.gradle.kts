@@ -49,9 +49,6 @@ include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-http-
 include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025:dsp-transfer-process-http-api-2025")
 // extensions
-include(":extensions:cel:cel-spi")
-include(":extensions:cel:cel-extension")
-include(":extensions:cel:cel-store-sql")
 include(":extensions:control-plane:tasks:listener:tasks-store-listener")
 include(":extensions:control-plane:tasks:listener:tasks-store-poll-executor")
 include(":extensions:control-plane:tasks:publisher:negotiation-tasks-publisher-nats")
@@ -79,7 +76,6 @@ include(":extensions:control-plane:api:management-api:participant-context-api")
 include(":extensions:control-plane:api:management-api:participant-context-config-api")
 include(":extensions:control-plane:api:management-api:cel-api")
 include(":extensions:control-plane:api:management-api:management-api-configuration")
-include(":extensions:control-plane:api:management-api:v-management-api-schema-validator")
 
 // lib
 include(":extensions:common:api:lib:v-management-api-lib")

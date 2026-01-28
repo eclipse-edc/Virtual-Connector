@@ -30,19 +30,19 @@ import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.policy.cel.model.CelExpression;
+import org.eclipse.edc.policy.cel.service.CelPolicyExpressionService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.virtual.policy.cel.model.CelExpression;
-import org.eclipse.edc.virtual.policy.cel.service.CelPolicyExpressionService;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.validation.SchemaType;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_TERM;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
-import static org.eclipse.edc.virtual.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_TERM;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes(APPLICATION_JSON)

@@ -18,7 +18,6 @@ plugins {
 
 dependencies {
     testImplementation(project(":spi:v-auth-spi"))
-    testImplementation(project(":extensions:cel:cel-spi"))
     testImplementation(project(":extensions:common:api:lib:v-management-api-lib"))
 
     testImplementation(libs.edc.spi.dataplane)
@@ -27,6 +26,7 @@ dependencies {
     testImplementation(libs.edc.junit)
     testImplementation(libs.edc.spi.contract)
     testImplementation(libs.edc.spi.transfer)
+    testImplementation(libs.edc.spi.cel)
 
     // gives access to the Json LD models, etc.
     testImplementation(libs.edc.spi.jsonld)
