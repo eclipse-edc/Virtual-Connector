@@ -177,8 +177,9 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
             } else {
                 var response = provisioning.getContent();
                 process.setDataPlaneId(response.getDataPlaneId());
-                if (response.isProvisioning()) {
-                    process.transitionProvisioningRequested();
+                if (response.isAsync()) {
+                    process.transitionPreparationRequested();
+                    observable.invokeForEach(l -> l.preparationRequested(process));
                 } else {
                     process.updateDestination(response.getDataAddress());
                     transitionToRequesting(process);

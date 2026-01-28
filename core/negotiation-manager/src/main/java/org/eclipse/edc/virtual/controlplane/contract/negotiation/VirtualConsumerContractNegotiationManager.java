@@ -24,7 +24,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationStateMachineService;
+import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
 
 import java.util.UUID;
 
@@ -33,7 +33,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 /**
  * An implementation of the {@link ConsumerContractNegotiationManager} that only handles initial contract negotiation
  * requests by transitioning them to the initial state. The subsequent state transitions are handled by the
- * by {@link ContractNegotiationStateMachineService},
+ * by {@link ContractNegotiationTaskExecutor},
  * which can be invoked using different mechanisms, such as a loopback mechanism, a message bus.
  */
 public class VirtualConsumerContractNegotiationManager implements ConsumerContractNegotiationManager {

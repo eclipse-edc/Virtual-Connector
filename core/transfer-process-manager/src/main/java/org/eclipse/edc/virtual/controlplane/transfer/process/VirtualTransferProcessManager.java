@@ -25,7 +25,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessStateMachineService;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
 
 import java.time.Clock;
 import java.util.Optional;
@@ -36,7 +36,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 /**
  * An implementation of the {@link TransferProcessManager} that only handles initial transfer
  * requests by transitioning them to the initial state. The subsequent state transitions are handled by the
- * by {@link TransferProcessStateMachineService},
+ * by {@link TransferProcessTaskExecutor},
  * which can be invoked using different mechanisms, such as a loopback mechanism, a message bus.
  */
 public class VirtualTransferProcessManager implements TransferProcessManager {

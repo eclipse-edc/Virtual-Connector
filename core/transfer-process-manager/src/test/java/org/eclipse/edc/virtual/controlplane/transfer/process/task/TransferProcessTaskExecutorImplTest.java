@@ -199,7 +199,7 @@ class TransferProcessTaskExecutorImplTest {
 
     @Test
     void handle_shouldSkipWhenStateDoesNotMatch() {
-        var transferProcess = createTransferProcess("transfer-123", TransferProcessStates.PROVISIONING_REQUESTED);
+        var transferProcess = createTransferProcess("transfer-123", TransferProcessStates.PREPARATION_REQUESTED);
 
         var task = PrepareTransfer.Builder.newInstance()
                 .processId("transfer-123")
