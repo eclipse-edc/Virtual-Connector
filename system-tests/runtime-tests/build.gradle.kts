@@ -17,9 +17,9 @@ plugins {
 }
 
 dependencies {
-    testImplementation(project(":extensions:cel:cel-spi"))
     testImplementation(libs.awaitility)
     testImplementation(libs.edc.spi.dataplane)
+    testImplementation(libs.edc.spi.cel)
     testImplementation(libs.edc.spi.jsonld)
     testImplementation(libs.edc.spi.transaction.datasource)
     testImplementation(libs.edc.spi.controlplane)

@@ -24,7 +24,6 @@ import java.util.Map;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
-import static org.eclipse.virtualized.api.management.VirtualManagementApi.EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 
 public class TestFunction {
 
@@ -66,7 +65,6 @@ public class TestFunction {
     public static String[] jsonLdContextArray() {
         return new String[]{
                 EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2,
-                EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2
         };
     }
 }

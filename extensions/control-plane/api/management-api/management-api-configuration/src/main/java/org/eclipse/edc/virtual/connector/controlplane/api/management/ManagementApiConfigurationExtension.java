@@ -112,7 +112,6 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, MANAGEMENT_SCOPE);
 
         jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V4);
-        jsonLd.registerContext(EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V4);
 
         getResourceUri("document/v-management-context-v2.jsonld")
                 .onSuccess(uri -> jsonLd.registerCachedDocument(EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2, uri))

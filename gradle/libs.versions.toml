@@ -50,6 +50,7 @@ edc-spi-controlplane = { module = "org.eclipse.edc:control-plane-spi", version.r
 edc-spi-token = { module = "org.eclipse.edc:token-spi", version.ref = "edc" }
 edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
 edc-spi-dcp = { module = "org.eclipse.edc:decentralized-claims-spi", version.ref = "edc" }
+edc-spi-cel = { module = "org.eclipse.edc:cel-spi", version.ref = "edc" }
 
 # EDC Core modules
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
@@ -74,6 +75,7 @@ edc-core-dataplane-signaling-client = { module = "org.eclipse.edc:data-plane-sig
 edc-core-dataplane-signaling-transfer = { module = "org.eclipse.edc:transfer-data-plane-signaling", version.ref = "edc" }
 edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
 edc-core-sql = { module = "org.eclipse.edc:sql-core", version.ref = "edc" }
+edc-core-cel = { module = "org.eclipse.edc:cel-core", version.ref = "edc" }
 edc-core-policy-monitor = { module = "org.eclipse.edc:policy-monitor-core", version.ref = "edc" }
 
 # EDC Lib modules
@@ -112,6 +114,7 @@ edc-participantcontext-config-store-sql = { module = "org.eclipse.edc:participan
 edc-transaction-local = { module = "org.eclipse.edc:transaction-local", version.ref = "edc" }
 edc-sql-pool = { module = "org.eclipse.edc:sql-pool-apache-commons", version.ref = "edc" }
 edc-encryption-aes = { module = "org.eclipse.edc:aes-encryption", version.ref = "edc" }
+edc-cel-store-sql = { module = "org.eclipse.edc:cel-store-sql", version.ref = "edc" }
 
 # EDC DCP modules
 edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", version.ref = "edc" }
@@ -150,7 +153,6 @@ wiremock = { module = "org.wiremock:wiremock-jetty12", version.ref = "wiremock" 
 bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 bouncyCastle-bcprovJdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
-cel = { module = "dev.cel:cel", version.ref = "cel" }
 jsonschema = { module = "com.networknt:json-schema-validator", version.ref = "jsonschema" }
 
 [bundles]

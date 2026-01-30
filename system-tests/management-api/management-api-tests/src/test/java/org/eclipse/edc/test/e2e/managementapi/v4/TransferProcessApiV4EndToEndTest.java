@@ -77,7 +77,6 @@ import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdConte
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.jsonLdContextArray;
 import static org.eclipse.edc.test.e2e.managementapi.v4.TestFunction.participantContext;
 import static org.eclipse.edc.virtual.test.system.fixtures.DockerImages.createPgContainer;
-import static org.eclipse.virtualized.api.management.VirtualManagementApi.EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
@@ -224,7 +223,7 @@ public class TransferProcessApiV4EndToEndTest {
                     .statusCode(200)
                     .body(TYPE, is("TransferProcess"))
                     .body(ID, is("tp2"))
-                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2));
+                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2));
         }
 
         @Test
@@ -267,7 +266,7 @@ public class TransferProcessApiV4EndToEndTest {
                     .statusCode(200)
                     .contentType(JSON)
                     .body(TYPE, is("TransferState"))
-                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, EDC_V_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .body("state", is("COMPLETED"));
         }
 
