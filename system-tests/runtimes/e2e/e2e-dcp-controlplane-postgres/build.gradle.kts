@@ -17,7 +17,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":extensions:iam:decentralized-claims:dcp-scope-core"))
     implementation(project(":dist:bom:virtual-controlplane-base-bom"))
     implementation(project(":dist:bom:virtual-controlplane-feature-dcp-bom"))
     implementation(project(":dist:bom:virtual-controlplane-feature-sql-bom"))

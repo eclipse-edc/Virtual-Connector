@@ -17,7 +17,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:iam:decentralized-claims:dcp-scope-core"))
     runtimeOnly(libs.bundles.dcp)
 }
 
