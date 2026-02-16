@@ -21,13 +21,13 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendin
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtual.controlplane.participantcontext.spi.ParticipantWebhookResolver;
@@ -79,7 +79,7 @@ public class TransferManagerExtension implements ServiceExtension {
     private DataAddressResolver dataAddressResolver;
 
     @Inject
-    private Vault vault;
+    private DataAddressStore dataAddressStore;
 
     @Inject
     private TaskService taskService;
@@ -112,7 +112,7 @@ public class TransferManagerExtension implements ServiceExtension {
                 .dataFlowController(dataFlowController)
                 .dispatcherRegistry(dispatcherRegistry)
                 .webhookResolver(webhookResolver)
-                .vault(vault)
+                .dataAddressStore(dataAddressStore)
                 .addressResolver(dataAddressResolver)
                 .monitor(monitor)
                 .pendingGuard(pendingGuard)

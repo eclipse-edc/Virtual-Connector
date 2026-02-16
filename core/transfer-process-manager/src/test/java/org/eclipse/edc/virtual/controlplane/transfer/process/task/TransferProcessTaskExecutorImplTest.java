@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendin
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
@@ -29,7 +30,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -95,7 +96,7 @@ class TransferProcessTaskExecutorImplTest {
     private final TransferProcessPendingGuard pendingGuard = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final Monitor monitor = mock();
-    private final Vault vault = mock();
+    private final DataAddressStore dataAddressStore = mock();
     private final Clock clock = Clock.systemUTC();
     private final TaskService taskService = mock();
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
@@ -117,7 +118,7 @@ class TransferProcessTaskExecutorImplTest {
                 .pendingGuard(pendingGuard)
                 .transactionContext(transactionContext)
                 .monitor(monitor)
-                .vault(vault)
+                .dataAddressStore(dataAddressStore)
                 .clock(clock)
                 .taskService(taskService)
                 .build();
@@ -129,7 +130,7 @@ class TransferProcessTaskExecutorImplTest {
     void handle(TransferProcessTaskPayload payload, TransferProcessStates expectedState) {
 
         var contractId = "contractId";
-
+        var dataAddress = DataAddress.Builder.newInstance().type("any").keyName("keyName").build();
 
         when(dataFlowController.started(any())).thenReturn(StatusResult.success());
         when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
@@ -137,6 +138,7 @@ class TransferProcessTaskExecutorImplTest {
         when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
         when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
         when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
+        when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
 
         when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
         when(webhookResolver.getWebhook(any(), any())).thenReturn(() -> protocolWebhookUrl);

@@ -108,6 +108,7 @@ edc-iam-mock = { module = "org.eclipse.edc:iam-mock", version.ref = "edc" }
 edc-tck-extension = { module = "org.eclipse.edc:tck-extension", version.ref = "edc" }
 edc-crypto-verifiablecredentials-ldp = { module = "org.eclipse.edc:ldp-verifiable-credentials", version.ref = "edc" }
 edc-crypto-verifiablecredentials-jwt = { module = "org.eclipse.edc:jwt-verifiable-credentials", version.ref = "edc" }
+edc-crypto-verifiablecredentials = { module = "org.eclipse.edc:verifiable-credentials", version.ref = "edc" }
 edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
 edc-participantcontext-store-sql = { module = "org.eclipse.edc:participantcontext-store-sql", version.ref = "edc" }
 edc-participantcontext-config-store-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
@@ -157,6 +158,7 @@ jsonschema = { module = "com.networknt:json-schema-validator", version.ref = "js
 
 [bundles]
 dcp = [
+    "edc-crypto-verifiablecredentials",
     "edc-crypto-verifiablecredentials-jwt",
     "edc-crypto-verifiablecredentials-ldp",
     "edc-iam-dcp-core",

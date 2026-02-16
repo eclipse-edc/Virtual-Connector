@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowControll
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
@@ -33,8 +34,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.virtual.controlplane.participantcontext.spi.ParticipantWebhookResolver;
 import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
@@ -63,7 +62,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.from;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECRET;
 
 public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecutor {
 
@@ -74,7 +72,7 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
     private DataFlowController dataFlowController;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private ParticipantWebhookResolver webhookResolver;
-    private Vault vault;
+    private DataAddressStore dataAddressStore;
     private DataAddressResolver addressResolver;
     private TransferProcessObservable observable;
     private PolicyArchive policyArchive;
@@ -296,20 +294,15 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
     }
 
     private StatusResult<Void> handleSendRequest(TransferProcess process) {
-        var originalDestination = process.getDataDestination();
         var callbackAddress = webhookResolver.getWebhook(process.getParticipantContextId(), process.getProtocol());
         var agreementId = policyArchive.getAgreementIdForContract(process.getContractId());
 
         if (callbackAddress != null) {
-            var dataDestination = Optional.ofNullable(originalDestination)
-                    .map(DataAddress::getKeyName)
-                    .map(vault::resolveSecret)
-                    .map(secret -> DataAddress.Builder.newInstance().properties(originalDestination.getProperties()).property(EDC_DATA_ADDRESS_SECRET, secret).build())
-                    .orElse(originalDestination);
+            var dataAddress = dataAddressStore.resolve(process).orElse(f -> null);
 
             var messageBuilder = TransferRequestMessage.Builder.newInstance()
                     .callbackAddress(callbackAddress.url())
-                    .dataDestination(dataDestination)
+                    .dataAddress(dataAddress)
                     .transferType(process.getTransferType())
                     .contractId(agreementId);
 
@@ -485,8 +478,8 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
             return this;
         }
 
-        public Builder vault(Vault vault) {
-            manager.vault = vault;
+        public Builder dataAddressStore(DataAddressStore dataAddressStore) {
+            manager.dataAddressStore = dataAddressStore;
             return this;
         }
 
