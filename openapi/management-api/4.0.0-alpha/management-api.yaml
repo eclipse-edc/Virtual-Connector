@@ -1056,42 +1056,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v4alpha/participants/{participantContextId}/contractagreements/request:
-    post:
-      tags:
-      - Contract Agreement v4alpha
-      description: Gets all contract agreements according to a particular query
-      operationId: queryAgreementsV4
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The contract agreements matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/contract-agreement-schema"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v4alpha/participants:
     get:
       tags:
@@ -1188,6 +1152,67 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v4alpha/participants/{participantContextId}/contractagreements/request:
+    post:
+      tags:
+      - Contract Agreement v4alpha
+      description: Gets all contract agreements according to a particular query
+      operationId: queryAgreementsV4
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The contract agreements matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/contract-agreement-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4alpha/participants/{participantContextId}/catalog/request:
+    post:
+      tags:
+      - Catalog v4alpha
+      operationId: requestCatalogV4
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/catalog-request-schema"
+      responses:
+        default:
+          description: Gets contract offers (=catalog) of a single connector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/catalog-schema"
   /v4alpha/participants/{participantContextId}/transferprocesses/{id}:
     get:
       tags:
@@ -1232,31 +1257,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v4alpha/participants/{participantContextId}/catalog/request:
-    post:
-      tags:
-      - Catalog v4alpha
-      operationId: requestCatalogV4
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/catalog-request-schema"
-      responses:
-        default:
-          description: Gets contract offers (=catalog) of a single connector
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/catalog-schema"
   /v4alpha/participants/{participantContextId}/contractnegotiations/{id}:
     get:
       tags:
@@ -2333,7 +2333,8 @@ components:
       example:
         '@type': '@type'
         '@id': '@id'
-        privateProperties: "{}"
+        privateProperties:
+          privateKey: privateValue
         '@context':
         - '@context'
         - '@context'
@@ -2435,6 +2436,8 @@ components:
           $ref: "#/components/schemas/PolicyClass"
         privateProperties:
           type: object
+          example:
+            privateKey: privateValue
     PolicyClass:
       required:
       - '@type'
@@ -2702,22 +2705,22 @@ components:
       title: AssetSchema
       type: object
       example:
-        dataAddress:
-          '@type': '@type'
-          type: type
         '@type': '@type'
         dataplaneMetadata:
           '@type': '@type'
-          properties: "{}"
+          properties:
+            key: value
           labels:
           - labels
           - labels
         '@id': '@id'
-        privateProperties: "{}"
+        privateProperties:
+          privateKey: privateValue
         '@context':
         - '@context'
         - '@context'
-        properties: "{}"
+        properties:
+          key: value
       allOf:
       - $ref: "#/components/schemas/Asset"
     Asset:
@@ -2738,36 +2741,21 @@ components:
           type: string
         properties:
           type: object
+          example:
+            key: value
         privateProperties:
           type: object
-        dataAddress:
-          $ref: "#/components/schemas/data-address-schema"
+          example:
+            privateKey: privateValue
         dataplaneMetadata:
           $ref: "#/components/schemas/dataplane-metadata-schema"
-    data-address-schema:
-      title: DataAddressSchema
-      type: object
-      example:
-        '@type': '@type'
-        type: type
-      allOf:
-      - $ref: "#/components/schemas/DataAddress"
-    DataAddress:
-      required:
-      - '@type'
-      - type
-      type: object
-      properties:
-        '@type':
-          type: string
-        type:
-          type: string
     dataplane-metadata-schema:
       title: DataplaneMetadataSchema
       type: object
       example:
         '@type': '@type'
-        properties: "{}"
+        properties:
+          key: value
         labels:
         - labels
         - labels
@@ -2784,6 +2772,8 @@ components:
             type: string
         properties:
           type: object
+          example:
+            key: value
     participant-context-config-schema:
       title: ParticipantContextConfigSchema
       type: object
@@ -3262,97 +3252,6 @@ components:
           - CREATED
           - ACTIVATED
           - DEACTIVATED
-    transfer-process-schema:
-      title: TransferProcessSchema
-      type: object
-      example:
-        stateTimestamp: 0
-        '@type': '@type'
-        type: CONSUMER
-        '@context':
-        - '@context'
-        - '@context'
-        assetId: assetId
-        dataplaneMetadata:
-          '@type': '@type'
-          properties: "{}"
-          labels:
-          - labels
-          - labels
-        callbackAddresses:
-        - authKey: authKey
-          '@type': '@type'
-          authCodeId: authCodeId
-          uri: uri
-          transactional: true
-          events:
-          - events
-          - events
-        - authKey: authKey
-          '@type': '@type'
-          authCodeId: authCodeId
-          uri: uri
-          transactional: true
-          events:
-          - events
-          - events
-        contractId: contractId
-        transferType: transferType
-        errorDetail: errorDetail
-        dataDestination:
-          '@type': '@type'
-          type: type
-        correlationId: correlationId
-        '@id': '@id'
-        state: state
-      allOf:
-      - $ref: "#/components/schemas/TransferProcess"
-    TransferProcess:
-      required:
-      - '@context'
-      - '@id'
-      - '@type'
-      - state
-      - stateTimestamp
-      - type
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        '@id':
-          type: string
-        type:
-          type: string
-          enum:
-          - CONSUMER
-          - PROVIDER
-        state:
-          type: string
-        stateTimestamp:
-          type: integer
-        callbackAddresses:
-          type: array
-          items:
-            $ref: "#/components/schemas/callback-address-schema"
-        correlationId:
-          type: string
-        assetId:
-          type: string
-        contractId:
-          type: string
-        transferType:
-          type: string
-        errorDetail:
-          type: string
-        dataDestination:
-          $ref: "#/components/schemas/data-address-schema"
-        dataplaneMetadata:
-          $ref: "#/components/schemas/dataplane-metadata-schema"
     catalog-schema:
       title: CatalogSchema
       type: object
@@ -3520,6 +3419,93 @@ components:
             type: string
         querySpec:
           $ref: "#/components/schemas/QuerySpec"
+    transfer-process-schema:
+      title: TransferProcessSchema
+      type: object
+      example:
+        stateTimestamp: 0
+        '@type': '@type'
+        type: CONSUMER
+        '@context':
+        - '@context'
+        - '@context'
+        assetId: assetId
+        dataplaneMetadata:
+          '@type': '@type'
+          properties:
+            key: value
+          labels:
+          - labels
+          - labels
+        callbackAddresses:
+        - authKey: authKey
+          '@type': '@type'
+          authCodeId: authCodeId
+          uri: uri
+          transactional: true
+          events:
+          - events
+          - events
+        - authKey: authKey
+          '@type': '@type'
+          authCodeId: authCodeId
+          uri: uri
+          transactional: true
+          events:
+          - events
+          - events
+        contractId: contractId
+        transferType: transferType
+        errorDetail: errorDetail
+        correlationId: correlationId
+        '@id': '@id'
+        state: state
+      allOf:
+      - $ref: "#/components/schemas/TransferProcess"
+    TransferProcess:
+      required:
+      - '@context'
+      - '@id'
+      - '@type'
+      - state
+      - stateTimestamp
+      - type
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        '@id':
+          type: string
+        type:
+          type: string
+          enum:
+          - CONSUMER
+          - PROVIDER
+        state:
+          type: string
+        stateTimestamp:
+          type: integer
+        callbackAddresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/callback-address-schema"
+        correlationId:
+          type: string
+        assetId:
+          type: string
+        contractId:
+          type: string
+        transferType:
+          type: string
+        errorDetail:
+          type: string
+        dataplaneMetadata:
+          $ref: "#/components/schemas/dataplane-metadata-schema"
     contract-definition-schema:
       title: ContractDefinitionSchema
       type: object
@@ -3604,8 +3590,6 @@ components:
           type: string
         privateProperties:
           type: object
-        dataDestination:
-          $ref: "#/components/schemas/data-address-schema"
         callbackAddresses:
           type: array
           items:
