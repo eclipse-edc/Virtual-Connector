@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessSuspended;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.tck.dsp.guard.Trigger;
 import org.eclipse.edc.virtua.tck.dsp.recorder.StepRecorder;
 
 import java.util.List;

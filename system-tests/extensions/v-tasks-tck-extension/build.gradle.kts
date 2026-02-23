@@ -27,7 +27,6 @@ dependencies {
     api(libs.edc.spi.controlplane)
     api(libs.edc.spi.participantcontext)
     api(libs.edc.spi.participantcontext.config)
-    api(libs.edc.lib.tck)
     implementation(libs.nimbus.jwt)
 }
 

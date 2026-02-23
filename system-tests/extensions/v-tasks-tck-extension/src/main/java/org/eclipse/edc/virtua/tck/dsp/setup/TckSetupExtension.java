@@ -30,10 +30,10 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 
 import java.util.Map;
 
-import static org.eclipse.edc.tck.dsp.data.DataSeed.createAssets;
-import static org.eclipse.edc.tck.dsp.data.DataSeed.createContractDefinitions;
-import static org.eclipse.edc.tck.dsp.data.DataSeed.createContractNegotiations;
-import static org.eclipse.edc.tck.dsp.data.DataSeed.createPolicyDefinitions;
+import static org.eclipse.edc.virtua.tck.dsp.DataSeed.createAssets;
+import static org.eclipse.edc.virtua.tck.dsp.DataSeed.createContractDefinitions;
+import static org.eclipse.edc.virtua.tck.dsp.DataSeed.createContractNegotiations;
+import static org.eclipse.edc.virtua.tck.dsp.DataSeed.createPolicyDefinitions;
 import static org.eclipse.edc.virtua.tck.dsp.setup.TckSetupExtension.NAME;
 
 /**
