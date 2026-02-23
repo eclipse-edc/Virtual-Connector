@@ -20,7 +20,9 @@ import org.eclipse.edc.api.transformer.JsonObjectFromCallbackAddressTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectFromIdResponseTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromAssetTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromDataplaneMetadataTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToAssetTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToDataplaneMetadataTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -129,6 +131,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectFromCriterionTransformer(factory, typeManager, JSON_LD));
         managementApiTransformerRegistry.register(new JsonObjectFromCallbackAddressTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectFromIdResponseTransformer(factory));
+        managementApiTransformerRegistry.register(new JsonObjectFromDataplaneMetadataTransformer(factory, () -> typeManager.getMapper(JSON_LD)));
 
         OdrlTransformersFactory.jsonObjectToOdrlTransformers(participantIdMapper).forEach(managementApiTransformerRegistry::register);
         managementApiTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
@@ -137,6 +140,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToAssetTransformer());
         managementApiTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
         managementApiTransformerRegistry.register(new JsonObjectToCallbackAddressTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToDataplaneMetadataTransformer());
         var managementApiTransformerRegistryV4Alpha = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_4);
 
         managementApiTransformerRegistryV4Alpha.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper, new JsonObjectFromPolicyTransformer.TransformerConfig(true, true)));
