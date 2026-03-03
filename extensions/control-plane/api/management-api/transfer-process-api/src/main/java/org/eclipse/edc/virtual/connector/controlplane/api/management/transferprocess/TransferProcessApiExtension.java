@@ -36,7 +36,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.virtual.connector.controlplane.api.management.transferprocess.v4.TransferProcessApiV4Controller;
+import org.eclipse.edc.virtual.connector.controlplane.api.management.transferprocess.v5.TransferProcessApiV5Controller;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -94,8 +94,8 @@ public class TransferProcessApiExtension implements ServiceExtension {
 
         authorizationService.addLookupFunction(TransferProcess.class, this::findTransferProcess);
 
-        webService.registerResource(ApiContext.MANAGEMENT, new TransferProcessApiV4Controller(context.getMonitor(), authorizationService, participantContextService, service, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, TransferProcessApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerResource(ApiContext.MANAGEMENT, new TransferProcessApiV5Controller(context.getMonitor(), authorizationService, participantContextService, service, managementApiTransformerRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, TransferProcessApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }
 
     private ParticipantResource findTransferProcess(String ownerId, String assetId) {

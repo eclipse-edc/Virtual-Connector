@@ -76,7 +76,6 @@ include(":extensions:control-plane:api:management-api:cel-api")
 include(":extensions:control-plane:api:management-api:management-api-configuration")
 
 // lib
-include(":extensions:common:api:lib:v-management-api-lib")
 
 include(":system-tests:system-test-fixtures")
 include(":system-tests:runtimes:issuer")

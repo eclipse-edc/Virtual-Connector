@@ -18,7 +18,7 @@ import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.virtual.connector.controlplane.api.management.transferprocess.v4.TransferProcessApiV4Controller;
+import org.eclipse.edc.virtual.connector.controlplane.api.management.transferprocess.v5.TransferProcessApiV5Controller;
 import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +49,6 @@ class TransferProcessApiExtensionTest {
     void initialize_shouldRegisterControllers(ServiceExtensionContext context, TransferProcessApiExtension extension) {
         extension.initialize(context);
 
-        verify(webService).registerResource(any(), isA(TransferProcessApiV4Controller.class));
+        verify(webService).registerResource(any(), isA(TransferProcessApiV5Controller.class));
     }
 }

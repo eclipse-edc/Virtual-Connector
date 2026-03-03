@@ -18,7 +18,6 @@ plugins {
 
 dependencies {
     testImplementation(project(":spi:v-auth-spi"))
-    testImplementation(project(":extensions:common:api:lib:v-management-api-lib"))
 
     testImplementation(libs.edc.spi.dataplane)
     testImplementation(libs.edc.spi.dataplane.selector)

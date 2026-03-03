@@ -44,7 +44,7 @@ public class ContractDefApi {
                 .contentType(JSON)
                 .body(new WithContext<>(contractDefinitionDto))
                 .when()
-                .post("/v4alpha/participants/%s/contractdefinitions".formatted(participantContextId))
+                .post("/v5alpha/participants/%s/contractdefinitions".formatted(participantContextId))
                 .then()
                 .log().ifError()
                 .statusCode(200)

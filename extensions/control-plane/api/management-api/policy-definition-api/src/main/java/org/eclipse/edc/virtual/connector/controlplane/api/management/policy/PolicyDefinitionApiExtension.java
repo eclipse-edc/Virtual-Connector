@@ -35,7 +35,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.virtual.connector.controlplane.api.management.policy.v4.PolicyDefinitionApiV4Controller;
+import org.eclipse.edc.virtual.connector.controlplane.api.management.policy.v5.PolicyDefinitionApiV5Controller;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -88,8 +88,8 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectFromPolicyEvaluationPlanTransformer(jsonBuilderFactory));
 
         authorizationService.addLookupFunction(PolicyDefinition.class, this::findPolicyDefinition);
-        webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV4Controller(policyDefinitionService, managementApiTransformerRegistry, monitor, authorizationService));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, PolicyDefinitionApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV5Controller(policyDefinitionService, managementApiTransformerRegistry, monitor, authorizationService));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, PolicyDefinitionApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
 
     }
 

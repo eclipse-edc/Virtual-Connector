@@ -29,7 +29,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.virtual.connector.controlplane.api.management.asset.v4.AssetApiV4Controller;
+import org.eclipse.edc.virtual.connector.controlplane.api.management.asset.v5.AssetApiV5Controller;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -75,8 +75,8 @@ public class AssetApiExtension implements ServiceExtension {
 
         authorizationService.addLookupFunction(Asset.class, this::findAsset);
 
-        webService.registerResource(ApiContext.MANAGEMENT, new AssetApiV4Controller(assetService, managementTypeTransformerRegistry, validatorRegistry, monitor, authorizationService));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, AssetApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerResource(ApiContext.MANAGEMENT, new AssetApiV5Controller(assetService, managementTypeTransformerRegistry, validatorRegistry, monitor, authorizationService));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, AssetApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
 
     }
 

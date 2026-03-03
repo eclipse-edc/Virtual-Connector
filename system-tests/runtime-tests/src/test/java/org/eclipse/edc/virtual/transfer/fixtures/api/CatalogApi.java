@@ -43,7 +43,7 @@ public class CatalogApi {
                 .contentType(JSON)
                 .body(new WithContext<>(datasetRequest))
                 .when()
-                .post("/v4alpha/participants/%s/catalog/dataset/request".formatted(participantContextId))
+                .post("/v5alpha/participants/%s/catalog/dataset/request".formatted(participantContextId))
                 .then()
                 .log().ifValidationFails()
                 .statusCode(200)

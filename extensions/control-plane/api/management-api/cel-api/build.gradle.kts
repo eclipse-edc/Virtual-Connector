@@ -23,7 +23,6 @@ plugins {
 dependencies {
 
     api(project(":spi:v-auth-spi"))
-    api(project(":extensions:common:api:lib:v-management-api-lib"))
     implementation(libs.edc.spi.core)
     implementation(libs.edc.spi.contract)
     implementation(libs.edc.spi.controlplane)

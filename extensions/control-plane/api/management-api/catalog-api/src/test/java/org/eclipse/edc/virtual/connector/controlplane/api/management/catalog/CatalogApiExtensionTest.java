@@ -17,7 +17,7 @@ package org.eclipse.edc.virtual.connector.controlplane.api.management.catalog;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.virtual.connector.controlplane.api.management.catalog.v4.CatalogApiV4Controller;
+import org.eclipse.edc.virtual.connector.controlplane.api.management.catalog.v5.CatalogApiV5Controller;
 import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +44,6 @@ class CatalogApiExtensionTest {
     void initiate_shouldRegisterControllers(CatalogApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(webService).registerResource(any(), isA(CatalogApiV4Controller.class));
+        verify(webService).registerResource(any(), isA(CatalogApiV5Controller.class));
     }
 }
