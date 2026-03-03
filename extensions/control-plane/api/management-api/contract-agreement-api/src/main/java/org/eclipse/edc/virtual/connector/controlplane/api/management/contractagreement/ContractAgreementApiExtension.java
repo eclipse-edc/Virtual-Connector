@@ -29,7 +29,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.virtual.connector.controlplane.api.management.contractagreement.v4.ContractAgreementApiV4Controller;
+import org.eclipse.edc.virtual.connector.controlplane.api.management.contractagreement.v5.ContractAgreementApiV5Controller;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -79,8 +79,8 @@ public class ContractAgreementApiExtension implements ServiceExtension {
 
         authorizationService.addLookupFunction(ContractAgreement.class, this::findContractAgreement);
 
-        webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV4Controller(service, authorizationService, managementApiTransformerRegistryV4, monitor, validatorRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractAgreementApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV5Controller(service, authorizationService, managementApiTransformerRegistryV4, monitor, validatorRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractAgreementApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
 
     }
 

@@ -17,7 +17,7 @@ package org.eclipse.edc.virtual.connector.controlplane.api.management.contractag
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.virtual.connector.controlplane.api.management.contractagreement.v4.ContractAgreementApiV4Controller;
+import org.eclipse.edc.virtual.connector.controlplane.api.management.contractagreement.v5.ContractAgreementApiV5Controller;
 import org.eclipse.edc.web.spi.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,6 +47,6 @@ class ContractAgreementApiExtensionTest {
     void initiate_shouldRegisterControllers(ContractAgreementApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(webService).registerResource(any(), isA(ContractAgreementApiV4Controller.class));
+        verify(webService).registerResource(any(), isA(ContractAgreementApiV5Controller.class));
     }
 }

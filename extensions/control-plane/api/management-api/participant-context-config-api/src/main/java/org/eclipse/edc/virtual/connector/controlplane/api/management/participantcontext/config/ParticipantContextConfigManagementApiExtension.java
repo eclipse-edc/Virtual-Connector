@@ -27,7 +27,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.virtual.connector.controlplane.api.management.participantcontext.config.v4.ParticipantContextConfigApiV4Controller;
+import org.eclipse.edc.virtual.connector.controlplane.api.management.participantcontext.config.v5.ParticipantContextConfigApiV5Controller;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -70,8 +70,8 @@ public class ParticipantContextConfigManagementApiExtension implements ServiceEx
         managementApiTransformerRegistry.register(new JsonObjectFromParticipantContextConfigurationTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectToParticipantContextConfigurationTransformer());
 
-        webService.registerResource(ApiContext.MANAGEMENT, new ParticipantContextConfigApiV4Controller(configService, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, ParticipantContextConfigApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerResource(ApiContext.MANAGEMENT, new ParticipantContextConfigApiV5Controller(configService, managementApiTransformerRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ParticipantContextConfigApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
 
     }
 }

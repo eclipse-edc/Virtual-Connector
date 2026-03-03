@@ -27,7 +27,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.virtual.connector.controlplane.api.management.cel.v4.CelExpressionApiV4Controller;
+import org.eclipse.edc.virtual.connector.controlplane.api.management.cel.v5.CelExpressionApiV5Controller;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -70,8 +70,8 @@ public class CelExpressionManagementApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectFromCelExpressionTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectToCelExpressionTransformer());
 
-        webService.registerResource(ApiContext.MANAGEMENT, new CelExpressionApiV4Controller(service, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, CelExpressionApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerResource(ApiContext.MANAGEMENT, new CelExpressionApiV5Controller(service, managementApiTransformerRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, CelExpressionApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
 
     }
 }
