@@ -116,7 +116,7 @@ public class TestFunction {
     public static CreateParticipantContextResponse setupParticipant(IdentityHub identityHub, VirtualConnector connector,
                                                                     String issuerDid, String participantContextId, String participantDid) {
 
-        var response = identityHub.createParticipant(participantDid, participantDid, participantDid + "#key");
+        var response = identityHub.createParticipant(participantContextId, participantDid, participantDid + "#key");
 
         var vault = connector.getService(Vault.class);
         vault.storeSecret(participantContextId, participantDid + "-alias", response.clientSecret());

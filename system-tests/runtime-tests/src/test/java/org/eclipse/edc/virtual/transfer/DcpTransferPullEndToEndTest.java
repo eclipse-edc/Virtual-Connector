@@ -101,11 +101,11 @@ class DcpTransferPullEndToEndTest {
             var providerResponse = setupParticipant(identityHub, connector, issuerDid, participants.provider().contextId(), providerHolderDid);
             var consumerResponse = setupParticipant(identityHub, connector, issuerDid, participants.consumer().contextId(), consumerHolderDid);
 
-            var providerPid = hubApiClient.requestCredential(providerResponse.apiKey(), providerHolderDid, issuerDid, "credential-id", "MembershipCredential");
-            var consumerPid = hubApiClient.requestCredential(consumerResponse.apiKey(), consumerHolderDid, issuerDid, "credential-id", "MembershipCredential");
+            var providerPid = hubApiClient.requestCredential(providerResponse.apiKey(), participants.provider().contextId(), issuerDid, "credential-id", "MembershipCredential");
+            var consumerPid = hubApiClient.requestCredential(consumerResponse.apiKey(), participants.consumer().contextId(), issuerDid, "credential-id", "MembershipCredential");
 
-            identityHub.waitForCredentialIssuer(providerPid, providerHolderDid);
-            identityHub.waitForCredentialIssuer(consumerPid, consumerHolderDid);
+            identityHub.waitForCredentialIssuer(providerPid, participants.provider().contextId());
+            identityHub.waitForCredentialIssuer(consumerPid, participants.consumer().contextId());
 
         }
 
