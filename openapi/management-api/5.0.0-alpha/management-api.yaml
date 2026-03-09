@@ -2091,6 +2091,9 @@ components:
         '@context':
         - '@context'
         - '@context'
+        actions:
+        - actions
+        - actions
       allOf:
       - $ref: "#/components/schemas/CelExpression"
     CelExpression:
@@ -2118,6 +2121,11 @@ components:
         description:
           type: string
         scopes:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        actions:
           uniqueItems: true
           type: array
           items:
