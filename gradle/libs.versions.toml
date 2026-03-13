@@ -120,6 +120,7 @@ edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", versi
 edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", version.ref = "edc" }
 edc-oauth2-client = { module = "org.eclipse.edc:oauth2-client", version.ref = "edc" }
 edc-iam-dcp-trustedissuers = { module = "org.eclipse.edc:decentralized-claims-issuers-configuration", version.ref = "edc" }
+edc-iam-dcp-cel = { module = "org.eclipse.edc:decentralized-claims-cel", version.ref = "edc" }
 
 # EDC BOM modules
 edc-bom-controlplane-sql = { module = "org.eclipse.edc:controlplane-feature-sql-bom", version.ref = "edc" }
@@ -163,6 +164,7 @@ dcp = [
     "edc-oauth2-client",
     "edc-iam-decentralized",
     "edc-iam-dcp-trustedissuers",
+    "edc-iam-dcp-cel",
 ]
 
 [plugins]
