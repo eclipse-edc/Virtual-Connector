@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    testImplementation(project(":spi:v-auth-spi"))
+    testImplementation(libs.edc.spi.auth)
 
     testImplementation(libs.edc.spi.dataplane)
     testImplementation(libs.edc.spi.dataplane.selector)

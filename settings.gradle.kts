@@ -26,7 +26,6 @@ pluginManagement {
 }
 
 // spi
-include(":spi:v-auth-spi")
 include(":spi:v-core-spi")
 include(":spi:v-task-spi")
 
