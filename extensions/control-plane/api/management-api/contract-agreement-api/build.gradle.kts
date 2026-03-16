@@ -19,7 +19,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:v-auth-spi"))
+    api(libs.edc.spi.auth)
+
     implementation(libs.edc.spi.core)
     implementation(libs.edc.spi.controlplane)
     implementation(libs.edc.spi.asset)
