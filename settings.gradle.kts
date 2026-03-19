@@ -57,8 +57,6 @@ include(":extensions:control-plane:tasks:subscriber:transfer-tasks-subscriber-na
 include(":extensions:control-plane:tasks:lib:tasks-nats-lib")
 
 include(":extensions:lib:nats-lib")
-include(":extensions:common:api:api-authentication")
-include(":extensions:common:api:api-authorization")
 include(":extensions:common:banner-extension")
 
 // APIs

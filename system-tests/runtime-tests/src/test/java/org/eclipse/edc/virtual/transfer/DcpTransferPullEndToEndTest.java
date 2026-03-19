@@ -121,7 +121,8 @@ class DcpTransferPullEndToEndTest {
                     .exists(c, c.type.exists(t, t == 'MembershipCredential'))
                     """;
 
-            var expr = new CelExpressionDto(leftOperand, expression, "membership expression");
+            var scopes = Set.of("catalog", "contract.negotiation", "transfer.process");
+            var expr = new CelExpressionDto(leftOperand, expression, scopes, "membership expression");
             connectorClient.expressions().createExpression(expr);
 
             var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
