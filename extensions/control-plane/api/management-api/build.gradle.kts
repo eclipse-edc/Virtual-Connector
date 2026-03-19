@@ -17,8 +17,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:common:api:api-authentication"))
-    api(project(":extensions:common:api:api-authorization"))
     api(project(":extensions:control-plane:api:management-api:asset-api"))
     api(project(":extensions:control-plane:api:management-api:catalog-api"))
     api(project(":extensions:control-plane:api:management-api:contract-definition-api"))
@@ -30,4 +28,6 @@ dependencies {
     api(project(":extensions:control-plane:api:management-api:participant-context-config-api"))
     api(project(":extensions:control-plane:api:management-api:cel-api"))
     api(project(":extensions:control-plane:api:management-api:management-api-configuration"))
+    api(libs.edc.mgmtapi.authn.oauth2)
+    api(libs.edc.mgmtapi.authz)
 }

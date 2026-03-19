@@ -115,7 +115,8 @@ edc-transaction-local = { module = "org.eclipse.edc:transaction-local", version.
 edc-sql-pool = { module = "org.eclipse.edc:sql-pool-apache-commons", version.ref = "edc" }
 edc-encryption-aes = { module = "org.eclipse.edc:aes-encryption", version.ref = "edc" }
 edc-cel-store-sql = { module = "org.eclipse.edc:cel-store-sql", version.ref = "edc" }
-
+edc-mgmtapi-authn-oauth2 = { module = "org.eclipse.edc:management-api-oauth2-authentication", version.ref = "edc" }
+edc-mgmtapi-authz = { module = "org.eclipse.edc:management-api-authorization", version.ref = "edc" }
 # EDC DCP modules
 edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", version.ref = "edc" }
 edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", version.ref = "edc" }
