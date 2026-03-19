@@ -55,6 +55,8 @@ edc-spi-cel = { module = "org.eclipse.edc:cel-spi", version.ref = "edc" }
 
 # EDC Core modules
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
+edc-core-controlplane-contract = { module = "org.eclipse.edc:control-plane-contract", version.ref = "edc" }
+edc-core-controlplane-transfer = { module = "org.eclipse.edc:control-plane-transfer", version.ref = "edc" }
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
 edc-core-runtime = { module = "org.eclipse.edc:runtime-core", version.ref = "edc" }
 edc-core-token = { module = "org.eclipse.edc:token-core", version.ref = "edc" }
@@ -101,6 +103,7 @@ edc-lib-token = { module = "org.eclipse.edc:token-lib", version.ref = "edc" }
 edc-lib-oauth2-authn = { module = "org.eclipse.edc:auth-authentication-oauth2-lib", version.ref = "edc" }
 edc-lib-oauth2-authz = { module = "org.eclipse.edc:auth-authorization-oauth2-lib", version.ref = "edc" }
 edc-lib-validator = { module = "org.eclipse.edc:validator-lib", version.ref = "edc" }
+edc-lib-statemachine = { module = "org.eclipse.edc:state-machine-lib", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 
 # EDC Extensions modules

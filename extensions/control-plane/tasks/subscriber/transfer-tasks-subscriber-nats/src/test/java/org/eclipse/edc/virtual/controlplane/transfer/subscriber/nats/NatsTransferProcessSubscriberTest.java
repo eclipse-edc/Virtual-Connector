@@ -29,8 +29,8 @@ import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.CompleteDataFlow;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.PrepareTransfer;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.ResumeDataFlow;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SendTransferRequest;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SendTransferStart;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SignalDataflowStarted;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.StartDataflow;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SuspendDataFlow;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TerminateDataFlow;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
@@ -188,7 +188,7 @@ class NatsTransferProcessSubscriberTest {
                     arguments(baseBuilder(CompleteDataFlow.Builder.newInstance(), id, COMPLETING, CONSUMER).build(), COMPLETED),
 
                     arguments(baseBuilder(PrepareTransfer.Builder.newInstance(), id, INITIAL, PROVIDER).build(), STARTING),
-                    arguments(baseBuilder(StartDataflow.Builder.newInstance(), id, STARTING, PROVIDER).build(), STARTED),
+                    arguments(baseBuilder(SendTransferStart.Builder.newInstance(), id, STARTING, PROVIDER).build(), STARTED),
                     arguments(baseBuilder(SuspendDataFlow.Builder.newInstance(), id, SUSPENDING, PROVIDER).build(), SUSPENDED),
                     arguments(baseBuilder(ResumeDataFlow.Builder.newInstance(), id, RESUMING, PROVIDER).build(), STARTED),
                     arguments(baseBuilder(TerminateDataFlow.Builder.newInstance(), id, TERMINATING, PROVIDER).build(), TERMINATED),

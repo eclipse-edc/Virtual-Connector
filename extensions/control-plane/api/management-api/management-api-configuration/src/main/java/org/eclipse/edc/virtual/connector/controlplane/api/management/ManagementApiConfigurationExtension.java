@@ -116,6 +116,9 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
         webService.registerResource(ApiContext.MANAGEMENT, new ObjectMapperProvider(typeManager, JSON_LD));
 
+        // temporary workaround to register transformers at root level
+        transformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
+
         var managementApiTransformerRegistry = transformerRegistry.forContext(MANAGEMENT_API_CONTEXT);
 
         var factory = Json.createBuilderFactory(Map.of());

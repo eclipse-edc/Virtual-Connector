@@ -24,7 +24,7 @@ import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.ContinuationToken
 import org.eclipse.edc.protocol.dsp.catalog.validation.CatalogRequestMessageValidator;
 import org.eclipse.edc.protocol.dsp.http.spi.message.ContinuationTokenManager;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -39,7 +39,7 @@ import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
-import java.util.Objects;
+import java.util.Optional;
 
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
@@ -69,7 +69,7 @@ public class DspCatalogApi2025Extension implements ServiceExtension {
     @Inject
     private CriterionOperatorRegistry criterionOperatorRegistry;
     @Inject
-    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    private ProtocolWebhookResolver protocolWebhookResolver;
     @Inject
     private TypeTransformerRegistry transformerRegistry;
     @Inject
@@ -110,10 +110,14 @@ public class DspCatalogApi2025Extension implements ServiceExtension {
     }
 
     private void registerDataService() {
-        var endpointUrl = Objects.requireNonNull(dataspaceProfileContextRegistry.getWebhook(DATASPACE_PROTOCOL_HTTP_V_2025_1)).url();
-        dataServiceRegistry.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, (participantContextId, protocol) -> DataService.Builder.newInstance()
-                .endpointDescription("dspace:connector")
-                .endpointUrl(endpointUrl.formatted(participantContextId))
-                .build());
+        dataServiceRegistry.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, this::createDataService);
+    }
+
+    private DataService createDataService(String participantContextId, String protocol) {
+        return Optional.ofNullable(protocolWebhookResolver.getWebhook(participantContextId, protocol))
+                .map(webhook -> DataService.Builder.newInstance()
+                        .endpointDescription("dspace:connector")
+                        .endpointUrl(webhook.url())
+                        .build()).orElse(null);
     }
 }

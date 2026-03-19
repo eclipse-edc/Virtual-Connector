@@ -26,14 +26,13 @@ pluginManagement {
 }
 
 // spi
-include(":spi:v-core-spi")
 include(":spi:v-task-spi")
 
 // core
 include(":core:v-connector-core")
 include(":core:v-task-core")
-include(":core:negotiation-manager")
-include(":core:transfer-process-manager")
+include(":core:contract-negotiation-tasks")
+include(":core:transfer-process-tasks")
 
 // data-protocols
 include(":data-protocols:dsp")
@@ -47,7 +46,6 @@ include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-http-
 include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025:dsp-transfer-process-http-api-2025")
 // extensions
-include(":extensions:control-plane:tasks:listener:tasks-store-listener")
 include(":extensions:control-plane:tasks:listener:tasks-store-poll-executor")
 include(":extensions:control-plane:tasks:publisher:negotiation-tasks-publisher-nats")
 include(":extensions:control-plane:tasks:publisher:transfer-tasks-publisher-nats")

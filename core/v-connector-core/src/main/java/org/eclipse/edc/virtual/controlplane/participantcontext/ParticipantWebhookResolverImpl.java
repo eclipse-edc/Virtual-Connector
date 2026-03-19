@@ -14,13 +14,12 @@
 
 package org.eclipse.edc.virtual.controlplane.participantcontext;
 
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.ProtocolWebhook;
-import org.eclipse.edc.virtual.controlplane.participantcontext.spi.ParticipantWebhookResolver;
+import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 
-import java.util.Optional;
-
-public class ParticipantWebhookResolverImpl implements ParticipantWebhookResolver {
+public class ParticipantWebhookResolverImpl implements ProtocolWebhookResolver {
 
     private final DataspaceProfileContextRegistry registry;
 
@@ -30,9 +29,10 @@ public class ParticipantWebhookResolverImpl implements ParticipantWebhookResolve
 
     @Override
     public ProtocolWebhook getWebhook(String participantContextId, String protocol) {
-        return Optional.ofNullable(registry.getWebhook(protocol))
+        return registry.getProfiles().stream().filter(it -> it.name().equals(protocol))
+                .map(DataspaceProfileContext::webhook)
                 .map(protocolWebhook -> wrap(participantContextId, protocolWebhook))
-                .orElse(null);
+                .findAny().orElse(null);
     }
 
     private ProtocolWebhook wrap(String participantContextId, ProtocolWebhook protocolWebhook) {
