@@ -226,7 +226,7 @@ public abstract class ContractNegotiationApiControllerTestBase extends RestContr
             when(participantContextService.getParticipantContext(any()))
                     .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build()));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
-            when(service.initiateNegotiation(any(ParticipantContext.class), any(ContractRequest.class))).thenReturn(contractNegotiation);
+            when(service.initiateNegotiation(any(ParticipantContext.class), any(ContractRequest.class))).thenReturn(ServiceResult.success(contractNegotiation));
 
             when(transformerRegistry.transform(any(IdResponse.class), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
 

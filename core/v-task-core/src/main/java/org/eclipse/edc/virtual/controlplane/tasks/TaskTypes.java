@@ -31,8 +31,8 @@ import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.CompleteDataFlow;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.PrepareTransfer;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.ResumeDataFlow;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SendTransferRequest;
+import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SendTransferStart;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SignalDataflowStarted;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.StartDataflow;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SuspendDataFlow;
 import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TerminateDataFlow;
 
@@ -56,7 +56,7 @@ public class TaskTypes {
             SendFinalizeNegotiation.class,
             PrepareTransfer.class,
             SendTransferRequest.class,
-            StartDataflow.class,
+            SendTransferStart.class,
             SignalDataflowStarted.class,
             SuspendDataFlow.class,
             ResumeDataFlow.class,

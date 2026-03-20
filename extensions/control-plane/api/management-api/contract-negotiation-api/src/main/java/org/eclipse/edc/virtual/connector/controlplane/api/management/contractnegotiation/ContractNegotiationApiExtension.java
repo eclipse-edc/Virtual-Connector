@@ -37,7 +37,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
-import org.eclipse.edc.virtual.connector.controlplane.api.management.contractnegotiation.v5.ContractNegotiationApiV4Controller;
+import org.eclipse.edc.virtual.connector.controlplane.api.management.contractnegotiation.v5.ContractNegotiationApiV5Controller;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -98,8 +98,8 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
 
         authorizationService.addLookupFunction(ContractNegotiation.class, this::findContractNegotiation);
 
-        webService.registerResource(ApiContext.MANAGEMENT, new ContractNegotiationApiV4Controller(service, participantContextService, authorizationService, managementApiTransformerRegistry, monitor));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractNegotiationApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerResource(ApiContext.MANAGEMENT, new ContractNegotiationApiV5Controller(service, participantContextService, authorizationService, managementApiTransformerRegistry, monitor));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractNegotiationApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }
 
     private ParticipantResource findContractNegotiation(String ownerId, String assetId) {

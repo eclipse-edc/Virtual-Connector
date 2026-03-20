@@ -19,7 +19,6 @@ plugins {
 dependencies {
     api(libs.edc.spi.core)
     api(libs.edc.spi.contract)
-    api(project(":spi:v-core-spi"))
     api(project(":spi:v-task-spi"))
     implementation(libs.nats.client)
     implementation(project(":extensions:lib:nats-lib"))

@@ -21,7 +21,6 @@ dependencies {
     api(libs.edc.spi.contract)
     api(libs.edc.spi.transfer)
     api(libs.edc.spi.transaction)
-    api(project(":spi:v-core-spi"))
     api(project(":spi:v-task-spi"))
     implementation(project(":extensions:control-plane::tasks:lib:tasks-nats-lib"))
     implementation(libs.nats.client)
