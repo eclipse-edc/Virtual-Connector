@@ -277,7 +277,7 @@ paths:
       - Contract Negotiation v5alpha
       description: Gets a contract agreement for a contract negotiation with the given
         ID
-      operationId: getAgreementForNegotiationV4
+      operationId: getAgreementForNegotiationV5
       parameters:
       - name: participantContextId
         in: path
@@ -608,7 +608,7 @@ paths:
       tags:
       - Contract Negotiation v5alpha
       description: Gets the state of a contract negotiation with the given ID
-      operationId: getNegotiationStateV4
+      operationId: getNegotiationStateV5
       parameters:
       - name: participantContextId
         in: path
@@ -780,7 +780,7 @@ paths:
       tags:
       - Contract Negotiation v5alpha
       description: Gets a contract negotiation with the given ID
-      operationId: getNegotiationV4
+      operationId: getNegotiationV5
       parameters:
       - name: participantContextId
         in: path
@@ -824,7 +824,7 @@ paths:
       - Contract Negotiation v5alpha
       description: Deletes the contract negotiation with the given ID. Only terminated
         negotiations without agreement will be deleted
-      operationId: deleteNegotiationV4
+      operationId: deleteNegotiationV5
       parameters:
       - name: participantContextId
         in: path
@@ -969,7 +969,7 @@ paths:
       tags:
       - Contract Negotiation v5alpha
       description: Returns all contract negotiations according to a query
-      operationId: queryNegotiationsV4
+      operationId: queryNegotiationsV5
       parameters:
       - name: participantContextId
         in: path
@@ -1126,7 +1126,7 @@ paths:
         \ given counter part. Please note that successfully invoking this endpoint\
         \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
         \ endpoint to track the state"
-      operationId: initiateContractNegotiationV4
+      operationId: initiateContractNegotiationV5
       parameters:
       - name: participantContextId
         in: path
@@ -1694,7 +1694,7 @@ paths:
       tags:
       - Contract Negotiation v5alpha
       description: Terminates the contract negotiation.
-      operationId: terminateNegotiationV4
+      operationId: terminateNegotiationV5
       parameters:
       - name: participantContextId
         in: path
