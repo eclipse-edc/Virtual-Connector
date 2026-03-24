@@ -59,12 +59,6 @@ include(":extensions:common:banner-extension")
 
 // APIs
 include(":extensions:control-plane:api:management-api:catalog-api")
-include(":extensions:control-plane:api:management-api:contract-definition-api")
-include(":extensions:control-plane:api:management-api:policy-definition-api")
-include(":extensions:control-plane:api:management-api:contract-negotiation-api")
-include(":extensions:control-plane:api:management-api:contract-agreement-api")
-include(":extensions:control-plane:api:management-api:transfer-process-api")
-include(":extensions:control-plane:api:management-api:cel-api")
 
 // lib
 
