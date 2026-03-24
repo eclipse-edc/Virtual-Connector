@@ -253,10 +253,10 @@ class DcpTransferPullEndToEndTest {
                 {
                     put("edc.iam.dcp.scopes.membership.id", "membership-scope");
                     put("edc.iam.dcp.scopes.membership.type", "DEFAULT");
-                    put("edc.iam.dcp.scopes.membership.value", "org.eclipse.edc.vc.type:MembershipCredential:read");
+                    put("edc.iam.dcp.scopes.membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read");
                     put("edc.iam.dcp.scopes.data-access.id", "data-access-scope");
                     put("edc.iam.dcp.scopes.data-access.type", "POLICY");
-                    put("edc.iam.dcp.scopes.data-access.value", "org.eclipse.edc.vc.type:DataAccessCredential:read");
+                    put("edc.iam.dcp.scopes.data-access.value", "org.eclipse.dspace.dcp.vc.type:DataAccessCredential:read");
                     put("edc.iam.dcp.scopes.data-access.prefix-mapping", "https://w3id.org/example/credentials/DataAccessCredential");
                 }
             });
