@@ -29,7 +29,6 @@ pluginManagement {
 include(":spi:v-task-spi")
 
 // core
-include(":core:v-connector-core")
 include(":core:v-task-core")
 include(":core:contract-negotiation-tasks")
 include(":core:transfer-process-tasks")

@@ -6,19 +6,15 @@ edc = "0.17.0-SNAPSHOT"
 awaitility = "4.3.0"
 restAssured = "6.0.0"
 testcontainers = "1.21.4"
-jersey = "4.0.2"
 rsApi = "4.0.0"
 nimbus = "10.8"
 opentelemetry = "2.26.0"
-postgres = "42.7.10"
 parsson = "1.1.7"
 nats = "2.25.2"
 wiremock = "3.13.2"
 bouncyCastle-jdk18on = "1.83"
 jakarta-annotation = "3.0.0"
 swagger = "2.2.45"
-cel = "0.11.1"
-jsonschema = "2.0.0"
 
 [libraries]
 # EDC SPI modules
@@ -29,15 +25,9 @@ edc-spi-participantcontext-config = { module = "org.eclipse.edc:participant-cont
 edc-spi-transaction = { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
 edc-spi-transaction-datasource = { module = "org.eclipse.edc:transaction-datasource-spi", version.ref = "edc" }
 edc-spi-protocol = { module = "org.eclipse.edc:protocol-spi", version.ref = "edc" }
-edc-spi-catalog = { module = "org.eclipse.edc:catalog-spi", version.ref = "edc" }
 edc-spi-contract = { module = "org.eclipse.edc:contract-spi", version.ref = "edc" }
 edc-spi-transfer = { module = "org.eclipse.edc:transfer-spi", version.ref = "edc" }
 edc-spi-policy = { module = "org.eclipse.edc:policy-spi", version.ref = "edc" }
-edc-spi-policy-context = { module = "org.eclipse.edc:request-policy-context-spi", version.ref = "edc" }
-edc-spi-policy-monitor = { module = "org.eclipse.edc:policy-monitor-spi", version.ref = "edc" }
-edc-spi-policy-engine = { module = "org.eclipse.edc:policy-engine-spi", version.ref = "edc" }
-edc-spi-participant = { module = "org.eclipse.edc:participant-spi", version.ref = "edc" }
-edc-spi-verifiablecredentials = { module = "org.eclipse.edc:verifiable-credentials-spi", version.ref = "edc" }
 edc-spi-jsonld = { module = "org.eclipse.edc:json-ld-spi", version.ref = "edc" }
 edc-spi-dsp = { module = "org.eclipse.edc:dsp-spi", version.ref = "edc" }
 edc-spi-dsp-v2025 = { module = "org.eclipse.edc:dsp-spi-2025", version.ref = "edc" }
@@ -47,10 +37,8 @@ edc-spi-dataplane = { module = "org.eclipse.edc:data-plane-spi", version.ref = "
 edc-spi-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-spi", version.ref = "edc" }
 edc-spi-validator = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
 edc-spi-controlplane = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
-edc-spi-token = { module = "org.eclipse.edc:token-spi", version.ref = "edc" }
 edc-spi-auth = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
 edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
-edc-spi-dcp = { module = "org.eclipse.edc:decentralized-claims-spi", version.ref = "edc" }
 edc-spi-cel = { module = "org.eclipse.edc:cel-spi", version.ref = "edc" }
 
 # EDC Core modules
@@ -72,18 +60,15 @@ edc-core-dsp-catalog-transform-v2025 = { module = "org.eclipse.edc:dsp-catalog-t
 edc-core-dsp-negotiation-transform-v2025 = { module = "org.eclipse.edc:dsp-negotiation-transform-2025", version.ref = "edc" }
 edc-core-dsp-transferprocess-transform-v2025 = { module = "org.eclipse.edc:dsp-transfer-process-transform-2025", version.ref = "edc" }
 edc-core-mgmtapi-jsonschema = { module = "org.eclipse.edc:management-api-schema-validator", version.ref = "edc" }
-edc-core-participantcontext-single = { module = "org.eclipse.edc:participant-context-single-core", version.ref = "edc" }
 edc-core-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-core", version.ref = "edc" }
 edc-core-dataplane-signaling-client = { module = "org.eclipse.edc:data-plane-signaling-client", version.ref = "edc" }
 edc-core-dataplane-signaling-transfer = { module = "org.eclipse.edc:transfer-data-plane-signaling", version.ref = "edc" }
 edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
-edc-core-sql = { module = "org.eclipse.edc:sql-core", version.ref = "edc" }
 edc-core-cel = { module = "org.eclipse.edc:cel-core", version.ref = "edc" }
 edc-core-policy-monitor = { module = "org.eclipse.edc:policy-monitor-core", version.ref = "edc" }
 
 # EDC Lib modules
 edc-lib-api = { module = "org.eclipse.edc:api-lib", version.ref = "edc" }
-edc-lib-common-crypto = { module = "org.eclipse.edc:crypto-common-lib", version.ref = "edc" }
 edc-lib-store = { module = "org.eclipse.edc:store-lib", version.ref = "edc" }
 edc-lib-query = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
 edc-lib-sql = { module = "org.eclipse.edc:sql-lib", version.ref = "edc" }
@@ -98,8 +83,6 @@ edc-lib-dsp-negotiation-http = { module = "org.eclipse.edc:dsp-negotiation-http-
 edc-lib-dsp-transferprocess-validation = { module = "org.eclipse.edc:dsp-transfer-process-validation-lib", version.ref = "edc" }
 edc-lib-dsp-transferprocess-http = { module = "org.eclipse.edc:dsp-transfer-process-http-api-lib", version.ref = "edc" }
 edc-lib-mgmtapi = { module = "org.eclipse.edc:management-api-lib", version.ref = "edc" }
-edc-lib-keys = { module = "org.eclipse.edc:keys-lib", version.ref = "edc" }
-edc-lib-token = { module = "org.eclipse.edc:token-lib", version.ref = "edc" }
 edc-lib-oauth2-authn = { module = "org.eclipse.edc:auth-authentication-oauth2-lib", version.ref = "edc" }
 edc-lib-oauth2-authz = { module = "org.eclipse.edc:auth-authorization-oauth2-lib", version.ref = "edc" }
 edc-lib-validator = { module = "org.eclipse.edc:validator-lib", version.ref = "edc" }
@@ -114,8 +97,6 @@ edc-crypto-verifiablecredentials = { module = "org.eclipse.edc:verifiable-creden
 edc-api-observability = { module = "org.eclipse.edc:api-observability", version.ref = "edc" }
 edc-participantcontext-store-sql = { module = "org.eclipse.edc:participantcontext-store-sql", version.ref = "edc" }
 edc-participantcontext-config-store-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
-edc-transaction-local = { module = "org.eclipse.edc:transaction-local", version.ref = "edc" }
-edc-sql-pool = { module = "org.eclipse.edc:sql-pool-apache-commons", version.ref = "edc" }
 edc-encryption-aes = { module = "org.eclipse.edc:aes-encryption", version.ref = "edc" }
 edc-cel-store-sql = { module = "org.eclipse.edc:cel-store-sql", version.ref = "edc" }
 edc-mgmtapi-authn-oauth2 = { module = "org.eclipse.edc:management-api-oauth2-authentication", version.ref = "edc" }
@@ -152,14 +133,11 @@ jakarta-rsApi = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "rsA
 jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation" }
 nimbus-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus" }
 opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version.ref = "opentelemetry" }
-postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 parsson = { module = "org.eclipse.parsson:parsson", version.ref = "parsson" }
 nats-client = { module = "io.nats:jnats", version.ref = "nats" }
 wiremock = { module = "org.wiremock:wiremock-jetty12", version.ref = "wiremock" }
 bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 bouncyCastle-bcprovJdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle-jdk18on" }
-jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
-jsonschema = { module = "com.networknt:json-schema-validator", version.ref = "jsonschema" }
 
 [bundles]
 dcp = [
