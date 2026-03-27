@@ -22,7 +22,7 @@ dependencies {
     api(project(":core:contract-negotiation-tasks"))
     api(project(":core:transfer-process-tasks"))
     api(project(":extensions:common:banner-extension"))
-    api(project(":data-protocols:dsp"))
+    runtimeOnly(libs.edc.core.dsp.virtual)
     runtimeOnly(libs.edc.lib.oauth2.authn)
     runtimeOnly(libs.edc.lib.oauth2.authz)
     runtimeOnly(libs.edc.core.connector)

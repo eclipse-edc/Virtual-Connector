@@ -33,11 +33,6 @@ include(":core:v-task-core")
 include(":core:contract-negotiation-tasks")
 include(":core:transfer-process-tasks")
 
-// data-protocols
-include(":data-protocols:dsp")
-include(":data-protocols:dsp:dsp-2025")
-include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025")
-include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025:dsp-transfer-process-http-api-2025")
 // extensions
 include(":extensions:control-plane:tasks:listener:tasks-store-poll-executor")
 include(":extensions:control-plane:tasks:publisher:negotiation-tasks-publisher-nats")
