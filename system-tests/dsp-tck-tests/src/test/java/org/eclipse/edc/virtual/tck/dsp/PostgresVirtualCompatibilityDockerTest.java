@@ -79,7 +79,7 @@ public class PostgresVirtualCompatibilityDockerTest extends DspCompatibilityDock
                 put("edc.participant.id", "participantContextId");
                 put("web.http.protocol.port", "8282"); // this must match the configured connector url in resources/docker.tck.properties
                 put("web.http.protocol.path", "/api/dsp"); // this must match the configured connector url in resources/docker.tck.properties
-                put("edc.dsp.callback.address", "http://host.docker.internal:8282/api/dsp"); // host.docker.internal is required by the container to communicate with the host
+                put("edc.dsp.callback.address", "http://host.docker.internal:8282/api/dsp/%s"); // host.docker.internal is required by the container to communicate with the host
                 put("edc.hostname", "host.docker.internal");
                 put("edc.component.id", "DSP-compatibility-test");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
