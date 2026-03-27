@@ -36,8 +36,6 @@ include(":core:transfer-process-tasks")
 // data-protocols
 include(":data-protocols:dsp")
 include(":data-protocols:dsp:dsp-2025")
-include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025")
-include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-http-api-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025:dsp-transfer-process-http-api-2025")
 // extensions

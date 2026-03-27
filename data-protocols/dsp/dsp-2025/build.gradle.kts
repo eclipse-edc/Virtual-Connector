@@ -17,7 +17,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025"))
     api(libs.edc.core.dsp.http.dispatcher.v2025)
 
