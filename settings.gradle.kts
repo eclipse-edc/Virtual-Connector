@@ -35,7 +35,6 @@ include(":core:transfer-process-tasks")
 
 // data-protocols
 include(":data-protocols:dsp")
-include(":data-protocols:dsp:dsp-metadata-http-api")
 include(":data-protocols:dsp:dsp-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-http-api-configuration-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-catalog-2025")

@@ -18,7 +18,7 @@ plugins {
 
 dependencies {
     api(project(":data-protocols:dsp:dsp-2025"))
-    api(project(":data-protocols:dsp:dsp-metadata-http-api"))
+    api(libs.edc.core.dsp.virtual)
     api(libs.edc.core.dsp.http)
     api(libs.edc.core.dsp.http.configuration)
     api(libs.edc.core.dsp.http.catalog.dispatcher)
