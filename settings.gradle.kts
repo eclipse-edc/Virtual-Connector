@@ -45,16 +45,12 @@ include(":extensions:control-plane:tasks:lib:tasks-nats-lib")
 include(":extensions:lib:nats-lib")
 include(":extensions:common:banner-extension")
 
-// APIs
-include(":extensions:control-plane:api:management-api:catalog-api")
-
 // lib
 
 include(":system-tests:system-test-fixtures")
 include(":system-tests:runtimes:issuer")
 include(":system-tests:runtimes:identity-hub")
 include(":system-tests:runtime-tests")
-include(":system-tests:management-api:management-api-tests")
 include(":system-tests:dsp-tck-tests")
 include(":system-tests:extensions:v-tck-extension")
 include(":system-tests:extensions:v-tasks-tck-extension")
