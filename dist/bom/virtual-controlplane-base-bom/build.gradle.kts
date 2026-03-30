@@ -17,14 +17,15 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:control-plane:api:management-api"))
     api(project(":core:v-task-core"))
     api(project(":core:contract-negotiation-tasks"))
     api(project(":core:transfer-process-tasks"))
     api(project(":extensions:common:banner-extension"))
-    api(project(":data-protocols:dsp"))
-    runtimeOnly(libs.edc.lib.oauth2.authn)
-    runtimeOnly(libs.edc.lib.oauth2.authz)
+    runtimeOnly(libs.edc.core.dsp.virtual)
+    runtimeOnly(libs.edc.mgmtapi.v5)
+    runtimeOnly(libs.edc.core.mgmtapi.jsonschema)
+    runtimeOnly(libs.edc.mgmtapi.authn.oauth2)
+    runtimeOnly(libs.edc.mgmtapi.authz)
     runtimeOnly(libs.edc.core.connector)
     runtimeOnly(libs.edc.core.cel)
     runtimeOnly(libs.edc.core.runtime)

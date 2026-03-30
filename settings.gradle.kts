@@ -33,17 +33,6 @@ include(":core:v-task-core")
 include(":core:contract-negotiation-tasks")
 include(":core:transfer-process-tasks")
 
-// data-protocols
-include(":data-protocols:dsp")
-include(":data-protocols:dsp:dsp-metadata-http-api")
-include(":data-protocols:dsp:dsp-2025")
-include(":data-protocols:dsp:dsp-2025:dsp-http-api-configuration-2025")
-include(":data-protocols:dsp:dsp-2025:dsp-catalog-2025")
-include(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-http-api-2025")
-include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025")
-include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-http-api-2025")
-include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025")
-include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025:dsp-transfer-process-http-api-2025")
 // extensions
 include(":extensions:control-plane:tasks:listener:tasks-store-poll-executor")
 include(":extensions:control-plane:tasks:publisher:negotiation-tasks-publisher-nats")
@@ -56,16 +45,12 @@ include(":extensions:control-plane:tasks:lib:tasks-nats-lib")
 include(":extensions:lib:nats-lib")
 include(":extensions:common:banner-extension")
 
-// APIs
-include(":extensions:control-plane:api:management-api:catalog-api")
-
 // lib
 
 include(":system-tests:system-test-fixtures")
 include(":system-tests:runtimes:issuer")
 include(":system-tests:runtimes:identity-hub")
 include(":system-tests:runtime-tests")
-include(":system-tests:management-api:management-api-tests")
 include(":system-tests:dsp-tck-tests")
 include(":system-tests:extensions:v-tck-extension")
 include(":system-tests:extensions:v-tasks-tck-extension")

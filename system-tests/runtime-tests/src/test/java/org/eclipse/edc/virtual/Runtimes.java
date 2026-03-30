@@ -59,6 +59,7 @@ public interface Runtimes {
                     put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
                     put("edc.iam.oauth2.issuer", "test-issuer");
                     put("edc.encryption.strict", "false");
+                    put("web.http.protocol.virtual", "true");
                 }
             });
         }
