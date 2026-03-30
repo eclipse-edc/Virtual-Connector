@@ -15,9 +15,9 @@
 package org.eclipse.edc.virtual.controlplane.contract.negotiation.subscriber;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
 import org.eclipse.edc.virtual.controlplane.tasks.subscriber.AbstractTaskSubscriber;
 
 import java.util.Objects;
@@ -46,7 +46,7 @@ public class NatsContractNegotiationTaskSubscriber extends AbstractTaskSubscribe
         public static Builder newInstance() {
             return new Builder();
         }
-        
+
         public Builder taskExecutor(ContractNegotiationTaskExecutor taskExecutor) {
             subscriber.taskExecutor = taskExecutor;
             return self();

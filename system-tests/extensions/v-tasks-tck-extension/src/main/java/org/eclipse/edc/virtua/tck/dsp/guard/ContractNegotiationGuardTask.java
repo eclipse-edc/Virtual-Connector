@@ -15,17 +15,17 @@
 package org.eclipse.edc.virtua.tck.dsp.guard;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendAccept;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendAgreement;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendFinalizeNegotiation;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendOffer;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendRequestNegotiation;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendTerminateNegotiation;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendVerificationNegotiation;
-import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
-import org.eclipse.edc.virtual.controlplane.tasks.Task;
-import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendAccept;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendAgreement;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendFinalizeNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendOffer;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendRequestNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendTerminateNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendVerificationNegotiation;
+import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
+import org.eclipse.edc.controlplane.tasks.Task;
+import org.eclipse.edc.controlplane.tasks.TaskService;
 
 import java.time.Clock;
 
@@ -83,7 +83,7 @@ public class ContractNegotiationGuardTask {
 
     protected <T extends ProcessTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> B baseBuilder(B builder, ContractNegotiation negotiation) {
         return builder.processId(negotiation.getId())
-                .processState(negotiation.stateAsString())
+                .processState(negotiation.getState())
                 .processType(negotiation.getType().name());
     }
 }

@@ -18,22 +18,22 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
+import org.eclipse.edc.controlplane.tasks.Task;
+import org.eclipse.edc.controlplane.tasks.TaskService;
+import org.eclipse.edc.controlplane.tasks.TaskTypes;
+import org.eclipse.edc.controlplane.transfer.spi.TransferProcessTaskExecutor;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.CompleteDataFlow;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.PrepareTransfer;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.ResumeDataFlow;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.SendTransferRequest;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.SendTransferStart;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.SignalDataflowStarted;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.SuspendDataFlow;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.TerminateDataFlow;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
-import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
-import org.eclipse.edc.virtual.controlplane.tasks.Task;
-import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
-import org.eclipse.edc.virtual.controlplane.tasks.TaskTypes;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.CompleteDataFlow;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.PrepareTransfer;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.ResumeDataFlow;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SendTransferRequest;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SendTransferStart;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SignalDataflowStarted;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SuspendDataFlow;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TerminateDataFlow;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -96,7 +96,7 @@ class NatsTransferProcessSubscriberTest {
 
     protected static <T extends ProcessTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> B baseBuilder(B builder, String id, TransferProcessStates state, TransferProcess.Type type) {
         return builder.processId(id)
-                .processState(state.name())
+                .processState(state.code())
                 .processType(type.name());
     }
 

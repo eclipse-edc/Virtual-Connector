@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.virtual.controlplane.transfer.subscriber.nats;
 
+import org.eclipse.edc.controlplane.tasks.TaskService;
+import org.eclipse.edc.controlplane.transfer.spi.TransferProcessTaskExecutor;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -24,8 +26,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
 
 import java.time.Clock;
 

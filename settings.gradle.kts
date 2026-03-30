@@ -25,19 +25,11 @@ pluginManagement {
     }
 }
 
-// spi
-include(":spi:v-task-spi")
-
-// core
-include(":core:v-task-core")
-include(":core:contract-negotiation-tasks")
-include(":core:transfer-process-tasks")
 
 // extensions
 include(":extensions:control-plane:tasks:listener:tasks-store-poll-executor")
 include(":extensions:control-plane:tasks:publisher:negotiation-tasks-publisher-nats")
 include(":extensions:control-plane:tasks:publisher:transfer-tasks-publisher-nats")
-include(":extensions:control-plane:tasks:store:tasks-store-sql")
 include(":extensions:control-plane:tasks:subscriber:negotiation-tasks-subscriber-nats")
 include(":extensions:control-plane:tasks:subscriber:transfer-tasks-subscriber-nats")
 include(":extensions:control-plane:tasks:lib:tasks-nats-lib")

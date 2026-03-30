@@ -17,10 +17,10 @@ plugins {
 }
 
 dependencies {
-    api(project(":core:v-task-core"))
-    api(project(":core:contract-negotiation-tasks"))
-    api(project(":core:transfer-process-tasks"))
     api(project(":extensions:common:banner-extension"))
+    runtimeOnly(libs.edc.core.controlplane.contract.tasks)
+    runtimeOnly(libs.edc.core.controlplane.transfer.tasks)
+    runtimeOnly(libs.edc.core.tasks)
     runtimeOnly(libs.edc.core.dsp.virtual)
     runtimeOnly(libs.edc.mgmtapi.v5)
     runtimeOnly(libs.edc.core.mgmtapi.jsonschema)

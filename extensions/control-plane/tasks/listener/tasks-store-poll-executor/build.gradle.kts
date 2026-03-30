@@ -21,7 +21,7 @@ dependencies {
     api(libs.edc.spi.contract)
     api(libs.edc.spi.transaction)
     api(libs.edc.spi.transfer)
-    api(project(":spi:v-task-spi"))
+    api(libs.edc.spi.tasks)
     testImplementation(libs.awaitility)
     testImplementation(libs.edc.junit)
     testImplementation(testFixtures(libs.edc.spi.contract))

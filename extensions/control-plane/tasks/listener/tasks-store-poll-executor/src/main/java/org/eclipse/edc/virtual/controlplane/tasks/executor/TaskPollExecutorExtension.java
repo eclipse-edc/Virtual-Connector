@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.virtual.controlplane.tasks.executor;
 
+import org.eclipse.edc.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
+import org.eclipse.edc.controlplane.tasks.store.TaskStore;
+import org.eclipse.edc.controlplane.transfer.spi.TransferProcessTaskExecutor;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -21,9 +24,6 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
-import org.eclipse.edc.virtual.controlplane.tasks.store.TaskStore;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
 
 import java.time.Clock;
 

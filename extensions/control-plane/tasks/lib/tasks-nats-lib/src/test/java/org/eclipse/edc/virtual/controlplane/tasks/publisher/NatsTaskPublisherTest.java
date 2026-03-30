@@ -16,14 +16,14 @@ package org.eclipse.edc.virtual.controlplane.tasks.publisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.JetStream;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
+import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
+import org.eclipse.edc.controlplane.tasks.Task;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.PrepareTransfer;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
-import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
-import org.eclipse.edc.virtual.controlplane.tasks.Task;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.PrepareTransfer;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +51,7 @@ class NatsTaskPublisherTest {
 
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -70,7 +70,7 @@ class NatsTaskPublisherTest {
 
         var payload = PrepareTransfer.Builder.newInstance()
                 .processId("transfer-123")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -89,7 +89,7 @@ class NatsTaskPublisherTest {
 
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -127,7 +127,7 @@ class NatsTaskPublisherTest {
 
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -148,7 +148,7 @@ class NatsTaskPublisherTest {
     void created_shouldSkipPublish_ForUnsupportedPayloadType() {
         var publisher = new NatsTaskPublisher("negotiations", ContractNegotiationTaskPayload.class, jetStream, monitor, ObjectMapper::new);
 
-        var payload = new UnsupportedPayload("process-1", "INITIAL", "CONSUMER");
+        var payload = new UnsupportedPayload("process-1", 100, "CONSUMER");
         var task = Task.Builder.newInstance()
                 .at(System.currentTimeMillis())
                 .payload(payload)
@@ -165,7 +165,7 @@ class NatsTaskPublisherTest {
 
         var payload = PrepareTransfer.Builder.newInstance()
                 .processId("transfer-456")
-                .processState("STARTED")
+                .processState(600)
                 .processType("PROVIDER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -184,7 +184,7 @@ class NatsTaskPublisherTest {
 
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-789")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("PROVIDER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -204,7 +204,7 @@ class NatsTaskPublisherTest {
      * Unsupported task payload for testing error handling
      */
     private static class UnsupportedPayload extends ProcessTaskPayload {
-        UnsupportedPayload(String processId, String processState, String processType) {
+        UnsupportedPayload(String processId, Integer processState, String processType) {
             this.processId = processId;
             this.processState = processState;
             this.processType = processType;

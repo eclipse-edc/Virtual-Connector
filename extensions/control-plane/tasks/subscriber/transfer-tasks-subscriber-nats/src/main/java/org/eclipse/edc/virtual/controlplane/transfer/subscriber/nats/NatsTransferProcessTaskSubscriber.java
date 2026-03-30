@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.virtual.controlplane.transfer.subscriber.nats;
 
+import org.eclipse.edc.controlplane.transfer.spi.TransferProcessTaskExecutor;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.virtual.controlplane.tasks.subscriber.AbstractTaskSubscriber;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 
 import java.util.Objects;
 

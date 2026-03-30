@@ -15,14 +15,14 @@
 package org.eclipse.edc.virtua.tck.dsp.guard;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
-import org.eclipse.edc.virtual.controlplane.tasks.Task;
-import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.CompleteDataFlow;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.ResumeDataFlow;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.SuspendDataFlow;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TerminateDataFlow;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
+import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
+import org.eclipse.edc.controlplane.tasks.Task;
+import org.eclipse.edc.controlplane.tasks.TaskService;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.CompleteDataFlow;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.ResumeDataFlow;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.SuspendDataFlow;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.TerminateDataFlow;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 
 import java.time.Clock;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -85,7 +85,7 @@ public class TransferProcessGuardTask {
 
     protected <T extends ProcessTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> B baseBuilder(B builder, TransferProcess transferProcess) {
         return builder.processId(transferProcess.getId())
-                .processState(transferProcess.stateAsString())
+                .processState(transferProcess.getState())
                 .processType(transferProcess.getType().name());
     }
 }
