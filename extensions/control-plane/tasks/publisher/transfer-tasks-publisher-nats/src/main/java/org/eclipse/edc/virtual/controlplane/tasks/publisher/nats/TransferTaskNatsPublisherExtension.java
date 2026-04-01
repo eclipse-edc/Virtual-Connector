@@ -15,6 +15,8 @@
 package org.eclipse.edc.virtual.controlplane.tasks.publisher.nats;
 
 import io.nats.client.Nats;
+import org.eclipse.edc.controlplane.tasks.TaskObservable;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -23,9 +25,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.virtual.controlplane.tasks.TaskObservable;
 import org.eclipse.edc.virtual.controlplane.tasks.publisher.NatsTaskPublisher;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 
 import java.time.Clock;
 
@@ -36,7 +36,7 @@ public class TransferTaskNatsPublisherExtension implements ServiceExtension {
 
     @Configuration
     private NatsTpPublisherConfig natsTpPublisherConfig;
-    
+
     @Inject
     private Clock clock;
 

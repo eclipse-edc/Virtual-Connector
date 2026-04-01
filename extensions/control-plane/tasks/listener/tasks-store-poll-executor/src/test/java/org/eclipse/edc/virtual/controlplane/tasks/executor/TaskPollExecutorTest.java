@@ -14,21 +14,21 @@
 
 package org.eclipse.edc.virtual.controlplane.tasks.executor;
 
+import org.eclipse.edc.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
+import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
+import org.eclipse.edc.controlplane.tasks.Task;
+import org.eclipse.edc.controlplane.tasks.store.TaskStore;
+import org.eclipse.edc.controlplane.transfer.spi.TransferProcessTaskExecutor;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.PrepareTransfer;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
-import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
-import org.eclipse.edc.virtual.controlplane.tasks.Task;
-import org.eclipse.edc.virtual.controlplane.tasks.store.TaskStore;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.PrepareTransfer;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -96,7 +96,7 @@ class TaskPollExecutorTest {
     void start_shouldBeginPollingTasks() {
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -120,7 +120,7 @@ class TaskPollExecutorTest {
     void executeTask_shouldDeleteTaskOnSuccess() {
         var payload = PrepareTransfer.Builder.newInstance()
                 .processId("transfer-123")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -144,7 +144,7 @@ class TaskPollExecutorTest {
     void executeTask_shouldUpdateTaskOnFailure() {
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -169,7 +169,7 @@ class TaskPollExecutorTest {
     void handleTask_shouldDispatchContractNegotiationTaskPayload() {
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -193,7 +193,7 @@ class TaskPollExecutorTest {
     void handleTask_shouldDispatchTransferProcessTaskPayload() {
         var payload = PrepareTransfer.Builder.newInstance()
                 .processId("transfer-123")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -215,7 +215,7 @@ class TaskPollExecutorTest {
 
     @Test
     void handleTask_shouldHandleUnknownPayloadType() {
-        var payload = new UnknownPayload("process-1", "INITIAL", "CONSUMER");
+        var payload = new UnknownPayload("process-1", 100, "CONSUMER");
         var task = Task.Builder.newInstance()
                 .at(System.currentTimeMillis())
                 .payload(payload)
@@ -236,7 +236,7 @@ class TaskPollExecutorTest {
     void run_shouldContinuePollingAfterSuccessfulExecution() {
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -274,7 +274,7 @@ class TaskPollExecutorTest {
     void run_shouldDeleteTaskAfterLimitReached() {
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
 
@@ -320,7 +320,7 @@ class TaskPollExecutorTest {
     void executeTask_shouldLogErrorOnProcessingFailure() {
         var payload = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-123")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task = Task.Builder.newInstance()
@@ -346,7 +346,7 @@ class TaskPollExecutorTest {
     void executeTask_shouldProcessMultipleTasks() {
         var payload1 = RequestNegotiation.Builder.newInstance()
                 .processId("negotiation-1")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task1 = Task.Builder.newInstance()
@@ -356,7 +356,7 @@ class TaskPollExecutorTest {
 
         var payload2 = PrepareTransfer.Builder.newInstance()
                 .processId("transfer-1")
-                .processState("INITIAL")
+                .processState(100)
                 .processType("CONSUMER")
                 .build();
         var task2 = Task.Builder.newInstance()
@@ -384,7 +384,7 @@ class TaskPollExecutorTest {
      */
     public static class UnknownPayload extends ProcessTaskPayload {
 
-        UnknownPayload(String processId, String processState, String processType) {
+        UnknownPayload(String processId, Integer processState, String processType) {
             this.processId = processId;
             this.processState = processState;
             this.processType = processType;

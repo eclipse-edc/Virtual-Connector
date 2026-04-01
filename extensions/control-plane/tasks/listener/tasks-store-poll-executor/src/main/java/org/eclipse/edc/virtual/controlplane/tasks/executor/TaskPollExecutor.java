@@ -14,18 +14,18 @@
 
 package org.eclipse.edc.virtual.controlplane.tasks.executor;
 
+import org.eclipse.edc.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
+import org.eclipse.edc.controlplane.tasks.Task;
+import org.eclipse.edc.controlplane.tasks.store.TaskStore;
+import org.eclipse.edc.controlplane.transfer.spi.TransferProcessTaskExecutor;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
-import org.eclipse.edc.virtual.controlplane.tasks.Task;
-import org.eclipse.edc.virtual.controlplane.tasks.store.TaskStore;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.TransferProcessTaskExecutor;
-import org.eclipse.edc.virtual.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;

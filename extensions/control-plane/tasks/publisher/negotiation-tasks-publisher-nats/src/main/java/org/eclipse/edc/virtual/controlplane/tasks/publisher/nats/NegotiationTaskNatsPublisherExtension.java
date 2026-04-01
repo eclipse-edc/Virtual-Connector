@@ -15,6 +15,8 @@
 package org.eclipse.edc.virtual.controlplane.tasks.publisher.nats;
 
 import io.nats.client.Nats;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
+import org.eclipse.edc.controlplane.tasks.TaskObservable;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -23,14 +25,12 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
-import org.eclipse.edc.virtual.controlplane.tasks.TaskObservable;
 import org.eclipse.edc.virtual.controlplane.tasks.publisher.NatsTaskPublisher;
 
 import java.time.Clock;
 
 public class NegotiationTaskNatsPublisherExtension implements ServiceExtension {
-    
+
     @Inject
     private TypeManager typeManager;
 

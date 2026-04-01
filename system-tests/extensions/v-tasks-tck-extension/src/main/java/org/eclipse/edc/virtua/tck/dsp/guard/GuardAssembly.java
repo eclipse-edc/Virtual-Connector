@@ -47,7 +47,14 @@ public class GuardAssembly {
     public static List<Trigger<ContractNegotiation>> createNegotiationTriggers(ContractNegotiationGuardTask tckTask) {
         return List.of(
                 createTrigger(ContractNegotiationOffered.class, "ACN0205", tckTask::sendTermination),
-                createTrigger(ContractNegotiationRequested.class, "ACNC0202", tckTask::sendTermination));
+                createTrigger(ContractNegotiationOffered.class, "ACNC0101", tckTask::sendAccept),
+                createTrigger(ContractNegotiationOffered.class, "ACNC0102", tckTask::contractRequest),
+                createTrigger(ContractNegotiationOffered.class, "ACNC0103", tckTask::sendTermination),
+                createTrigger(ContractNegotiationRequested.class, "ACNC0202", tckTask::sendTermination),
+                createTrigger(ContractNegotiationOffered.class, "ACNC0205", tckTask::sendAccept),
+                createTrigger(ContractNegotiationOffered.class, "ACNC0304", tckTask::sendAccept),
+                createTrigger(ContractNegotiationOffered.class, "ACNC0305", tckTask::sendAccept),
+                createTrigger(ContractNegotiationOffered.class, "ACNC0306", tckTask::sendAccept));
     }
 
     private static <E extends ContractNegotiationEvent> Trigger<ContractNegotiation> createTrigger(Class<E> type,
@@ -151,26 +158,6 @@ public class GuardAssembly {
 
     private static void recordC01NegotiationSequences(StepRecorder<ContractNegotiation> recorder, ContractNegotiationGuardTask tckTask) {
 
-        recorder.sequence("ACNC0101")
-                .proceed()
-                .proceed()
-                .intercept(tckTask::sendAccept)
-                .proceed()
-                .intercept(tckTask::sendVerification)
-                .proceed();
-
-        recorder.sequence("ACNC0102")
-                .proceed()
-                .proceed()
-                .intercept(tckTask::contractRequest)
-                .proceed();
-
-        recorder.sequence("ACNC0103")
-                .proceed()
-                .proceed()
-                .intercept(tckTask::sendTermination)
-                .proceed();
-
         recorder.sequence("ACNC0104")
                 .proceed()
                 .proceed()
@@ -189,12 +176,6 @@ public class GuardAssembly {
                 .proceed()
                 .proceed()
                 .skip();
-
-        recorder.sequence("ACNC0205")
-                .proceed()
-                .proceed()
-                .intercept(tckTask::sendAccept)
-                .proceed();
 
         recorder.sequence("ACNC0206")
                 .proceed()
@@ -216,22 +197,9 @@ public class GuardAssembly {
                 .proceed()
                 .skip();
 
-        recorder.sequence("ACNC0304")
-                .proceed()
-                .proceed()
-                .intercept(tckTask::sendAccept)
-                .proceed();
-
-        recorder.sequence("ACNC0305")
-                .proceed()
-                .proceed()
-                .intercept(tckTask::sendAccept)
-                .proceed();
-
         recorder.sequence("ACNC0306")
                 .proceed()
                 .proceed()
-                .intercept(tckTask::sendAccept)
                 .proceed()
                 .skip();
     }

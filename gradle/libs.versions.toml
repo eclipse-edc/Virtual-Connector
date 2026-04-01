@@ -19,6 +19,7 @@ swagger = "2.2.45"
 [libraries]
 # EDC SPI modules
 edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
+edc-spi-tasks = { module = "org.eclipse.edc:task-spi", version.ref = "edc" }
 edc-spi-core = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-spi-participantcontext = { module = "org.eclipse.edc:connector-participant-context-spi", version.ref = "edc" }
 edc-spi-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-spi", version.ref = "edc" }
@@ -45,6 +46,8 @@ edc-spi-cel = { module = "org.eclipse.edc:cel-spi", version.ref = "edc" }
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
 edc-core-controlplane-contract = { module = "org.eclipse.edc:control-plane-contract", version.ref = "edc" }
 edc-core-controlplane-transfer = { module = "org.eclipse.edc:control-plane-transfer", version.ref = "edc" }
+edc-core-controlplane-transfer-tasks = { module = "org.eclipse.edc:control-plane-transfer-task-executor", version.ref = "edc" }
+edc-core-controlplane-contract-tasks = { module = "org.eclipse.edc:control-plane-contract-task-executor", version.ref = "edc" }
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
 edc-core-runtime = { module = "org.eclipse.edc:runtime-core", version.ref = "edc" }
 edc-core-token = { module = "org.eclipse.edc:token-core", version.ref = "edc" }
@@ -67,6 +70,7 @@ edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", versi
 edc-core-cel = { module = "org.eclipse.edc:cel-core", version.ref = "edc" }
 edc-core-policy-monitor = { module = "org.eclipse.edc:policy-monitor-core", version.ref = "edc" }
 edc-core-dsp-virtual = { module = "org.eclipse.edc:dsp-virtual", version.ref = "edc" }
+edc-core-tasks = { module = "org.eclipse.edc:task-core", version.ref = "edc" }
 
 # EDC Lib modules
 edc-lib-api = { module = "org.eclipse.edc:api-lib", version.ref = "edc" }
@@ -100,6 +104,7 @@ edc-participantcontext-store-sql = { module = "org.eclipse.edc:participantcontex
 edc-participantcontext-config-store-sql = { module = "org.eclipse.edc:participantcontext-config-store-sql", version.ref = "edc" }
 edc-encryption-aes = { module = "org.eclipse.edc:aes-encryption", version.ref = "edc" }
 edc-cel-store-sql = { module = "org.eclipse.edc:cel-store-sql", version.ref = "edc" }
+edc-tasks-store-sql = { module = "org.eclipse.edc:task-store-sql", version.ref = "edc" }
 edc-mgmtapi-authn-oauth2 = { module = "org.eclipse.edc:management-api-oauth2-authentication", version.ref = "edc" }
 edc-mgmtapi-authz = { module = "org.eclipse.edc:management-api-authorization", version.ref = "edc" }
 edc-mgmtapi-v5 = { module = "org.eclipse.edc:management-api-v5", version.ref = "edc" }

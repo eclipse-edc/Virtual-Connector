@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:v-task-spi"))
+    api(libs.edc.spi.tasks)
     api(libs.edc.spi.core)
     api(libs.edc.spi.web)
     api(libs.edc.spi.dataplane)

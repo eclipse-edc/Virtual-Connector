@@ -18,22 +18,22 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.AgreeNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.FinalizeNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendAgreement;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendFinalizeNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendRequestNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendVerificationNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.VerifyNegotiation;
+import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
+import org.eclipse.edc.controlplane.tasks.Task;
+import org.eclipse.edc.controlplane.tasks.TaskService;
+import org.eclipse.edc.controlplane.tasks.TaskTypes;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.AgreeNegotiation;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.FinalizeNegotiation;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendAgreement;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendFinalizeNegotiation;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendRequestNegotiation;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.SendVerificationNegotiation;
-import org.eclipse.edc.virtual.controlplane.contract.spi.negotiation.tasks.VerifyNegotiation;
-import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
-import org.eclipse.edc.virtual.controlplane.tasks.Task;
-import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
-import org.eclipse.edc.virtual.controlplane.tasks.TaskTypes;
 import org.eclipse.edc.virtual.nats.testfixtures.NatsEndToEndExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -92,7 +92,7 @@ public class NatsContractNegotiationTaskSubscriberTest {
 
     protected static <T extends ProcessTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> B baseBuilder(B builder, String id, ContractNegotiationStates state, ContractNegotiation.Type type) {
         return builder.processId(id)
-                .processState(state.name())
+                .processState(state.code())
                 .processType(type.name());
     }
 

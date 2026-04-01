@@ -16,12 +16,12 @@ package org.eclipse.edc.virtual.controlplane.tasks.subscriber;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
+import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
+import org.eclipse.edc.controlplane.tasks.Task;
+import org.eclipse.edc.controlplane.tasks.TaskService;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
-import org.eclipse.edc.virtual.controlplane.tasks.Task;
-import org.eclipse.edc.virtual.controlplane.tasks.TaskService;
 import org.eclipse.edc.virtual.nats.subscriber.NatsSubscriber;
 import org.jetbrains.annotations.NotNull;
 

@@ -19,7 +19,7 @@ plugins {
 dependencies {
     api(libs.edc.spi.core)
     api(libs.edc.spi.transaction)
-    api(project(":spi:v-task-spi"))
+    api(libs.edc.spi.tasks)
     implementation(libs.nats.client)
     implementation(project(":extensions:lib:nats-lib"))
 }

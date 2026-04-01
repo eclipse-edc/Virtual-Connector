@@ -16,11 +16,11 @@ package org.eclipse.edc.virtual.controlplane.tasks.publisher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.JetStream;
+import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
+import org.eclipse.edc.controlplane.tasks.Task;
+import org.eclipse.edc.controlplane.tasks.TaskListener;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.virtual.controlplane.tasks.ProcessTaskPayload;
-import org.eclipse.edc.virtual.controlplane.tasks.Task;
-import org.eclipse.edc.virtual.controlplane.tasks.TaskListener;
 
 import java.util.function.Supplier;
 
