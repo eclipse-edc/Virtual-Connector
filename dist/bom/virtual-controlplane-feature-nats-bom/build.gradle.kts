@@ -17,9 +17,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:control-plane:tasks:publisher:negotiation-tasks-publisher-nats"))
-    api(project(":extensions:control-plane:tasks:publisher:transfer-tasks-publisher-nats"))
-    api(project(":extensions:control-plane:tasks:subscriber:negotiation-tasks-subscriber-nats"))
-    api(project(":extensions:control-plane:tasks:subscriber:transfer-tasks-subscriber-nats"))
+    runtimeOnly(libs.edc.tasks.nats.publisher.negotiation)
+    runtimeOnly(libs.edc.tasks.nats.publisher.transfer)
+    runtimeOnly(libs.edc.tasks.nats.subscriber.negotiation)
+    runtimeOnly(libs.edc.tasks.nats.subscriber.transfer)
 }
 
