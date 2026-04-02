@@ -29,7 +29,7 @@ dependencies {
     testImplementation(libs.edc.junit)
     testImplementation(libs.restAssured)
     testImplementation(testFixtures(libs.edc.fixtures.sql))
-    testImplementation(testFixtures(project(":extensions:lib:nats-lib")))
+    testImplementation(testFixtures(libs.edc.lib.nats))
     testImplementation(project(":system-tests:system-test-fixtures"))
     testImplementation(testFixtures(libs.edc.ih.test.fixtures)) {
         exclude("com.networknt", "json-schema-validator")

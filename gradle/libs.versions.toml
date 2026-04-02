@@ -92,6 +92,7 @@ edc-lib-oauth2-authn = { module = "org.eclipse.edc:auth-authentication-oauth2-li
 edc-lib-oauth2-authz = { module = "org.eclipse.edc:auth-authorization-oauth2-lib", version.ref = "edc" }
 edc-lib-validator = { module = "org.eclipse.edc:validator-lib", version.ref = "edc" }
 edc-lib-statemachine = { module = "org.eclipse.edc:state-machine-lib", version.ref = "edc" }
+edc-lib-nats = { module = "org.eclipse.edc:nats-lib", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 
 # EDC Extensions modules
@@ -105,6 +106,10 @@ edc-participantcontext-config-store-sql = { module = "org.eclipse.edc:participan
 edc-encryption-aes = { module = "org.eclipse.edc:aes-encryption", version.ref = "edc" }
 edc-cel-store-sql = { module = "org.eclipse.edc:cel-store-sql", version.ref = "edc" }
 edc-tasks-store-sql = { module = "org.eclipse.edc:task-store-sql", version.ref = "edc" }
+edc-tasks-nats-publisher-negotiation = { module = "org.eclipse.edc:negotiation-tasks-publisher-nats", version.ref = "edc" }
+edc-tasks-nats-publisher-transfer = { module = "org.eclipse.edc:transfer-tasks-publisher-nats", version.ref = "edc" }
+edc-tasks-nats-subscriber-negotiation = { module = "org.eclipse.edc:negotiation-tasks-subscriber-nats", version.ref = "edc" }
+edc-tasks-nats-subscriber-transfer = { module = "org.eclipse.edc:transfer-tasks-subscriber-nats", version.ref = "edc" }
 edc-mgmtapi-authn-oauth2 = { module = "org.eclipse.edc:management-api-oauth2-authentication", version.ref = "edc" }
 edc-mgmtapi-authz = { module = "org.eclipse.edc:management-api-authorization", version.ref = "edc" }
 edc-mgmtapi-v5 = { module = "org.eclipse.edc:management-api-v5", version.ref = "edc" }
