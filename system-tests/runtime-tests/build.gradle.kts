@@ -41,6 +41,7 @@ dependencies {
         exclude("com.networknt", "json-schema-validator")
     }
     testImplementation(testFixtures(libs.edc.lib.oauth2.authn))
+    testImplementation(testFixtures(libs.edc.fixtures.mgmtapi))
     testImplementation(libs.nimbus.jwt)
     testImplementation(libs.bouncyCastle.bcpkixJdk18on)
 

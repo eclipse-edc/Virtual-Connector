@@ -19,20 +19,20 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.test.system.utils.Participants;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.AssetDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DataAddressDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PermissionDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDefinitionDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDto;
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
 import org.eclipse.edc.junit.annotations.Runtime;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.virtual.Runtimes.ControlPlane;
-import org.eclipse.edc.virtual.transfer.fixtures.Participants;
 import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnector;
-import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnectorClient;
-import org.eclipse.edc.virtual.transfer.fixtures.api.model.AssetDto;
-import org.eclipse.edc.virtual.transfer.fixtures.api.model.DataAddressDto;
-import org.eclipse.edc.virtual.transfer.fixtures.api.model.PermissionDto;
-import org.eclipse.edc.virtual.transfer.fixtures.api.model.PolicyDefinitionDto;
-import org.eclipse.edc.virtual.transfer.fixtures.api.model.PolicyDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -56,7 +56,7 @@ abstract class TransferPullEndToEndTestBase {
 
     @BeforeAll
     static void beforeAll(PublicEndpointGeneratorService generatorService,
-                          VirtualConnectorClient connectorClient,
+                          ManagementApiClientV5 connectorClient,
                           Participants participants,
                           @Runtime(ControlPlane.NAME) Vault vault) {
         generatorService.addGeneratorFunction("HttpData", address -> Endpoint.url("http://example.com"));
@@ -78,7 +78,7 @@ abstract class TransferPullEndToEndTestBase {
     }
 
     @Test
-    void transfer(VirtualConnector env, VirtualConnectorClient connectorClient, Participants participants) {
+    void transfer(VirtualConnector env, ManagementApiClientV5 connectorClient, Participants participants) {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
@@ -92,7 +92,7 @@ abstract class TransferPullEndToEndTestBase {
     }
 
     @Test
-    void suspendAndResumeByProvider(VirtualConnector env, VirtualConnectorClient connectorClient, Participants participants) {
+    void suspendAndResumeByProvider(VirtualConnector env, ManagementApiClientV5 connectorClient, Participants participants) {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
@@ -116,7 +116,7 @@ abstract class TransferPullEndToEndTestBase {
     }
 
     @Test
-    void suspendAndResumeByConsumer(VirtualConnector env, VirtualConnectorClient connectorClient, Participants participants) {
+    void suspendAndResumeByConsumer(VirtualConnector env, ManagementApiClientV5 connectorClient, Participants participants) {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
@@ -139,7 +139,7 @@ abstract class TransferPullEndToEndTestBase {
     }
 
     @Test
-    void terminateByConsumer(VirtualConnector env, VirtualConnectorClient connectorClient, Participants participants) {
+    void terminateByConsumer(VirtualConnector env, ManagementApiClientV5 connectorClient, Participants participants) {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
@@ -158,7 +158,7 @@ abstract class TransferPullEndToEndTestBase {
     }
 
     @Test
-    void terminateByProvider(VirtualConnector env, VirtualConnectorClient connectorClient, Participants participants) {
+    void terminateByProvider(VirtualConnector env, ManagementApiClientV5 connectorClient, Participants participants) {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
@@ -177,7 +177,7 @@ abstract class TransferPullEndToEndTestBase {
     }
 
     @Test
-    void completeByProvider(VirtualConnector env, TransferProcessService service, VirtualConnectorClient connectorClient, Participants participants) {
+    void completeByProvider(VirtualConnector env, TransferProcessService service, ManagementApiClientV5 connectorClient, Participants participants) {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
@@ -198,7 +198,7 @@ abstract class TransferPullEndToEndTestBase {
     }
 
     @Test
-    void completeByConsumer(VirtualConnector env, TransferProcessService service, VirtualConnectorClient connectorClient, Participants participants) {
+    void completeByConsumer(VirtualConnector env, TransferProcessService service, ManagementApiClientV5 connectorClient, Participants participants) {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
@@ -218,7 +218,7 @@ abstract class TransferPullEndToEndTestBase {
 
     }
 
-    private String setup(VirtualConnectorClient connectorClient, Participants.Participant provider) {
+    private String setup(ManagementApiClientV5 connectorClient, Participants.Participant provider) {
         var asset = new AssetDto(new DataAddressDto("HttpData"));
 
         var permissions = List.of(new PermissionDto());
