@@ -16,11 +16,21 @@ package org.eclipse.edc.virtual.transfer;
 
 import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
+import org.eclipse.edc.connector.controlplane.test.system.utils.Participants;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.AssetDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.AtomicConstraintDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.CelExpressionDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DataAddressDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PermissionDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDefinitionDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDto;
 import org.eclipse.edc.identityhub.tests.fixtures.DefaultRuntimes;
 import org.eclipse.edc.identityhub.tests.fixtures.credentialservice.IdentityHub;
 import org.eclipse.edc.identityhub.tests.fixtures.credentialservice.IdentityHubApiClient;
 import org.eclipse.edc.identityhub.tests.fixtures.issuerservice.IssuerService;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.utils.Endpoints;
@@ -29,16 +39,7 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.virtual.Runtimes;
-import org.eclipse.edc.virtual.transfer.fixtures.Participants;
 import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnector;
-import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnectorClient;
-import org.eclipse.edc.virtual.transfer.fixtures.api.model.AssetDto;
-import org.eclipse.edc.virtual.transfer.fixtures.api.model.AtomicConstraintDto;
-import org.eclipse.edc.virtual.transfer.fixtures.api.model.CelExpressionDto;
-import org.eclipse.edc.virtual.transfer.fixtures.api.model.DataAddressDto;
-import org.eclipse.edc.virtual.transfer.fixtures.api.model.PermissionDto;
-import org.eclipse.edc.virtual.transfer.fixtures.api.model.PolicyDefinitionDto;
-import org.eclipse.edc.virtual.transfer.fixtures.api.model.PolicyDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
@@ -63,14 +64,16 @@ class DcpTransferPullEndToEndTest {
     public static final String PROVIDER_CONTEXT = "provider";
     public static final String CONSUMER_CONTEXT = "consumer";
 
-    private static Participants participants(Endpoints endpoints) {
+    private static Participants participants(ComponentRuntimeContext ctx, Endpoints endpoints) {
+        var protocolEndpoint = ctx.getEndpoint("protocol");
+        var signalingEndpoint = ctx.getEndpoint("signaling");
         var providerDid = Runtimes.IdentityHub.didFor(endpoints, PROVIDER_CONTEXT);
         var providerCfg = Runtimes.IdentityHub.dcpConfig(endpoints, PROVIDER_CONTEXT);
         var consumerDid = Runtimes.IdentityHub.didFor(endpoints, CONSUMER_CONTEXT);
         var consumerCfg = Runtimes.IdentityHub.dcpConfig(endpoints, CONSUMER_CONTEXT);
         return new Participants(
-                new Participants.Participant(PROVIDER_CONTEXT, providerDid, providerCfg.getEntries()),
-                new Participants.Participant(CONSUMER_CONTEXT, consumerDid, consumerCfg.getEntries())
+                new Participants.Participant(PROVIDER_CONTEXT, providerDid, protocolEndpoint, signalingEndpoint, providerCfg.getEntries()),
+                new Participants.Participant(CONSUMER_CONTEXT, consumerDid, protocolEndpoint, signalingEndpoint, consumerCfg.getEntries())
         );
     }
 
@@ -112,7 +115,7 @@ class DcpTransferPullEndToEndTest {
 
         @Test
         void httpPull_dataTransfer_withMembershipExpression(VirtualConnector env,
-                                                            VirtualConnectorClient connectorClient,
+                                                            ManagementApiClientV5 connectorClient,
                                                             Participants participants) {
 
             var leftOperand = "https://w3id.org/example/credentials/MembershipCredential";
@@ -142,7 +145,7 @@ class DcpTransferPullEndToEndTest {
         }
 
         @Test
-        void negotiation_fails_withMissingCredential(VirtualConnector env, VirtualConnectorClient connectorClient,
+        void negotiation_fails_withMissingCredential(VirtualConnector env, ManagementApiClientV5 connectorClient,
                                                      Participants participants) {
 
             var leftOperand = "https://w3id.org/example/credentials/DataAccessCredential";
@@ -170,7 +173,7 @@ class DcpTransferPullEndToEndTest {
 
         }
 
-        private String setup(VirtualConnectorClient connectorClient, Participants.Participant provider, PolicyDto policy) {
+        private String setup(ManagementApiClientV5 connectorClient, Participants.Participant provider, PolicyDto policy) {
             var asset = new AssetDto(new DataAddressDto("HttpData"));
             var policyDef = new PolicyDefinitionDto(policy);
 
@@ -244,8 +247,8 @@ class DcpTransferPullEndToEndTest {
                 .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.did.web.use.https", "false")))
                 .paramProvider(VirtualConnector.class, VirtualConnector::forContext)
-                .paramProvider(VirtualConnectorClient.class, (ctx) -> VirtualConnectorClient.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
-                .paramProvider(Participants.class, context -> participants(IDENTITY_HUB_ENDPOINTS))
+                .paramProvider(ManagementApiClientV5.class, (ctx) -> ManagementApiClientV5.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
+                .paramProvider(Participants.class, context -> participants(context, IDENTITY_HUB_ENDPOINTS))
                 .build();
 
         private static Config runtimeConfiguration() {

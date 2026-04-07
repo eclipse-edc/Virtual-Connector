@@ -126,6 +126,7 @@ edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref
 
 ## EDC Fixtures
 edc-fixtures-sql = { module = "org.eclipse.edc:sql-test-fixtures", version.ref = "edc" }
+edc-fixtures-mgmtapi = { module = "org.eclipse.edc:management-api-test-fixtures", version.ref = "edc" }
 
 ### IH for testing
 edc-ih-test-fixtures = { module = "org.eclipse.edc:identityhub-test-fixtures", version.ref = "edc" }

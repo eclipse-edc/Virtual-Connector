@@ -15,16 +15,17 @@
 package org.eclipse.edc.virtual.transfer;
 
 import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
+import org.eclipse.edc.connector.controlplane.test.system.utils.Participants;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.nats.testfixtures.NatsEndToEndExtension;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.virtual.Runtimes;
-import org.eclipse.edc.virtual.transfer.fixtures.Participants;
 import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnector;
-import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnectorClient;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -40,10 +41,12 @@ class TransferPullEndToEndTest {
     public static final String PROVIDER_ID = "provider-id";
     public static final String CONSUMER_ID = "consumer-id";
 
-    private static Participants participants() {
+    private static Participants participants(ComponentRuntimeContext ctx) {
+        var protocolEndpoint = ctx.getEndpoint("protocol");
+        var signalingEndpoint = ctx.getEndpoint("signaling");
         return new Participants(
-                new Participants.Participant(PROVIDER_CONTEXT, PROVIDER_ID),
-                new Participants.Participant(CONSUMER_CONTEXT, CONSUMER_ID)
+                new Participants.Participant(PROVIDER_CONTEXT, PROVIDER_ID, protocolEndpoint, signalingEndpoint),
+                new Participants.Participant(CONSUMER_CONTEXT, CONSUMER_ID, protocolEndpoint, signalingEndpoint)
         );
     }
 
@@ -63,8 +66,8 @@ class TransferPullEndToEndTest {
                 .configurationProvider(Runtimes.ControlPlane::config)
                 .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .paramProvider(VirtualConnector.class, VirtualConnector::forContext)
-                .paramProvider(VirtualConnectorClient.class, (ctx) -> VirtualConnectorClient.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
-                .paramProvider(Participants.class, context -> participants())
+                .paramProvider(ManagementApiClientV5.class, (ctx) -> ManagementApiClientV5.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
+                .paramProvider(Participants.class, TransferPullEndToEndTest::participants)
                 .build();
 
     }
@@ -99,45 +102,8 @@ class TransferPullEndToEndTest {
                 .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .paramProvider(VirtualConnector.class, VirtualConnector::forContext)
-                .paramProvider(VirtualConnectorClient.class, (ctx) -> VirtualConnectorClient.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
-                .paramProvider(Participants.class, context -> participants())
-                .build();
-
-    }
-
-    @Nested
-    @PostgresqlIntegrationTest
-    class PostgresNatsTasks extends TransferPullEndToEndTestBase {
-
-        @Order(0)
-        @RegisterExtension
-        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
-
-        @Order(0)
-        @RegisterExtension
-        static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
-        @Order(0)
-        @RegisterExtension
-        static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension(createPgContainer());
-        @Order(1)
-        @RegisterExtension
-        static final BeforeAllCallback SETUP = context -> {
-            POSTGRESQL_EXTENSION.createDatabase(Runtimes.ControlPlane.NAME.toLowerCase());
-        };
-
-        @Order(2)
-        @RegisterExtension
-        static final RuntimeExtension CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
-                .name(Runtimes.ControlPlane.NAME)
-                .modules(Runtimes.ControlPlane.PG_NATS_TASKS_MODULES)
-                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
-                .configurationProvider(Runtimes.ControlPlane::config)
-                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
-                .configurationProvider(NATS_EXTENSION::configFor)
-                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
-                .paramProvider(VirtualConnector.class, VirtualConnector::forContext)
-                .paramProvider(VirtualConnectorClient.class, (ctx) -> VirtualConnectorClient.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
-                .paramProvider(Participants.class, context -> participants())
+                .paramProvider(ManagementApiClientV5.class, (ctx) -> ManagementApiClientV5.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
+                .paramProvider(Participants.class, TransferPullEndToEndTest::participants)
                 .build();
 
     }
