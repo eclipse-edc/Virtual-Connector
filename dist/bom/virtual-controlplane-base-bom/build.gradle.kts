@@ -22,6 +22,8 @@ dependencies {
     runtimeOnly(libs.edc.core.controlplane.transfer.tasks)
     runtimeOnly(libs.edc.core.tasks)
     runtimeOnly(libs.edc.core.dsp.virtual)
+    runtimeOnly(libs.edc.core.dps)
+    runtimeOnly(libs.edc.core.dps.oauth)
     runtimeOnly(libs.edc.mgmtapi.v5)
     runtimeOnly(libs.edc.core.mgmtapi.jsonschema)
     runtimeOnly(libs.edc.mgmtapi.authn.oauth2)
@@ -39,8 +41,7 @@ dependencies {
         exclude("org.eclipse.edc", "control-plane-transfer-manager")
     }
     runtimeOnly(libs.edc.core.dataplane.selector)
-    runtimeOnly(libs.edc.core.dataplane.signaling.client)
-    runtimeOnly(libs.edc.core.dataplane.signaling.transfer)
     runtimeOnly(libs.edc.encryption.aes)
+    runtimeOnly(libs.edc.oauth2.client)
 }
 

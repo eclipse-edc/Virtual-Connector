@@ -135,7 +135,7 @@ class DcpTransferPullEndToEndTest {
             var policy = new PolicyDto(List.of(permission));
 
             var assetId = setup(connectorClient, participants.provider(), policy);
-            var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+            var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
 
             var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
             var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());

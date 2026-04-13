@@ -15,9 +15,6 @@
 package org.eclipse.edc.virtual.transfer;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.Curve;
-import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participants;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
@@ -26,19 +23,19 @@ import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PermissionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDefinitionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDto;
-import org.eclipse.edc.connector.dataplane.spi.Endpoint;
-import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
-import org.eclipse.edc.junit.annotations.Runtime;
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.virtual.Runtimes.ControlPlane;
 import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnector;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
@@ -55,25 +52,43 @@ abstract class TransferPullEndToEndTestBase {
             .build();
 
     @BeforeAll
-    static void beforeAll(PublicEndpointGeneratorService generatorService,
-                          ManagementApiClientV5 connectorClient,
-                          Participants participants,
-                          @Runtime(ControlPlane.NAME) Vault vault) {
-        generatorService.addGeneratorFunction("HttpData", address -> Endpoint.url("http://example.com"));
-
+    static void beforeAll(
+            ManagementApiClientV5 connectorClient,
+            Participants participants,
+            DataPlaneSelectorService dataPlaneSelectorService) {
 
         connectorClient.createParticipant(participants.consumer().contextId(), participants.consumer().id(), participants.consumer().config());
         connectorClient.createParticipant(participants.provider().contextId(), participants.provider().id(), participants.provider().config());
 
-        try {
-            var key = new ECKeyGenerator(Curve.P_256)
-                    .keyID("sign-key")
-                    .generate();
-            vault.storeSecret("private-key", key.toJSONString());
-            vault.storeSecret("public-key", key.toPublicJWK().toJSONString());
-        } catch (JOSEException e) {
-            throw new RuntimeException(e);
-        }
+        var consumerDp = DataPlaneInstance.Builder.newInstance()
+                .id("consumer-dp")
+                .url(callbacksEndpoint.baseUrl())
+                .allowedTransferType("NonFinite-PULL")
+                .build();
+
+        dataPlaneSelectorService.register(consumerDp)
+                .orElseThrow(f -> new EdcException("Failed to register data plane instance: " + f.getFailureDetail()));
+
+
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        var prepared = """
+                {
+                    "dataplaneId" : "consumer-dp",
+                    "state": "PREPARED"
+                }
+                """;
+        callbacksEndpoint.stubFor(post("/prepare").willReturn(okJson(prepared)));
+
+        var started = """
+                {
+                    "dataplaneId" : "consumer-dp",
+                    "state": "STARTED"
+                }
+                """;
+        callbacksEndpoint.stubFor(post("/start").willReturn(okJson(started)));
 
     }
 
@@ -82,7 +97,7 @@ abstract class TransferPullEndToEndTestBase {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
-        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
 
         var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
         var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
@@ -96,7 +111,7 @@ abstract class TransferPullEndToEndTestBase {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
-        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
 
         var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
         var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
@@ -120,7 +135,7 @@ abstract class TransferPullEndToEndTestBase {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
-        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
 
         var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
         var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
@@ -143,7 +158,7 @@ abstract class TransferPullEndToEndTestBase {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
-        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
 
         var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
         var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
@@ -162,7 +177,7 @@ abstract class TransferPullEndToEndTestBase {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
-        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
 
         var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
         var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
@@ -181,7 +196,7 @@ abstract class TransferPullEndToEndTestBase {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
-        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
 
         var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
         var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
@@ -202,7 +217,7 @@ abstract class TransferPullEndToEndTestBase {
         var providerAddress = env.getProtocolEndpoint().get() + "/" + participants.provider().contextId() + "/2025-1";
 
         var assetId = setup(connectorClient, participants.provider());
-        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "HttpData-PULL");
+        var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
 
         var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
         var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());

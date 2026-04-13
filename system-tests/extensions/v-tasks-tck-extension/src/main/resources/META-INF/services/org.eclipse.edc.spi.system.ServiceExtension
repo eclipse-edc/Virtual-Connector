@@ -15,4 +15,3 @@
 org.eclipse.edc.virtua.tck.dsp.setup.TckSetupExtension
 org.eclipse.edc.virtua.tck.dsp.guard.TckGuardExtension
 org.eclipse.edc.virtua.tck.dsp.controller.TckControllerExtension
-org.eclipse.edc.virtua.tck.dsp.transfer.TckDataPlaneExtension
