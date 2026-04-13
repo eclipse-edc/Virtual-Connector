@@ -20,6 +20,7 @@ dependencies {
     testImplementation(libs.awaitility)
     testImplementation(libs.edc.junit)
     testImplementation(libs.edc.spi.participantcontext.config)
+    testImplementation(libs.edc.spi.dataplane.selector)
     testImplementation(libs.restAssured)
     testImplementation(libs.edc.junit)
     testImplementation(testFixtures(libs.edc.fixtures.sql))
@@ -28,6 +29,9 @@ dependencies {
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.vault)
     testImplementation(libs.testcontainers.postgres)
+    testImplementation(libs.wiremock) {
+        exclude("com.networknt", "json-schema-validator")
+    }
     runtimeOnly(libs.parsson)
 
     testCompileOnly(project(":system-tests:runtimes:tck:tck-controlplane-memory"))

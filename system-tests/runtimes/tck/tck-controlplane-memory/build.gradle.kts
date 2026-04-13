@@ -19,9 +19,6 @@ plugins {
 dependencies {
     implementation(project(":system-tests:extensions:v-tasks-tck-extension"))
     implementation(project(":dist:bom:virtual-controlplane-memory-bom"))
-    runtimeOnly(libs.edc.bom.dataplane) {
-        exclude(module = "data-plane-selector-client")
-    }
     runtimeOnly(libs.edc.iam.mock)
     runtimeOnly(libs.parsson)
 }

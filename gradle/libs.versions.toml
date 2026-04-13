@@ -18,34 +18,22 @@ swagger = "2.2.45"
 
 [libraries]
 # EDC SPI modules
-edc-spi-asset = { module = "org.eclipse.edc:asset-spi", version.ref = "edc" }
 edc-spi-tasks = { module = "org.eclipse.edc:task-spi", version.ref = "edc" }
 edc-spi-core = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-spi-participantcontext = { module = "org.eclipse.edc:connector-participant-context-spi", version.ref = "edc" }
 edc-spi-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-spi", version.ref = "edc" }
 edc-spi-transaction = { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
 edc-spi-transaction-datasource = { module = "org.eclipse.edc:transaction-datasource-spi", version.ref = "edc" }
-edc-spi-protocol = { module = "org.eclipse.edc:protocol-spi", version.ref = "edc" }
 edc-spi-contract = { module = "org.eclipse.edc:contract-spi", version.ref = "edc" }
 edc-spi-transfer = { module = "org.eclipse.edc:transfer-spi", version.ref = "edc" }
-edc-spi-policy = { module = "org.eclipse.edc:policy-spi", version.ref = "edc" }
 edc-spi-jsonld = { module = "org.eclipse.edc:json-ld-spi", version.ref = "edc" }
-edc-spi-dsp = { module = "org.eclipse.edc:dsp-spi", version.ref = "edc" }
-edc-spi-dsp-v2025 = { module = "org.eclipse.edc:dsp-spi-2025", version.ref = "edc" }
-edc-spi-dsp-http = { module = "org.eclipse.edc:dsp-http-spi", version.ref = "edc" }
 edc-spi-web = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }
-edc-spi-dataplane = { module = "org.eclipse.edc:data-plane-spi", version.ref = "edc" }
-edc-spi-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-spi", version.ref = "edc" }
-edc-spi-validator = { module = "org.eclipse.edc:validator-spi", version.ref = "edc" }
 edc-spi-controlplane = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
-edc-spi-auth = { module = "org.eclipse.edc:auth-spi", version.ref = "edc" }
-edc-spi-transform = { module = "org.eclipse.edc:transform-spi", version.ref = "edc" }
 edc-spi-cel = { module = "org.eclipse.edc:cel-spi", version.ref = "edc" }
+edc-spi-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-spi", version.ref = "edc" }
 
 # EDC Core modules
 edc-core-controlplane = { module = "org.eclipse.edc:control-plane-core", version.ref = "edc" }
-edc-core-controlplane-contract = { module = "org.eclipse.edc:control-plane-contract", version.ref = "edc" }
-edc-core-controlplane-transfer = { module = "org.eclipse.edc:control-plane-transfer", version.ref = "edc" }
 edc-core-controlplane-transfer-tasks = { module = "org.eclipse.edc:control-plane-transfer-task-executor", version.ref = "edc" }
 edc-core-controlplane-contract-tasks = { module = "org.eclipse.edc:control-plane-contract-task-executor", version.ref = "edc" }
 edc-core-connector = { module = "org.eclipse.edc:connector-core", version.ref = "edc" }
@@ -53,45 +41,19 @@ edc-core-runtime = { module = "org.eclipse.edc:runtime-core", version.ref = "edc
 edc-core-token = { module = "org.eclipse.edc:token-core", version.ref = "edc" }
 edc-core-jersey = { module = "org.eclipse.edc:jersey-core", version.ref = "edc" }
 edc-core-jetty = { module = "org.eclipse.edc:jetty-core", version.ref = "edc" }
-edc-core-dsp-http = { module = "org.eclipse.edc:dsp-http-core", version.ref = "edc" }
-edc-core-dsp-http-configuration = { module = "org.eclipse.edc:dsp-http-api-base-configuration", version.ref = "edc" }
-edc-core-dsp-http-dispatcher-v2025 = { module = "org.eclipse.edc:dsp-http-dispatcher-2025", version.ref = "edc" }
-edc-core-dsp-http-catalog-dispatcher = { module = "org.eclipse.edc:dsp-catalog-http-dispatcher", version.ref = "edc" }
-edc-core-dsp-http-negotiation-dispatcher = { module = "org.eclipse.edc:dsp-negotiation-http-dispatcher", version.ref = "edc" }
-edc-core-dsp-http-transferprocess-dispatcher = { module = "org.eclipse.edc:dsp-transfer-process-http-dispatcher", version.ref = "edc" }
-edc-core-dsp-catalog-transform-v2025 = { module = "org.eclipse.edc:dsp-catalog-transform-2025", version.ref = "edc" }
-edc-core-dsp-negotiation-transform-v2025 = { module = "org.eclipse.edc:dsp-negotiation-transform-2025", version.ref = "edc" }
-edc-core-dsp-transferprocess-transform-v2025 = { module = "org.eclipse.edc:dsp-transfer-process-transform-2025", version.ref = "edc" }
 edc-core-mgmtapi-jsonschema = { module = "org.eclipse.edc:management-api-schema-validator", version.ref = "edc" }
 edc-core-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-core", version.ref = "edc" }
-edc-core-dataplane-signaling-client = { module = "org.eclipse.edc:data-plane-signaling-client", version.ref = "edc" }
-edc-core-dataplane-signaling-transfer = { module = "org.eclipse.edc:transfer-data-plane-signaling", version.ref = "edc" }
-edc-core-sql-bootstrapper = { module = "org.eclipse.edc:sql-bootstrapper", version.ref = "edc" }
 edc-core-cel = { module = "org.eclipse.edc:cel-core", version.ref = "edc" }
 edc-core-policy-monitor = { module = "org.eclipse.edc:policy-monitor-core", version.ref = "edc" }
 edc-core-dsp-virtual = { module = "org.eclipse.edc:dsp-virtual", version.ref = "edc" }
 edc-core-tasks = { module = "org.eclipse.edc:task-core", version.ref = "edc" }
+edc-core-dps = { module = "org.eclipse.edc:data-plane-signaling-core", version.ref = "edc" }
+edc-core-dps-oauth = { module = "org.eclipse.edc:data-plane-signaling-oauth2", version.ref = "edc" }
 
 # EDC Lib modules
-edc-lib-api = { module = "org.eclipse.edc:api-lib", version.ref = "edc" }
-edc-lib-store = { module = "org.eclipse.edc:store-lib", version.ref = "edc" }
-edc-lib-query = { module = "org.eclipse.edc:query-lib", version.ref = "edc" }
 edc-lib-sql = { module = "org.eclipse.edc:sql-lib", version.ref = "edc" }
 edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
-edc-lib-transform = { module = "org.eclipse.edc:transform-lib", version.ref = "edc" }
-edc-lib-controlplane-transform = { module = "org.eclipse.edc:control-plane-transform", version.ref = "edc" }
-edc-lib-jersey-providers = { module = "org.eclipse.edc:jersey-providers-lib", version.ref = "edc" }
-edc-lib-dsp-catalog-validation = { module = "org.eclipse.edc:dsp-catalog-validation-lib", version.ref = "edc" }
-edc-lib-dsp-catalog-http = { module = "org.eclipse.edc:dsp-catalog-http-api-lib", version.ref = "edc" }
-edc-lib-dsp-negotiation-validation = { module = "org.eclipse.edc:dsp-negotiation-validation-lib", version.ref = "edc" }
-edc-lib-dsp-negotiation-http = { module = "org.eclipse.edc:dsp-negotiation-http-api-lib", version.ref = "edc" }
-edc-lib-dsp-transferprocess-validation = { module = "org.eclipse.edc:dsp-transfer-process-validation-lib", version.ref = "edc" }
-edc-lib-dsp-transferprocess-http = { module = "org.eclipse.edc:dsp-transfer-process-http-api-lib", version.ref = "edc" }
-edc-lib-mgmtapi = { module = "org.eclipse.edc:management-api-lib", version.ref = "edc" }
 edc-lib-oauth2-authn = { module = "org.eclipse.edc:auth-authentication-oauth2-lib", version.ref = "edc" }
-edc-lib-oauth2-authz = { module = "org.eclipse.edc:auth-authorization-oauth2-lib", version.ref = "edc" }
-edc-lib-validator = { module = "org.eclipse.edc:validator-lib", version.ref = "edc" }
-edc-lib-statemachine = { module = "org.eclipse.edc:state-machine-lib", version.ref = "edc" }
 edc-lib-nats = { module = "org.eclipse.edc:nats-lib", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 
@@ -113,6 +75,7 @@ edc-tasks-nats-subscriber-transfer = { module = "org.eclipse.edc:transfer-tasks-
 edc-mgmtapi-authn-oauth2 = { module = "org.eclipse.edc:management-api-oauth2-authentication", version.ref = "edc" }
 edc-mgmtapi-authz = { module = "org.eclipse.edc:management-api-authorization", version.ref = "edc" }
 edc-mgmtapi-v5 = { module = "org.eclipse.edc:management-api-v5", version.ref = "edc" }
+
 # EDC DCP modules
 edc-iam-dcp-core = { module = "org.eclipse.edc:decentralized-claims-core", version.ref = "edc" }
 edc-iam-decentralized = { module = "org.eclipse.edc:decentralized-identity", version.ref = "edc" }
@@ -122,7 +85,6 @@ edc-iam-dcp-cel = { module = "org.eclipse.edc:decentralized-claims-cel", version
 
 # EDC BOM modules
 edc-bom-controlplane-sql = { module = "org.eclipse.edc:controlplane-feature-sql-bom", version.ref = "edc" }
-edc-bom-dataplane = { module = "org.eclipse.edc:dataplane-base-bom", version.ref = "edc" }
 
 ## EDC Fixtures
 edc-fixtures-sql = { module = "org.eclipse.edc:sql-test-fixtures", version.ref = "edc" }
@@ -141,12 +103,8 @@ restAssured = { module = "io.rest-assured:rest-assured", version.ref = "restAssu
 testcontainers-postgres = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testcontainers-vault = { module = "org.testcontainers:vault", version.ref = "testcontainers" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
-jakarta-rsApi = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "rsApi" }
-jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation" }
 nimbus-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus" }
-opentelemetry-instrumentation-annotations = { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations", version.ref = "opentelemetry" }
 parsson = { module = "org.eclipse.parsson:parsson", version.ref = "parsson" }
-nats-client = { module = "io.nats:jnats", version.ref = "nats" }
 wiremock = { module = "org.wiremock:wiremock-jetty12", version.ref = "wiremock" }
 bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 bouncyCastle-bcprovJdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle-jdk18on" }

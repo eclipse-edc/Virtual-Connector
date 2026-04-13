@@ -19,9 +19,6 @@ plugins {
 dependencies {
     implementation(libs.edc.iam.mock)
     implementation(project(":dist:bom:virtual-controlplane-memory-bom"));
-    runtimeOnly(libs.edc.bom.dataplane) {
-        exclude(module = "data-plane-selector-client")
-    }
     runtimeOnly(libs.parsson)
     runtimeOnly(libs.bouncyCastle.bcprovJdk18on)
 }

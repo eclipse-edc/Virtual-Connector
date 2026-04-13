@@ -20,7 +20,6 @@ dependencies {
     api(libs.edc.spi.tasks)
     api(libs.edc.spi.core)
     api(libs.edc.spi.web)
-    api(libs.edc.spi.dataplane)
     api(libs.edc.spi.transaction)
     api(libs.edc.spi.contract)
     api(libs.edc.spi.transfer)

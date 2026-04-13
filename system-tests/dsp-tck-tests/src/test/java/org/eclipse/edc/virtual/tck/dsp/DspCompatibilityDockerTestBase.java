@@ -14,10 +14,17 @@
 
 package org.eclipse.edc.virtual.tck.dsp;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.SelinuxContext;
@@ -28,6 +35,9 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.fail;
 
 @Testcontainers
@@ -35,6 +45,48 @@ public abstract class DspCompatibilityDockerTestBase {
 
     public static final List<String> ALLOWED_FAILURES = List.of();
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC5");
+
+    @RegisterExtension
+    static WireMockExtension callbacksEndpoint = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
+
+
+    @BeforeAll
+    static void beforeAll(DataPlaneSelectorService dataPlaneSelectorService) {
+
+        var consumerDp = DataPlaneInstance.Builder.newInstance()
+                .id("consumer-dp")
+                .url(callbacksEndpoint.baseUrl())
+                .allowedTransferType("HttpData-PULL")
+                .build();
+
+        dataPlaneSelectorService.register(consumerDp)
+                .orElseThrow(f -> new EdcException("Failed to register data plane instance: " + f.getFailureDetail()));
+
+
+    }
+
+    @BeforeEach
+    void beforeEach() {
+        var prepared = """
+                {
+                    "dataplaneId" : "consumer-dp",
+                    "state": "PREPARED"
+                }
+                """;
+        callbacksEndpoint.stubFor(post("/prepare").willReturn(okJson(prepared)));
+
+        var started = """
+                {
+                    "dataplaneId" : "consumer-dp",
+                    "state": "STARTED"
+                }
+                """;
+        callbacksEndpoint.stubFor(post("/start").willReturn(okJson(started)));
+
+    }
+
 
     @Timeout(300)
     @Test
