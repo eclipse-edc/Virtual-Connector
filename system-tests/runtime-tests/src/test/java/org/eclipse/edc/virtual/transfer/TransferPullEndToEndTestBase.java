@@ -20,11 +20,10 @@ import org.eclipse.edc.connector.controlplane.test.system.utils.Participants;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.AssetDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DataAddressDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DataPlaneRegistrationDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PermissionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDefinitionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDto;
-import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.virtual.transfer.fixtures.VirtualConnector;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
+import java.util.Set;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -54,21 +54,30 @@ abstract class TransferPullEndToEndTestBase {
     @BeforeAll
     static void beforeAll(
             ManagementApiClientV5 connectorClient,
-            Participants participants,
-            DataPlaneSelectorService dataPlaneSelectorService) {
+            Participants participants) {
 
         connectorClient.createParticipant(participants.consumer().contextId(), participants.consumer().id(), participants.consumer().config());
         connectorClient.createParticipant(participants.provider().contextId(), participants.provider().id(), participants.provider().config());
 
-        var consumerDp = DataPlaneInstance.Builder.newInstance()
-                .id("consumer-dp")
-                .url(callbacksEndpoint.baseUrl())
-                .allowedTransferType("NonFinite-PULL")
-                .build();
 
-        dataPlaneSelectorService.register(consumerDp)
-                .orElseThrow(f -> new EdcException("Failed to register data plane instance: " + f.getFailureDetail()));
+        var consumerDp = new DataPlaneRegistrationDto(
+                "consumer-dp",
+                callbacksEndpoint.baseUrl(),
+                Set.of("NonFinite-PULL"),
+                Set.of(),
+                null
+        );
+        connectorClient.dataplanes().registerDataPlane(participants.consumer().contextId(), consumerDp);
 
+        var providerDp = new DataPlaneRegistrationDto(
+                "provider-dp",
+                callbacksEndpoint.baseUrl(),
+                Set.of("NonFinite-PULL"),
+                Set.of(),
+                null
+        );
+
+        connectorClient.dataplanes().registerDataPlane(participants.provider().contextId(), providerDp);
 
     }
 

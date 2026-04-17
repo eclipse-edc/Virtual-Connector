@@ -59,6 +59,7 @@ public abstract class DspCompatibilityDockerTestBase {
                 .id("consumer-dp")
                 .url(callbacksEndpoint.baseUrl())
                 .allowedTransferType("HttpData-PULL")
+                .participantContextId("participantContextId")
                 .build();
 
         dataPlaneSelectorService.register(consumerDp)
