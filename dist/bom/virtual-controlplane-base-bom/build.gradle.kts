@@ -43,5 +43,6 @@ dependencies {
     runtimeOnly(libs.edc.core.dataplane.selector)
     runtimeOnly(libs.edc.encryption.aes)
     runtimeOnly(libs.edc.oauth2.client)
+    runtimeOnly(libs.edc.configuration.filesystem)
 }
 
