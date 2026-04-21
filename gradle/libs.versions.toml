@@ -2,19 +2,14 @@
 format.version = "1.1"
 
 [versions]
-edc = "0.17.0-SNAPSHOT"
+edc = "0.18.0-SNAPSHOT"
 awaitility = "4.3.0"
 restAssured = "6.0.0"
 testcontainers = "1.21.4"
-rsApi = "4.0.0"
 nimbus = "10.8"
-opentelemetry = "2.26.0"
 parsson = "1.1.7"
-nats = "2.25.2"
 wiremock = "3.13.2"
 bouncyCastle-jdk18on = "1.83"
-jakarta-annotation = "3.0.0"
-swagger = "2.2.45"
 
 [libraries]
 # EDC SPI modules
@@ -125,4 +120,3 @@ dcp = [
 edc-build = { id = "org.eclipse.edc.edc-build", version = "1.4.0" }
 shadow = { id = "com.gradleup.shadow", version = "9.4.0" }
 docker = { id = "com.bmuschko.docker-remote-api", version = "10.0.0" }
-swagger = { id = "io.swagger.core.v3.swagger-gradle-plugin", version.ref = "swagger" }
