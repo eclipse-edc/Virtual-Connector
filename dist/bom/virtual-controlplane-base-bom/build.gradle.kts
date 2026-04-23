@@ -36,10 +36,7 @@ dependencies {
     runtimeOnly(libs.edc.core.jetty)
     runtimeOnly(libs.edc.core.policy.monitor)
     runtimeOnly(libs.edc.api.observability)
-    runtimeOnly(libs.edc.core.controlplane) {
-        exclude("org.eclipse.edc", "control-plane-contract-manager")
-        exclude("org.eclipse.edc", "control-plane-transfer-manager")
-    }
+    runtimeOnly(libs.edc.core.controlplane)
     runtimeOnly(libs.edc.core.dataplane.selector)
     runtimeOnly(libs.edc.encryption.aes)
     runtimeOnly(libs.edc.oauth2.client)
