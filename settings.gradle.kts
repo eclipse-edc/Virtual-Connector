@@ -33,18 +33,12 @@ include(":extensions:common:banner-extension")
 // lib
 
 include(":system-tests:system-test-fixtures")
-include(":system-tests:runtimes:issuer")
-include(":system-tests:runtimes:identity-hub")
 include(":system-tests:runtime-tests")
 include(":system-tests:dsp-tck-tests")
 include(":system-tests:extensions:v-tck-extension")
 include(":system-tests:extensions:v-tasks-tck-extension")
 include(":system-tests:runtimes:tck:tck-controlplane-memory")
 include(":system-tests:runtimes:tck:tck-controlplane-postgres")
-include(":system-tests:runtimes:e2e:e2e-controlplane-memory")
-include(":system-tests:runtimes:e2e:e2e-controlplane-postgres")
-include(":system-tests:runtimes:e2e:e2e-controlplane-postgres-nats")
-include(":system-tests:runtimes:e2e:e2e-dcp-controlplane-postgres")
 
 // BOM modules ----------------------------------------------------------------
 include(":dist:bom:virtual-controlplane-base-bom")

@@ -38,7 +38,6 @@ import java.util.HashMap;
 import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.eclipse.edc.virtual.test.system.fixtures.DockerImages.createPgContainer;
 import static org.hamcrest.Matchers.equalTo;
 
 @SuppressWarnings("JUnitMalformedDeclaration")
@@ -121,7 +120,7 @@ public class RuntimeSmokeTests {
 
         @Order(0)
         @RegisterExtension
-        static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension(createPgContainer());
+        static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension();
         static final String DB_NAME = "smoke_test";
 
 
