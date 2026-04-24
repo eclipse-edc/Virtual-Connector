@@ -9,7 +9,6 @@ testcontainers = "1.21.4"
 nimbus = "10.8"
 parsson = "1.1.7"
 wiremock = "3.13.2"
-bouncyCastle-jdk18on = "1.83"
 
 [libraries]
 # EDC SPI modules
@@ -18,13 +17,10 @@ edc-spi-core = { module = "org.eclipse.edc:core-spi", version.ref = "edc" }
 edc-spi-participantcontext = { module = "org.eclipse.edc:connector-participant-context-spi", version.ref = "edc" }
 edc-spi-participantcontext-config = { module = "org.eclipse.edc:participant-context-config-spi", version.ref = "edc" }
 edc-spi-transaction = { module = "org.eclipse.edc:transaction-spi", version.ref = "edc" }
-edc-spi-transaction-datasource = { module = "org.eclipse.edc:transaction-datasource-spi", version.ref = "edc" }
 edc-spi-contract = { module = "org.eclipse.edc:contract-spi", version.ref = "edc" }
 edc-spi-transfer = { module = "org.eclipse.edc:transfer-spi", version.ref = "edc" }
-edc-spi-jsonld = { module = "org.eclipse.edc:json-ld-spi", version.ref = "edc" }
 edc-spi-web = { module = "org.eclipse.edc:web-spi", version.ref = "edc" }
 edc-spi-controlplane = { module = "org.eclipse.edc:control-plane-spi", version.ref = "edc" }
-edc-spi-cel = { module = "org.eclipse.edc:cel-spi", version.ref = "edc" }
 edc-spi-dataplane-selector = { module = "org.eclipse.edc:data-plane-selector-spi", version.ref = "edc" }
 
 # EDC Core modules
@@ -46,9 +42,6 @@ edc-core-dps = { module = "org.eclipse.edc:data-plane-signaling-core", version.r
 edc-core-dps-oauth = { module = "org.eclipse.edc:data-plane-signaling-oauth2", version.ref = "edc" }
 
 # EDC Lib modules
-edc-lib-sql = { module = "org.eclipse.edc:sql-lib", version.ref = "edc" }
-edc-lib-jsonld = { module = "org.eclipse.edc:json-ld-lib", version.ref = "edc" }
-edc-lib-oauth2-authn = { module = "org.eclipse.edc:auth-authentication-oauth2-lib", version.ref = "edc" }
 edc-lib-nats = { module = "org.eclipse.edc:nats-lib", version.ref = "edc" }
 edc-junit = { module = "org.eclipse.edc:junit", version.ref = "edc" }
 
@@ -84,14 +77,6 @@ edc-bom-controlplane-sql = { module = "org.eclipse.edc:controlplane-feature-sql-
 
 ## EDC Fixtures
 edc-fixtures-sql = { module = "org.eclipse.edc:sql-test-fixtures", version.ref = "edc" }
-edc-fixtures-mgmtapi = { module = "org.eclipse.edc:management-api-test-fixtures", version.ref = "edc" }
-
-### IH for testing
-edc-ih-test-fixtures = { module = "org.eclipse.edc:identityhub-test-fixtures", version.ref = "edc" }
-edc-bom-identityhub = { module = "org.eclipse.edc:identityhub-bom", version.ref = "edc" }
-edc-bom-identityhub-sql = { module = "org.eclipse.edc:identityhub-feature-sql-bom", version.ref = "edc" }
-edc-bom-issuerservice = { module = "org.eclipse.edc:issuerservice-bom", version.ref = "edc" }
-edc-bom-issuerservice-sql = { module = "org.eclipse.edc:issuerservice-feature-sql-bom", version.ref = "edc" }
 
 # Other libraries
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
@@ -102,8 +87,6 @@ testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.re
 nimbus-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus" }
 parsson = { module = "org.eclipse.parsson:parsson", version.ref = "parsson" }
 wiremock = { module = "org.wiremock:wiremock-jetty12", version.ref = "wiremock" }
-bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle-jdk18on" }
-bouncyCastle-bcprovJdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 
 [bundles]
 dcp = [
@@ -119,5 +102,3 @@ dcp = [
 
 [plugins]
 edc-build = { id = "org.eclipse.edc.edc-build", version = "1.4.0" }
-shadow = { id = "com.gradleup.shadow", version = "9.4.0" }
-docker = { id = "com.bmuschko.docker-remote-api", version = "10.0.0" }
