@@ -6,7 +6,7 @@ edc = "0.18.0-SNAPSHOT"
 awaitility = "4.3.0"
 restAssured = "6.0.0"
 testcontainers = "1.21.4"
-nimbus = "10.8"
+nimbus = "10.9"
 parsson = "1.1.7"
 wiremock = "3.13.2"
 
