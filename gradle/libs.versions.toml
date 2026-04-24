@@ -101,4 +101,4 @@ dcp = [
 ]
 
 [plugins]
-edc-build = { id = "org.eclipse.edc.edc-build", version = "1.4.0" }
+edc-build = { id = "org.eclipse.edc.edc-build", version = "1.5.2" }
