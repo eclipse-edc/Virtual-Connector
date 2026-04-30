@@ -32,13 +32,7 @@ include(":extensions:common:banner-extension")
 
 // lib
 
-include(":system-tests:system-test-fixtures")
 include(":system-tests:runtime-tests")
-include(":system-tests:dsp-tck-tests")
-include(":system-tests:extensions:v-tck-extension")
-include(":system-tests:extensions:v-tasks-tck-extension")
-include(":system-tests:runtimes:tck:tck-controlplane-memory")
-include(":system-tests:runtimes:tck:tck-controlplane-postgres")
 
 // BOM modules ----------------------------------------------------------------
 include(":dist:bom:virtual-controlplane-base-bom")
