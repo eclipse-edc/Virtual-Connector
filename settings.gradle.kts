@@ -30,13 +30,4 @@ pluginManagement {
 include(":extensions:control-plane:tasks:listener:tasks-store-poll-executor")
 include(":extensions:common:banner-extension")
 
-// lib
 
-include(":system-tests:runtime-tests")
-
-// BOM modules ----------------------------------------------------------------
-include(":dist:bom:virtual-controlplane-base-bom")
-include(":dist:bom:virtual-controlplane-memory-bom")
-include(":dist:bom:virtual-controlplane-feature-dcp-bom")
-include(":dist:bom:virtual-controlplane-feature-sql-bom")
-include(":dist:bom:virtual-controlplane-feature-nats-bom")
