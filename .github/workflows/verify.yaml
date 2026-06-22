@@ -39,7 +39,7 @@ jobs:
   verify-license-headers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: "Check for files without a license header"
         run: |-
           # checks all java, yaml, kts and sql files for an Apache 2.0 license header
@@ -54,7 +54,7 @@ jobs:
   verify-checkstyle:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Run Checkstyle
         run: |
@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ verify-license-headers ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Run Unit tests
         run: ./gradlew test
@@ -72,7 +72,7 @@ jobs:
   Postgresql-Integration-Tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Postgresql Tests
         run: |
@@ -81,7 +81,7 @@ jobs:
   Component-Tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Component Tests
         run: ./gradlew test -DincludeTags="ComponentTest"
@@ -89,7 +89,7 @@ jobs:
   API-Tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: Component Tests
         run: ./gradlew test -DincludeTags="ApiTest"
@@ -97,7 +97,7 @@ jobs:
   End-To-End-Tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: End to End Integration Tests
         run: |
